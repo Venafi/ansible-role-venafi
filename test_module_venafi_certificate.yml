@@ -1,0 +1,56 @@
+- name: venafi_certificate_fake
+  connection: local
+  hosts: localhost
+  tags:
+    - fake
+  tasks:
+  - name: venafi_certificate
+    venafi_certificate:
+      test_mode: true
+      common_name: 'testcert-fake-{{ 99999999 | random }}.example.com'
+      path: '/tmp'
+    register: testout
+  - name: dump test output
+    debug:
+      msg: '{{ testout }}'
+
+
+- name: venafi_certificate_tpp
+  connection: local
+  hosts: localhost
+  tags:
+    - tpp
+  tasks:
+  - name: venafi_certificate
+    venafi_certificate:
+      tpp_url: 'https://ha-tpp1.sqlha.com:5008/vedsdk'
+      tpp_user: 'admin'
+      tpp_password: !vault |
+        $ANSIBLE_VAULT;1.1;AES256
+      zone: 'devops\\\\vcert'
+      path: '/tmp'
+      tpp_trust_bundle: '/tmp/chain.pem'
+      common_name: 'testcert-tpp-{{ 99999999 | random }}.example.com'
+    register: testout
+  - name: dump test output
+    debug:
+      msg: '{{ testout }}'
+
+- name: venafi_certificate_cloud
+  connection: local
+  hosts: localhost
+  tags:
+    - cloud
+  tasks:
+  - name: venafi_certificate
+    venafi_certificate:
+#      cloud_url:
+      api_key: !vault |
+        $ANSIBLE_VAULT;1.1;AES256
+      zone: 'Default'
+      path: '/tmp'
+      common_name: 'testcert-cloud.example.com'
+    register: testout
+  - name: dump test output
+    debug:
+      msg: '{{ testout }}'
