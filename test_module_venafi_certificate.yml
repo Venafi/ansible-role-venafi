@@ -8,7 +8,7 @@
     venafi_certificate:
       test_mode: true
       common_name: 'testcert-ansible-fake-{{ 99999999 | random }}.example.com'
-      path: "{{ }}"
+      path: "{{ path }}"
     register: testout
   - name: dump test output
     debug:

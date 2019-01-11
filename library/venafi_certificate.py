@@ -84,7 +84,6 @@ EXAMPLES = '''
           $ANSIBLE_VAULT;1.1;AES256
       zone: 'example\\\\policy'
       path: '/tmp'
-      tpp_trust_bundle: '/tmp/chain.pem'
       common_name: 'testcert-tpp-{{ 99999999 | random }}.example.com'
     register: testout
   - name: dump test output
@@ -133,35 +132,14 @@ class VCertificate():
         self.module = module
         self.conn = Connection(url=self.url, token=self.token, user=self.user, password=self.password, ignore_ssl_errors=True)
 
-        if self.test_mode:
-            self.Endpoint = "fake"
-            self.EndpointString = "-test-mode"
-        elif (self.url != "" and self.password != "" and
-              self.user != "" and self.zone):
-            self.Endpoint = "tpp"
-            if self.tpp_trust_bundle != "":
-                self.EndpointString = "-tpp-password " + self.password + \
-                                      " -tpp-url " + self.url + \
-                                      " -tpp-user " + \
-                                      self.user + " -z '" + self.zone \
-                                      + "'" + " -trust-bundle " + \
-                                      self.tpp_trust_bundle
-            else:
-                self.EndpointString = "-tpp-password " + self.password + \
-                                      " -tpp-url " + self.url \
-                                      + " -tpp-user " + \
-                                      self.user + " -z '" + self.zone + "'"
-        elif self.token != "":
-            self.Endpoint = "cloud"
-            if self.url != "":
-                self.EndpointString = "-k " + self.token \
-                                      + " -venafi-saas-url " \
-                                      + self.url + " -z '" + \
-                                      self.zone + "'"
-            else:
-                self.EndpointString = "-k " + self.token
-        else:
-            self.Endpoint = "unknown"
+
+    def ping(self):
+        print("Trying to ping url %s" % self.conn._base_url)
+        status = self.conn.ping()
+        print("Server online:", self.status)
+        if not status:
+            print('Server offline - exit')
+            exit(1)
 
     def enroll(self, cn, cert_file="", chain_file="", key_file="", path=""):
 
@@ -172,12 +150,6 @@ class VCertificate():
         if key_file == "":
             key_file = path + "/" + cn + ".key"
 
-        print("Trying to ping url %s" % self.conn._base_url)
-        status = self.conn.ping()
-        print("Server online:", self.status)
-        if not status:
-            print('Server offline - exit')
-            exit(1)
         self.args = "vcert enroll -no-prompt " + self.EndpointString\
                     + " -cn " + cn + " -cert-file " + cert_file + " " \
                     "-chain-file " + chain_file + " -key-file " + key_file
@@ -202,7 +174,6 @@ def main():
             # Endpoint
             test_mode=dict(type='bool', required=False, default=False),
             url=dict(type='str', required=False, default=''),
-            tpp_trust_bundle=dict(type='str', required=False, default=''),
             password=dict(type='str', required=False, default=''),
             token=dict(type='str', required=False, default=''),
             user=dict(type='str', required=False, default=''),
@@ -240,8 +211,8 @@ def main():
 
     # running vcert command
     vcert = VCertificate(module)
-    result['endpoint'] = vcert.Endpoint
-    vcert.enroll(cn=module.params['common_name'], path=module.params['path'])
+    # vcert.enroll(cn=module.params['common_name'], path=module.params['path'])
+    vcert.ping()
     result['vcert_args'] = vcert.args
     rc, out, err = module.run_command(
         vcert.args, executable="vcert", use_unsafe_shell=False)
