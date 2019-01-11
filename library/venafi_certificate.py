@@ -136,7 +136,7 @@ class VCertificate():
     def ping(self):
         print("Trying to ping url %s" % self.conn._base_url)
         status = self.conn.ping()
-        print("Server online:", self.status)
+        print("Server online:", status)
         if not status:
             print('Server offline - exit')
             exit(1)
