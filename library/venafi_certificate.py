@@ -1,4 +1,5 @@
 #!/usr/bin/python
+import time
 from __future__ import absolute_import, division, print_function
 from ansible.module_utils.basic import AnsibleModule
 from vcert import CertificateRequest, Connection, CloudConnection, \
@@ -134,7 +135,7 @@ class VCertificate():
 
 
     def ping(self):
-        print("Trying to ping url %s" % self.conn._base_url)
+        print("Trying to ping url %s" % self.conn)
         status = self.conn.ping()
         print("Server online:", status)
         if not status:
@@ -150,9 +151,19 @@ class VCertificate():
         if key_file == "":
             key_file = path + "/" + cn + ".key"
 
-        self.args = "vcert enroll -no-prompt " + self.EndpointString\
-                    + " -cn " + cn + " -cert-file " + cert_file + " " \
-                    "-chain-file " + chain_file + " -key-file " + key_file
+        request = CertificateRequest(common_name=cn)
+        request.san_dns = ["www.client.venafi.example.com", "ww1.client.venafi.example.com"]
+        request.email_addresses = ["e1@venafi.example.com", "e2@venafi.example.com"]
+        request.ip_addresses = ["127.0.0.1", "192.168.1.1"]
+        request.chain_option = "last"
+
+        self.conn.request_cert(request, self.zone)
+        while True:
+            cert = self.conn.retrieve_cert(request)
+            if cert:
+                break
+            else:
+                time.sleep(5)
 
 
 def main():
