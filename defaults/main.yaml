@@ -1,0 +1,14 @@
+---
+#Parameters for the Platfrom
+user: 'admin'
+password: 'secret'
+
+#Parameters for the Cloud
+token: ''
+
+#Parameters for both
+zone: 'Default'
+path: '/tmp'
+url: 'venafi.example.com'
+
+
