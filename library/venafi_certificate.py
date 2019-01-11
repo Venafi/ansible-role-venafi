@@ -78,9 +78,9 @@ EXAMPLES = '''
   tasks:
   - name: venafi_certificate
     venafi_certificate:
-      tpp_url: 'https://venafi.example.com/vedsdk'
-      tpp_user: 'admin'
-      tpp_password: !vault |
+      url: 'https://venafi.example.com/vedsdk'
+      user: 'admin'
+      password: !vault |
           $ANSIBLE_VAULT;1.1;AES256
       zone: 'example\\\\policy'
       path: '/tmp'
@@ -100,7 +100,7 @@ EXAMPLES = '''
   tasks:
   - name: venafi_certificate
     venafi_certificate:
-      api_key: !vault |
+      token: !vault |
           $ANSIBLE_VAULT;1.1;AES256
       zone: 'Default'
       path: '/tmp'
@@ -124,46 +124,42 @@ class VCertificate():
 
     def __init__(self, module):
         self.test_mode = module.params['test_mode']
-        self.tpp_url = module.params['tpp_url']
-        self.cloud_url = module.params['cloud_url']
-        self.tpp_password = module.params['tpp_password']
-        self.tpp_trust_bundle = module.params['tpp_trust_bundle']
-        self.api_key = module.params['api_key']
-        self.tpp_user = module.params['tpp_user']
+        self.url = module.params['url']
+        self.password = module.params['password']
+        self.token = module.params['token']
+        self.user = module.params['user']
         self.zone = module.params['zone']
-        self.log_verbose = module.params['log_verbose']
-        self.config_file = module.params['config_file']
-        self.config_section = module.params['config_section']
         self.args = ""
         self.module = module
+        self.conn = Connection(url=self.url, token=self.token, user=self.user, password=self.password, ignore_ssl_errors=True)
 
         if self.test_mode:
             self.Endpoint = "fake"
             self.EndpointString = "-test-mode"
-        elif (self.tpp_url != "" and self.tpp_password != "" and
-              self.tpp_user != "" and self.zone):
+        elif (self.url != "" and self.password != "" and
+              self.user != "" and self.zone):
             self.Endpoint = "tpp"
             if self.tpp_trust_bundle != "":
-                self.EndpointString = "-tpp-password " + self.tpp_password + \
-                                      " -tpp-url " + self.tpp_url + \
+                self.EndpointString = "-tpp-password " + self.password + \
+                                      " -tpp-url " + self.url + \
                                       " -tpp-user " + \
-                                      self.tpp_user + " -z '" + self.zone \
+                                      self.user + " -z '" + self.zone \
                                       + "'" + " -trust-bundle " + \
                                       self.tpp_trust_bundle
             else:
-                self.EndpointString = "-tpp-password " + self.tpp_password + \
-                                      " -tpp-url " + self.tpp_url \
+                self.EndpointString = "-tpp-password " + self.password + \
+                                      " -tpp-url " + self.url \
                                       + " -tpp-user " + \
-                                      self.tpp_user + " -z '" + self.zone + "'"
-        elif self.api_key != "":
+                                      self.user + " -z '" + self.zone + "'"
+        elif self.token != "":
             self.Endpoint = "cloud"
-            if self.cloud_url != "":
-                self.EndpointString = "-k " + self.api_key \
+            if self.url != "":
+                self.EndpointString = "-k " + self.token \
                                       + " -venafi-saas-url " \
-                                      + self.cloud_url + " -z '" + \
+                                      + self.url + " -z '" + \
                                       self.zone + "'"
             else:
-                self.EndpointString = "-k " + self.api_key
+                self.EndpointString = "-k " + self.token
         else:
             self.Endpoint = "unknown"
 
@@ -175,6 +171,13 @@ class VCertificate():
             chain_file = path + "/" + cn + "_chain.pem"
         if key_file == "":
             key_file = path + "/" + cn + ".key"
+
+        print("Trying to ping url %s" % self.conn._base_url)
+        status = self.conn.ping()
+        print("Server online:", self.status)
+        if not status:
+            print('Server offline - exit')
+            exit(1)
         self.args = "vcert enroll -no-prompt " + self.EndpointString\
                     + " -cn " + cn + " -cert-file " + cert_file + " " \
                     "-chain-file " + chain_file + " -key-file " + key_file
@@ -198,12 +201,11 @@ def main():
 
             # Endpoint
             test_mode=dict(type='bool', required=False, default=False),
-            tpp_url=dict(type='str', required=False, default=''),
+            url=dict(type='str', required=False, default=''),
             tpp_trust_bundle=dict(type='str', required=False, default=''),
-            cloud_url=dict(type='str', required=False, default=''),
-            tpp_password=dict(type='str', required=False, default=''),
-            api_key=dict(type='str', required=False, default=''),
-            tpp_user=dict(type='str', required=False, default=''),
+            password=dict(type='str', required=False, default=''),
+            token=dict(type='str', required=False, default=''),
+            user=dict(type='str', required=False, default=''),
             zone=dict(type='str', required=False, default=''),
             log_verbose=dict(type='str', required=False, default=''),
             config_file=dict(type='str', required=False, default=''),
