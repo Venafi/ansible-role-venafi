@@ -269,12 +269,13 @@ class VCertificate:
     def dump(self):
 
         result = {
-            'changed': self.changed,
-            'filename': self.path,
-            'privatekey': self.privatekey_path,
-            'csr': self.csr_path,
-            'ca_cert': self.ca_cert_path,
-            'ca_privatekey': self.ca_privatekey_path
+            # TODO: write following variables before return
+            'privatekey_filename': self.privatekey_filename,
+            'privatekey_size': self.privatekey_size,
+            'privatekey_curve': self.privatekey_curve,
+            'privatekey_type': self.privatekey_type,
+            'certificate_filename': self.certificate_filename,
+            'chain_filename': self.chain_filename,
         }
 
         return result
