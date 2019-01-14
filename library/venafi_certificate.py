@@ -144,7 +144,7 @@ class VCertificate():
             print('Server offline - exit')
             exit(1)
 
-    def enroll(self, cn, cert_file="", chain_file="", key_file="", path=""):
+    def enroll(self):
 
         if cert_file == "":
             cert_file = path + "/" + cn + ".pem"
@@ -153,7 +153,7 @@ class VCertificate():
         if key_file == "":
             key_file = path + "/" + cn + ".key"
 
-        request = CertificateRequest(common_name=cn)
+        request = CertificateRequest(common_name=self.cn)
         request.san_dns = ["www.client.venafi.example.com", "ww1.client.venafi.example.com"]
         request.email_addresses = ["e1@venafi.example.com", "e2@venafi.example.com"]
         request.ip_addresses = ["127.0.0.1", "192.168.1.1"]
