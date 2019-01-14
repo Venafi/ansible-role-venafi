@@ -12,29 +12,6 @@ ANSIBLE_METADATA = {
 }
 
 DOCUMENTATION = '''
-            state=dict(type='str', choices=['present', 'absent'],
-                       default='present'),
-            force=dict(type='bool', default=False, ),
-
-            # Endpoint
-            test_mode=dict(type='bool', required=False, default=False),
-            url=dict(type='str', required=False, default=''),
-            password=dict(type='str', required=False, default=''),
-            token=dict(type='str', required=False, default=''),
-            user=dict(type='str', required=False, default=''),
-            zone=dict(type='str', required=False, default=''),
-            log_verbose=dict(type='str', required=False, default=''),
-            config_file=dict(type='str', required=False, default=''),
-            config_section=dict(type='str', required=False, default=''),
-
-            # General properties of a certificate
-            path=dict(type='path', require=False),
-            chain_path=dict(type='path', require=False),
-            privatekey_path=dict(type='path', required=False),
-            privatekey_passphrase=dict(type='str', no_log=True),
-            signature_algorithms=dict(type='list', elements='str'),
-            subjectAltName=dict(type='list', aliases=['subject_alt_name'], elements='str'),
-            commonName=dict(aliases=['CN', 'common_name'], type='str'),
 ---
 module: venafi_certificate_module
 
@@ -48,6 +25,20 @@ description:
      Venafi Trusted Platform "
 
 options:
+    force:
+        default: False
+        type: bool
+        description:
+            - Generate the certificate, even if it already exists.
+
+    state:
+        default: "present"
+        choices: [ present, absent ]
+        description:
+            - Whether the certificate should exist or not, taking action if the state is different from what is stated.
+
+
+
     path:
         required: true
         description:
@@ -65,11 +56,7 @@ options:
         aliases: [ 'CN', 'commonName' ]
         description:
             - commonName field of the certificate signing request subject
-    email_address:
-        required: false
-        aliases: [ 'E', 'emailAddress' ]
-        description:
-            - emailAddress field of the certificate signing request subject
+
     subject_alt_name:
         required: false
         aliases: [ 'subjectAltName' ]
@@ -81,10 +68,29 @@ options:
             - More at U(https://tools.ietf.org/html/rfc5280#section-4.2.1.6)
             
     privatekey_path:
-        required: true
+        required: false
         description:
-            - Path to the privatekey to use when signing the certificate signing request
-            
+            - Path to the privatekey to use when signing the certificate signing request. If not set will be placed 
+            near certificate with key suffix.
+
+    privatekey_type:
+        default: "RSA"
+        required: false
+        description:
+            - Type of private key. RSA or ECDSA
+
+    privatekey_size:
+        required: false
+        default: 4096
+        description:
+            - Size (in bits) of the TLS/SSL key to generate. Used only for RSA. 
+
+    privatekey_curve:
+        required: false
+        default: "P521"
+        description:
+            - Curves name for ecdsa algorithm. Choices are "P521", "P384", "P256", "P224".
+
     privatekey_passphrase:
         required: false
         description:
@@ -171,9 +177,15 @@ privatekey_size:
     returned: changed or success
     type: int
     sample: 4096
+
+privatekey_curve:
+    description: ECDSA curve of generated private key. Variants are "P521", "P384", "P256", "P224".
+    returned: changed or success
+    type: string
+    sample: "P521"
     
 privatekey_type:
-    description: Algorithm used to generate the TLS/SSL private key. RSA or ECDSA
+    description: Algorithm used to generate the TLS/SSL private key. Variants are RSA or ECDSA
     returned: changed or success
     type: string
     sample: RSA
@@ -221,6 +233,7 @@ class VCertificate:
 
     def enroll(self):
 
+        #TODO: Check if certificate in path parameter already exists. If exists check validity of certificate.
         request = CertificateRequest(common_name=self.module['commonName'])
         #TODO: make a function to recognise extension type
         request.san_dns = ["www.client.venafi.example.com", "ww1.client.venafi.example.com"]
@@ -235,6 +248,7 @@ class VCertificate:
                 break
             else:
                 time.sleep(5)
+        #TODO: write certificate to the module path parameter.
 
     def dump(self):
 
