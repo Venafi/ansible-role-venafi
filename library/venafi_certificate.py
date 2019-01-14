@@ -186,6 +186,7 @@ def main():
 
             # General properties of a certificate
             path=dict(type='path', require=False),
+            chain_path=dict(type='path', require=False),
             privatekey_path=dict(type='path', required=False),
             privatekey_passphrase=dict(type='str', no_log=True),
             signature_algorithms=dict(type='list', elements='str'),
@@ -196,38 +197,13 @@ def main():
         add_file_common_args=True,
     )
 
-    # seed the result dict in the object
-    # we primarily care about changed and state
-    # change is if this module effectively modified the target
-    # state will include any data that you want your module to pass back
-    # for consumption, for example, in a subsequent task
-    result = dict(
-        changed=False,
-        vcert_args='',
-        message='',
-        endpoint='',
-        error=''
-    )
-
-    # if the user is working with this module in only check mode we do not
-    # want to make any changes to the environment, just return the current
-    # state with no modifications
-    if module.check_mode:
-        return result
-
     vcert = VCertificate(module)
     vcert.ping()
     vcert.enroll()
 
     result = vcert.dump()
-
-
-    # use whatever logic you need to determine whether or not this module
-    # made any modifications to your target
     result['changed'] = True
 
-    # in the event of a successful module execution, you will want to
-    # simple AnsibleModule.exit_json(), passing the key/value results
     module.exit_json(**result)
 
 
