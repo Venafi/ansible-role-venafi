@@ -57,6 +57,7 @@ options:
 
     chain_option:
         required: false
+        default: "last"
         description:
             - Specify ordering certificates in chain. Root can be "first" or "last"
                 
@@ -243,14 +244,14 @@ class VCertificate:
     def enroll(self):
 
         #TODO: Check if certificate in path parameter already exists.
-        request = CertificateRequest(common_name=self.module['commonName'])
+        request = CertificateRequest(common_name=self.module.params['commonName'])
         #TODO: make a function to recognise extension type
         request.san_dns = ["www.client.venafi.example.com", "ww1.client.venafi.example.com"]
         request.email_addresses = ["e1@venafi.example.com", "e2@venafi.example.com"]
         request.ip_addresses = ["127.0.0.1", "192.168.1.1"]
 
         #TODO: choose proper chain options based on cloud or TPP and chain parameters (i.e write chain file or not)
-        request.chain_option = self.module['chain_option']
+        request.chain_option = self.module.params['chain_option']
 
         self.conn.request_cert(request, self.zone)
         while True:
@@ -313,6 +314,7 @@ def main():
             signature_algorithms=dict(type='list', elements='str'),
             subjectAltName=dict(type='list', aliases=['subject_alt_name'], elements='str'),
             commonName=dict(aliases=['CN', 'common_name'], type='str'),
+            chain_option=dict(type='str', required=False, default='last'),
         ),
         supports_check_mode=True,
         add_file_common_args=True,
