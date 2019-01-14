@@ -132,11 +132,12 @@ class VCertificate():
         self.zone = module.params['zone']
         self.args = ""
         self.module = module
+        self.cn = module.params['common_name']
         self.conn = Connection(url=self.url, token=self.token, user=self.user, password=self.password, ignore_ssl_errors=True)
 
 
     def ping(self):
-        print("Trying to ping url %s" % self.conn)
+        print("Trying to ping url %s" % self.conn._base_url)
         status = self.conn.ping()
         print("Server online:", status)
         if not status:
@@ -165,6 +166,19 @@ class VCertificate():
                 break
             else:
                 time.sleep(5)
+
+    def dump(self):
+
+        result = {
+            'changed': self.changed,
+            'filename': self.path,
+            'privatekey': self.privatekey_path,
+            'csr': self.csr_path,
+            'ca_cert': self.ca_cert_path,
+            'ca_privatekey': self.ca_privatekey_path
+        }
+
+        return result
 
 
 def main():
@@ -223,8 +237,12 @@ def main():
 
     # running vcert command
     vcert = VCertificate(module)
-    # vcert.enroll(cn=module.params['common_name'], path=module.params['path'])
     vcert.ping()
+    vcert.enroll()
+
+    result = vcert.dump()
+
+
     result['vcert_args'] = vcert.args
     rc, out, err = module.run_command(
         vcert.args, executable="vcert", use_unsafe_shell=False)

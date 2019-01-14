@@ -1,7 +1,7 @@
 # Created by .ignore support plugin (hsz.mobi)
 .idea
 venv
-venafi_certificate.json
+venafi_certificate_*.json
 /library/openssl_certificate.py
 /library/openssl_csr.py
 /library/openssl_privatekey.py
