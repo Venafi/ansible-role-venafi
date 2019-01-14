@@ -329,8 +329,6 @@ def main():
     vcert.enroll()
 
     result = vcert.dump()
-    result['changed'] = True
-
     module.exit_json(**result)
 
 
