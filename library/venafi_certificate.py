@@ -37,7 +37,11 @@ options:
         description:
             - Whether the certificate should exist or not, taking action if the state is different from what is stated.
 
-
+    renew:
+        default: False
+        type: bool
+        description:
+            - Try to renew certificate if is existing but no valid.
 
     path:
         required: true
@@ -50,6 +54,11 @@ options:
         description:
             - Remote absolute path where the generated certificate chain file should
             be created or is already located.
+
+    chain_option:
+        required: false
+        description:
+            - Specify ordering certificates in chain. Root can be "first" or "last"
                 
     common_name:
         required: false
@@ -233,13 +242,15 @@ class VCertificate:
 
     def enroll(self):
 
-        #TODO: Check if certificate in path parameter already exists. If exists check validity of certificate.
+        #TODO: Check if certificate in path parameter already exists.
         request = CertificateRequest(common_name=self.module['commonName'])
         #TODO: make a function to recognise extension type
         request.san_dns = ["www.client.venafi.example.com", "ww1.client.venafi.example.com"]
         request.email_addresses = ["e1@venafi.example.com", "e2@venafi.example.com"]
         request.ip_addresses = ["127.0.0.1", "192.168.1.1"]
-        request.chain_option = "last"
+
+        #TODO: choose proper chain options based on cloud or TPP and chain parameters (i.e write chain file or not)
+        request.chain_option = self.module['chain_option']
 
         self.conn.request_cert(request, self.zone)
         while True:
@@ -249,6 +260,11 @@ class VCertificate:
             else:
                 time.sleep(5)
         #TODO: write certificate to the module path parameter.
+
+    def validate(self):
+        #TODO: Test validity of certificate (not expired, subject and extensions are the same as required). If it is
+        # not valid and renew option is true try to renew it.
+        return None
 
     def dump(self):
 
@@ -303,6 +319,12 @@ def main():
 
     vcert = VCertificate(module)
     vcert.ping()
+    # TODO: make a following choice:
+    """
+    1. If certificate is present and renew is true validate it
+    2. If certificate not present renew it
+    3. If it present and renew is false just keep it.
+    """
     vcert.enroll()
 
     result = vcert.dump()
