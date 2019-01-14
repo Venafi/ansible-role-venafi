@@ -109,6 +109,7 @@ EXAMPLES = '''
     venafi_certificate:
       test_mode: true
       common_name: 'testcert-fake-{{ 99999999 | random }}.example.com'
+      subject_alt_name: 'DNS:www.venafi.example,DNS:m.venafi.example'
       path: '/tmp'
     register: testout
   - name: dump test output
@@ -131,7 +132,7 @@ EXAMPLES = '''
       zone: 'example\\\\policy'
       path: '/tmp'
       common_name: 'testcert-tpp-{{ 99999999 | random }}.example.com'
-      subject_alt_name: 'DNS:www.ansible.com,DNS:m.ansible.com'
+      subject_alt_name: 'DNS:www.venafi.example,DNS:m.venafi.example'
     register: testout
   - name: dump test output
     debug:
@@ -151,6 +152,7 @@ EXAMPLES = '''
       zone: 'Default'
       path: '/tmp'
       common_name: 'testcert-cloud.example.com'
+      subject_alt_name: 'DNS:www.venafi.example,DNS:m.venafi.example'      
     register: testout
   - name: dump test output
     debug:
@@ -158,19 +160,20 @@ EXAMPLES = '''
 '''
 
 RETURN = '''
-privatekey:
+privatekey_filename:
     description: Path to the TLS/SSL private key the CSR was generated for
     returned: changed or success
     type: string
-    sample: /etc/ssl/private/ansible.com.pem
+    sample: /etc/ssl/private/venafi.example.pem
     
 privatekey_size:
     description: Size (in bits) of the TLS/SSL private key
     returned: changed or success
     type: int
     sample: 4096
+    
 privatekey_type:
-    description: Algorithm used to generate the TLS/SSL private key
+    description: Algorithm used to generate the TLS/SSL private key. RSA or ECDSA
     returned: changed or success
     type: string
     sample: RSA
@@ -179,9 +182,13 @@ certificate_filename:
     description: Path to the signed Certificate Signing Request
     returned: changed or success
     type: string
-    sample: /etc/ssl/csr/www.ansible.com.csr
+    sample: /etc/ssl/www.venafi.example.pem
 
 chain_filename:
+    description: Path to the signed Certificate Signing Request
+    returned: changed or success
+    type: string
+    sample: /etc/ssl/www.venafi.example_chain.pem
 '''
 
 
