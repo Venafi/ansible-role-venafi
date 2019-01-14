@@ -1,10 +1,9 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 from __future__ import absolute_import, division, print_function
 from ansible.module_utils.basic import AnsibleModule
 import time
-from vcert import CertificateRequest, Connection, CloudConnection, \
-    FakeConnection
+from vcert import CertificateRequest, Connection
 
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
@@ -16,12 +15,12 @@ DOCUMENTATION = '''
 ---
 module: venafi_certificate_module
 
-short_description: This is Venafi certificate module for VCert Python SDK.
+short_description: This is Venafi certificate module for working with Venafi Cloud or Venafi Trusted Platform 
 
 version_added: "2.7"
 
 description:
-    - "This is Venafi certificate module for VCert Python SDK."
+    - This is Venafi certificate module for working with Venafi Cloud or Venafi Trusted Platform "
 
 options:
     path:
@@ -38,22 +37,6 @@ author:
 '''
 
 EXAMPLES = '''
-# Pass in a message
-- name: Test with a message
-  my_new_test_module:
-    name: hello world
-
-# pass in a message and have changed true
-- name: Test with a message and changed output
-  my_new_test_module:
-    name: hello world
-    new: true
-
-# fail the module
-- name: Test failure of the module
-  my_new_test_module:
-    name: fail me
-    
 # Enroll fake certificate for testing purposes
 - name: venafi_certificate_fake
   connection: local
@@ -121,9 +104,12 @@ message:
 '''
 
 
-class VCertificate():
+class VCertificate:
 
     def __init__(self, module):
+        """
+        :param AnsibleModule module:
+        """
         self.test_mode = module.params['test_mode']
         self.url = module.params['url']
         self.password = module.params['password']
@@ -132,28 +118,21 @@ class VCertificate():
         self.zone = module.params['zone']
         self.args = ""
         self.module = module
-        self.cn = module.params['common_name']
         self.conn = Connection(url=self.url, token=self.token, user=self.user, password=self.password, ignore_ssl_errors=True)
 
 
     def ping(self):
-        print("Trying to ping url %s" % self.conn._base_url)
+        print("Trying to ping url %s" % self.conn)
         status = self.conn.ping()
         print("Server online:", status)
         if not status:
             print('Server offline - exit')
             exit(1)
 
-    def enroll(self, cn, cert_file="", chain_file="", key_file="", path=""):
+    def enroll(self):
 
-        if cert_file == "":
-            cert_file = path + "/" + cn + ".pem"
-        if chain_file == "":
-            chain_file = path + "/" + cn + "_chain.pem"
-        if key_file == "":
-            key_file = path + "/" + cn + ".key"
 
-        request = CertificateRequest(common_name=cn)
+        request = CertificateRequest(common_name=self.module['subject'])
         request.san_dns = ["www.client.venafi.example.com", "ww1.client.venafi.example.com"]
         request.email_addresses = ["e1@venafi.example.com", "e2@venafi.example.com"]
         request.ip_addresses = ["127.0.0.1", "192.168.1.1"]
@@ -192,10 +171,7 @@ def main():
         argument_spec=dict(
             state=dict(type='str', choices=['present', 'absent'],
                        default='present'),
-            provider=dict(type='str', choices=['selfsigned',
-                                               'ownca', 'assertonly', 'acme']),
             force=dict(type='bool', default=False, ),
-            csr_path=dict(type='path'),
 
             # Endpoint
             test_mode=dict(type='bool', required=False, default=False),
@@ -209,8 +185,12 @@ def main():
             config_section=dict(type='str', required=False, default=''),
 
             # General properties of a certificate
-            path=dict(type='path', required=True),
-            common_name=dict(type='str', required=True),
+            path=dict(type='path', require=False),
+            privatekey_path=dict(type='path', required=False),
+            privatekey_passphrase=dict(type='str', no_log=True),
+            signature_algorithms=dict(type='list', elements='str'),
+            subject=dict(type='str'),
+            subjectAltName=dict(type='list', aliases=['subject_alt_name'], elements='str'),
         ),
         supports_check_mode=True,
         add_file_common_args=True,
@@ -235,23 +215,12 @@ def main():
     if module.check_mode:
         return result
 
-    # running vcert command
     vcert = VCertificate(module)
     vcert.ping()
     vcert.enroll()
 
     result = vcert.dump()
 
-
-    result['vcert_args'] = vcert.args
-    rc, out, err = module.run_command(
-        vcert.args, executable="vcert", use_unsafe_shell=False)
-    # print(out)
-
-    # manipulate or modify the state as needed (this is going to be the
-    # part where your module will do what it needs to do)
-    result['message'] = out.rstrip(b"\r\n")
-    result['error'] = err.rstrip(b"\r\n")
 
     # use whatever logic you need to determine whether or not this module
     # made any modifications to your target
