@@ -88,7 +88,7 @@ options:
 
     privatekey_size:
         required: false
-        default: 4096
+        default: 2048
         description:
             - Size (in bits) of the TLS/SSL key to generate. Used only for RSA. 
 
@@ -275,14 +275,21 @@ class VCertificate:
                 break
             else:
                 time.sleep(5)
-        # TODO: write certificate, private key and chain into files
+        # TODO: separate certificate and it's chain (if chain exists) into different files
         try:
             with open(self.certificate_filename, 'wb') as certfile:
                 certfile.write(to_bytes(cert))
             self.changed = True
         except OSError as exc:
-            raise OSError(exc)
-        # TODO: write certificate path to the module path parameter.
+            self.module.fail_json(msg="Failed to write certificate file: {0}".format(exc))
+
+        try:
+            with open(self.privatekey_filename, 'wb') as keyfile:
+                keyfile.write(to_bytes(request.private_key_pem))
+            self.changed = True
+        except OSError as exc:
+            self.module.fail_json(msg="Failed to write private key file: {0}".format(exc))
+
 
     def validate(self):
         # TODO: Test validity of certificate (not expired, subject and extensions are the same as required). If it is
@@ -334,7 +341,7 @@ def main():
             chain_path=dict(type='path', require=False),
             privatekey_path=dict(type='path', required=False),
             privatekey_type=dict(type='path', required=False),
-            privatekey_size=dict(type='path', required=False),
+            privatekey_size=dict(type='path', required=False, default=2048),
             privatekey_curve=dict(type='path', required=False),
             privatekey_passphrase=dict(type='str', no_log=True),
             signature_algorithms=dict(type='list', elements='str'),
