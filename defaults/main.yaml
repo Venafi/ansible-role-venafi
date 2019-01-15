@@ -2,13 +2,22 @@
 #Parameters for the Platfrom
 user: 'admin'
 password: 'secret'
+url: 'https://venafi.example.com/vedsdk'
+zone: "devops\\\\\\\\vcert",
 
 #Parameters for the Cloud
-token: ''
+token: 'enter-cloud-api-token-here'
+#zone: 'Default'
+
+#Test mode
+test_mode: true
 
 #Parameters for both
-zone: 'Default'
-path: '/tmp'
-url: 'venafi.example.com'
+path: '/tmp/venafi.example.com.pem'
+chain_path: '/tmp/venafi.example.com_chain.pem'
+privatekey_path: "/tmp/venafi.example.com.key",
+commonName: "test111-tpp.example.com",
+alt_name: "IP:192.168.1.1,DNS:www.venafi.example.com,DNS:m.venafi.example.com,email:e@venafi.com,email:e2@venafi.com,IP Address:192.168.2.2"
+
 
 
