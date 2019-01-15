@@ -251,7 +251,19 @@ class VCertificate:
 
     def enroll(self):
         # TODO: Check if certificate in path parameter already exists.
+
+
         request = CertificateRequest(common_name=self.common_name)
+
+        # Determin private key options from module params
+        self.privatekey_type = request.key_type
+        if self.privatekey_type == "rsa":
+            self.privatekey_size = 2048
+        elif self.privatekey_type == "ecdsa":
+            self.privatekey_curve = "P521"
+        else:
+            self.module.fail_json(msg="Failed to determine key type: {0}".format(self.privatekey_type))
+
         request.ip_addresses = []
         request.san_dns = []
         request.email_addresses = []
@@ -273,14 +285,6 @@ class VCertificate:
         # TODO: choose proper chain options based on cloud or TPP and chain parameters (i.e write chain file or not)
         request.chain_option = self.module.params['chain_option']
 
-        self.privatekey_type = request.key_type
-        if self.privatekey_type == "rsa":
-            self.privatekey_size = 2048
-        elif self.privatekey_type == "ecdsa":
-            self.privatekey_curve = "P521"
-        else:
-            self.module.fail_json(msg="Failed to determine key type: {0}".format(self.privatekey_type))
-
         self.conn.request_cert(request, self.zone)
         while True:
             cert = self.conn.retrieve_cert(request)
@@ -288,7 +292,7 @@ class VCertificate:
                 break
             else:
                 time.sleep(5)
-        # TODO: separate certificate and it's chain (if chain exists) into different files
+        # TODO: separate certificate and it's chain (if chain exists) into different files.
         try:
             with open(self.certificate_filename, 'wb') as certfile:
                 certfile.write(to_bytes(cert))
