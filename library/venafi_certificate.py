@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 
 from __future__ import absolute_import, division, print_function
-from ansible.module_utils.basic import AnsibleModule
-import time
-from vcert import CertificateRequest, Connection
 
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
@@ -213,6 +210,11 @@ chain_filename:
     sample: /etc/ssl/www.venafi.example_chain.pem
 '''
 
+from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils._text import to_bytes
+import time
+from vcert import CertificateRequest, Connection
+
 
 class VCertificate:
 
@@ -233,6 +235,7 @@ class VCertificate:
         self.privatekey_size = module.params['privatekey_size']
         self.chain_filename = module.params['path']+".chain"
         self.args = ""
+        self.changed = False
         self.module = module
         self.conn = Connection(url=self.url, token=self.token,
                                user=self.user, password=self.password,
@@ -273,6 +276,12 @@ class VCertificate:
             else:
                 time.sleep(5)
         # TODO: write certificate, private key and chain into files
+        try:
+            with open(self.certificate_filename, 'wb') as certfile:
+                certfile.write(to_bytes(cert))
+            self.changed = True
+        except OSError as exc:
+            raise OSError(exc)
         # TODO: write certificate path to the module path parameter.
 
     def validate(self):
@@ -284,6 +293,7 @@ class VCertificate:
 
         result = {
             # TODO: write following variables before return
+            'changed': self.changed,
             'privatekey_filename': self.privatekey_filename,
             'privatekey_size': self.privatekey_size,
             'privatekey_curve': self.privatekey_curve,
