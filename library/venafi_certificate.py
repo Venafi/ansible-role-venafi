@@ -214,7 +214,6 @@ chain_filename:
 '''
 
 
-
 class VCertificate:
 
     def __init__(self, module):
@@ -227,6 +226,9 @@ class VCertificate:
         self.token = module.params['token']
         self.user = module.params['user']
         self.zone = module.params['zone']
+        self.privatekey_filename = module.params['privatekey_path']
+        self.certificate_filename = module.params['path']
+        self.chain_filename = module.params['path']+".chain"
         self.args = ""
         self.module = module
         self.conn = Connection(url=self.url, token=self.token,
@@ -242,16 +244,25 @@ class VCertificate:
             exit(1)
 
     def enroll(self):
-
-        #TODO: Check if certificate in path parameter already exists.
+        # TODO: Check if certificate in path parameter already exists.
         request = CertificateRequest(common_name=self.module.params['commonName'])
-        #TODO: make a function to recognise extension type
+        # TODO: make a function to recognise extension type
         request.san_dns = ["www.client.venafi.example.com", "ww1.client.venafi.example.com"]
         request.email_addresses = ["e1@venafi.example.com", "e2@venafi.example.com"]
         request.ip_addresses = ["127.0.0.1", "192.168.1.1"]
 
-        #TODO: choose proper chain options based on cloud or TPP and chain parameters (i.e write chain file or not)
+        # TODO: choose proper chain options based on cloud or TPP and chain parameters (i.e write chain file or not)
         request.chain_option = self.module.params['chain_option']
+
+        self.privatekey_type = request.key_type
+        if self.privatekey_type == "rsa":
+            self.privatekey_size = 2048
+            self.privatekey_curve = None
+        elif self.privatekey_type == "ecdsa":
+            self.privatekey_curve = "P251"
+            self.privatekey_size = None
+        else:
+            self.module.fail_json(msg="Failed to determine key type: {0}".format(self.privatekey_type))
 
         self.conn.request_cert(request, self.zone)
         while True:
@@ -260,10 +271,11 @@ class VCertificate:
                 break
             else:
                 time.sleep(5)
-        #TODO: write certificate to the module path parameter.
+        # TODO: write certificate, private key and chain into files
+        # TODO: write certificate path to the module path parameter.
 
     def validate(self):
-        #TODO: Test validity of certificate (not expired, subject and extensions are the same as required). If it is
+        # TODO: Test validity of certificate (not expired, subject and extensions are the same as required). If it is
         # not valid and renew option is true try to renew it.
         return None
 
