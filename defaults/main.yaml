@@ -12,7 +12,7 @@ token: 'enter-cloud-api-token-here'
 #Test mode
 test_mode: true
 
-#Parameters for both
+#Certificate parameters
 path: '/tmp/venafi.example.com.pem'
 chain_path: '/tmp/venafi.example.com_chain.pem'
 privatekey_path: "/tmp/venafi.example.com.key",
