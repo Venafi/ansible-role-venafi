@@ -50,7 +50,7 @@ options:
         required: false
         description:
             - Remote absolute path where the generated certificate chain file should
-            be created or is already located.
+            be created or is already located. If set certificate and chain will be in separated files.
 
     chain_option:
         required: false
@@ -294,7 +294,7 @@ class VCertificate:
                 break
             else:
                 time.sleep(5)
-        # TODO: separate certificate and it's chain (if chain exists) into different files.
+        # TODO: Optionaly separate certificate and it's chain (if chain exists) into different files.
         try:
             with open(self.certificate_filename, 'wb') as certfile:
                 certfile.write(to_bytes(cert))
