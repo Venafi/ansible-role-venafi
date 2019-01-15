@@ -162,8 +162,7 @@ EXAMPLES = '''
           $ANSIBLE_VAULT;1.1;AES256
       zone: 'Default'
       path: '/tmp'
-      common_name: 'testcert-cloud.example.com'
-      alt_name: 'DNS:www.venafi.example,DNS:m.venafi.example'      
+      common_name: 'testcert-cloud.example.com'      
     register: testout
   - name: dump test output
     debug:
@@ -316,7 +315,6 @@ class VCertificate:
     def dump(self):
 
         result = {
-            # TODO: write following variables before return
             'changed': self.changed,
             'privatekey_filename': self.privatekey_filename,
             'privatekey_size': self.privatekey_size,
