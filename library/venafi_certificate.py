@@ -242,7 +242,7 @@ class VCertificate:
                                ignore_ssl_errors=True)
 
     def ping(self):
-        print("Trying to ping url %s" % self.conn)
+        print("Trying to ping url %s" % self.conn._base_url)
         status = self.conn.ping()
         print("Server online:", status)
         if not status:
@@ -252,6 +252,7 @@ class VCertificate:
     def enroll(self):
         # TODO: Check if certificate in path parameter already exists.
         request = CertificateRequest(common_name=self.module.params['commonName'])
+        # TODO: get extensions from module parameters
         # TODO: make a function to recognise extension type
         request.san_dns = ["www.client.venafi.example.com", "ww1.client.venafi.example.com"]
         request.email_addresses = ["e1@venafi.example.com", "e2@venafi.example.com"]
