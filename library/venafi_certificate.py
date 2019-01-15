@@ -64,15 +64,13 @@ options:
         description:
             - commonName field of the certificate signing request subject
 
-    subject_alt_name:
+    alt_name:
         required: false
-        aliases: [ 'subjectAltName' ]
+        aliases: [ 'alt_name' ]
         description:
             - SAN extension to attach to the certificate signing request
             - This can either be a 'comma separated string' or a YAML list.
-            - Values should be prefixed by their options. (i.e., C(email), C(URI), C(DNS), C(RID), C(IP), C(dirName),
-              C(otherName) and the ones specific to your CA)
-            - More at U(https://tools.ietf.org/html/rfc5280#section-4.2.1.6)
+            - Values should be prefixed by their options. (IP:,email:,DNS:)
             
     privatekey_path:
         required: false
@@ -122,14 +120,14 @@ EXAMPLES = '''
     venafi_certificate:
       test_mode: true
       common_name: 'testcert-fake-{{ 99999999 | random }}.example.com'
-      subject_alt_name: 'DNS:www.venafi.example,DNS:m.venafi.example'
+      alt_name: 'DNS:www.venafi.example,DNS:m.venafi.example'
       path: '/tmp'
     register: testout
   - name: dump test output
     debug:
       msg: '{{ testout }}'
 
-# Enroll Platform certificate
+# Enroll Platform certificate with a lof of alt names
 - name: venafi_certificate_tpp
   connection: local
   hosts: localhost
@@ -145,7 +143,7 @@ EXAMPLES = '''
       zone: 'example\\\\policy'
       path: '/tmp'
       common_name: 'testcert-tpp-{{ 99999999 | random }}.example.com'
-      subject_alt_name: 'DNS:www.venafi.example,DNS:m.venafi.example'
+      "alt_name": "IP:192.168.1.1,DNS:www.venafi.example.com,DNS:m.venafi.example.com,email:test@venafi.com,IP Address:192.168.2.2"
     register: testout
   - name: dump test output
     debug:
@@ -165,7 +163,7 @@ EXAMPLES = '''
       zone: 'Default'
       path: '/tmp'
       common_name: 'testcert-cloud.example.com'
-      subject_alt_name: 'DNS:www.venafi.example,DNS:m.venafi.example'      
+      alt_name: 'DNS:www.venafi.example,DNS:m.venafi.example'      
     register: testout
   - name: dump test output
     debug:
@@ -222,6 +220,8 @@ class VCertificate:
         """
         :param AnsibleModule module:
         """
+        self.common_name = module.params['commonName']
+        self.alt_name = module.params['alt_name']
         self.test_mode = module.params['test_mode']
         self.url = module.params['url']
         self.password = module.params['password']
@@ -251,12 +251,24 @@ class VCertificate:
 
     def enroll(self):
         # TODO: Check if certificate in path parameter already exists.
-        request = CertificateRequest(common_name=self.module.params['commonName'])
-        # TODO: get extensions from module parameters
-        # TODO: make a function to recognise extension type
-        request.san_dns = ["www.client.venafi.example.com", "ww1.client.venafi.example.com"]
-        request.email_addresses = ["e1@venafi.example.com", "e2@venafi.example.com"]
-        request.ip_addresses = ["127.0.0.1", "192.168.1.1"]
+        request = CertificateRequest(common_name=self.common_name)
+        request.ip_addresses = []
+        request.san_dns = []
+        request.email_addresses = []
+        if self.alt_name:
+            for n in self.alt_name:
+                if n.startswith(("IP:", "IP Address:")):
+                    ip = n.split(":", 1)[1]
+                    request.ip_addresses.append(ip)
+                elif n.startswith("DNS:"):
+                    ns = n.split(":", 1)[1]
+                    request.san_dns.append(ns)
+                elif n.startswith("email:"):
+                    mail = n.split(":", 1)[1]
+                    request.email_addresses.append(mail)
+                else:
+                    self.module.fail_json(msg="Failed to determine extension type: {0}".format(n))
+
 
         # TODO: choose proper chain options based on cloud or TPP and chain parameters (i.e write chain file or not)
         request.chain_option = self.module.params['chain_option']
@@ -346,8 +358,8 @@ def main():
             privatekey_curve=dict(type='path', required=False),
             privatekey_passphrase=dict(type='str', no_log=True),
             signature_algorithms=dict(type='list', elements='str'),
-            subjectAltName=dict(type='list', aliases=['subject_alt_name'], elements='str'),
-            commonName=dict(aliases=['CN', 'common_name'], type='str'),
+            alt_name=dict(type='list', aliases=['subjectAltName'], elements='str'),
+            common_name=dict(aliases=['CN', 'commonName'], type='str'),
             chain_option=dict(type='str', required=False, default='last'),
         ),
         supports_check_mode=True,
