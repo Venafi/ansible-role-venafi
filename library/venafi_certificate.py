@@ -228,6 +228,9 @@ class VCertificate:
         self.zone = module.params['zone']
         self.privatekey_filename = module.params['privatekey_path']
         self.certificate_filename = module.params['path']
+        self.privatekey_type = module.params['privatekey_type']
+        self.privatekey_curve = module.params['privatekey_curve']
+        self.privatekey_size = module.params['privatekey_size']
         self.chain_filename = module.params['path']+".chain"
         self.args = ""
         self.module = module
@@ -257,10 +260,8 @@ class VCertificate:
         self.privatekey_type = request.key_type
         if self.privatekey_type == "rsa":
             self.privatekey_size = 2048
-            self.privatekey_curve = None
         elif self.privatekey_type == "ecdsa":
-            self.privatekey_curve = "P251"
-            self.privatekey_size = None
+            self.privatekey_curve = "P521"
         else:
             self.module.fail_json(msg="Failed to determine key type: {0}".format(self.privatekey_type))
 
@@ -322,6 +323,9 @@ def main():
             path=dict(type='path', require=False),
             chain_path=dict(type='path', require=False),
             privatekey_path=dict(type='path', required=False),
+            privatekey_type=dict(type='path', required=False),
+            privatekey_size=dict(type='path', required=False),
+            privatekey_curve=dict(type='path', required=False),
             privatekey_passphrase=dict(type='str', no_log=True),
             signature_algorithms=dict(type='list', elements='str'),
             subjectAltName=dict(type='list', aliases=['subject_alt_name'], elements='str'),
