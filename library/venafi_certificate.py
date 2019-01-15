@@ -254,14 +254,17 @@ class VCertificate:
 
         request = CertificateRequest(common_name=self.common_name)
 
-        # Determin private key options from module params
-        self.privatekey_type = request.key_type
+        # TODO: wait for key fixes in vcert-python
+        # Setup private key options from module params
+        """
+        request.key_type = self.privatekey_type
         if self.privatekey_type == "rsa":
-            self.privatekey_size = 2048
+            request.key_length = self.privatekey_size
         elif self.privatekey_type == "ecdsa":
-            self.privatekey_curve = "P521"
-        else:
-            self.module.fail_json(msg="Failed to determine key type: {0}".format(self.privatekey_type))
+            request.key_curve = self.privatekey_curve
+        # else:
+        #     self.module.fail_json(msg="Failed to determine key type: {0}".format(self.privatekey_type))
+        """
 
         request.ip_addresses = []
         request.san_dns = []
