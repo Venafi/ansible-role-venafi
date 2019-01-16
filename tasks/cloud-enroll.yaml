@@ -1,0 +1,17 @@
+- name: venafi_certificate_cloud
+  connection: local
+  hosts: localhost
+  tags:
+    - cloud
+  tasks:
+  - name: venafi_certificate
+    venafi_certificate:
+      url: "{{ url }}"
+      token: "{{ token }}"
+      zone: "{{ zone }}"
+      path: "{{ path }}"
+      common_name: 'testcert-ansible-cloud-{{ 99999999 | random }}.example.com'
+    register: testout
+  - name: dump test output
+    debug:
+      msg: '{{ testout }}'

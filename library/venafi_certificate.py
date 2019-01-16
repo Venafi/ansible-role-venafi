@@ -232,7 +232,7 @@ class VCertificate:
         self.privatekey_type = module.params['privatekey_type']
         self.privatekey_curve = module.params['privatekey_curve']
         self.privatekey_size = module.params['privatekey_size']
-        self.chain_filename = module.params['path']+".chain"
+        self.chain_filename = module.params['chain_path']
         self.args = ""
         self.changed = False
         self.module = module
@@ -284,7 +284,6 @@ class VCertificate:
                     self.module.fail_json(msg="Failed to determine extension type: {0}".format(n))
 
 
-        # TODO: choose proper chain options based on cloud or TPP and chain parameters (i.e write chain file or not)
         request.chain_option = self.module.params['chain_option']
 
         self.conn.request_cert(request, self.zone)
