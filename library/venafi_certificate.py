@@ -232,6 +232,7 @@ class VCertificate:
         self.privatekey_type = module.params['privatekey_type']
         self.privatekey_curve = module.params['privatekey_curve']
         self.privatekey_size = module.params['privatekey_size']
+        self.privatekey_passphrase = module.params['privatekey_passphrase']
         self.chain_filename = module.params['chain_path']
         self.args = ""
         self.changed = False
@@ -254,7 +255,6 @@ class VCertificate:
 
         request = CertificateRequest(common_name=self.common_name)
 
-        # TODO: Setup private key options from module params
         if self.privatekey_type:
             if self.privatekey_type == "RSA":
                 request.key_type = "rsa"
@@ -267,6 +267,8 @@ class VCertificate:
                 self.module.fail_json(msg="Failed to determine key type: {0}. Must be RSA or ECDSA".format(
                     self.privatekey_type))
 
+        if self.privatekey_passphrase:
+            request.key_password = self.privatekey_passphrase
 
         request.ip_addresses = []
         request.san_dns = []
