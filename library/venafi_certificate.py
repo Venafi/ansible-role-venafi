@@ -411,8 +411,7 @@ def main():
     2. If certificate not present renew it
     3. If it present and renew is false just keep it.
     """
-    # vcert.enroll()
-
+    vcert.enroll()
     result = vcert.dump()
     vcert.check()
     module.exit_json(**result)
