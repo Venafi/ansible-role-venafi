@@ -328,7 +328,10 @@ class VCertificate:
         if self.privatekey_filename:
             try:
                 with open(self.privatekey_filename, 'rb') as key_data:
-                    password = self.privatekey_passphrase.encode()
+                    if self.privatekey_passphrase:
+                        password = self.privatekey_passphrase.encode()
+                    else:
+                        password = None
                     pkey = serialization.load_pem_private_key(key_data.read(), password=password,
                                                               backend=default_backend())
             except OSError as exc:
@@ -387,7 +390,7 @@ def main():
             config_section=dict(type='str', required=False, default=''),
 
             # General properties of a certificate
-            path=dict(type='path', require=False),
+            path=dict(type='path', require=True),
             chain_path=dict(type='path', require=False),
             privatekey_path=dict(type='path', required=False),
             privatekey_type=dict(type='str', required=False),
@@ -396,7 +399,7 @@ def main():
             privatekey_passphrase=dict(type='str', no_log=True),
             signature_algorithms=dict(type='list', elements='str'),
             alt_name=dict(type='list', aliases=['subjectAltName'], elements='str'),
-            common_name=dict(aliases=['CN', 'commonName'], type='str'),
+            common_name=dict(aliases=['CN', 'commonName'], type='str', required=True),
             chain_option=dict(type='str', required=False, default='last'),
         ),
         supports_check_mode=True,
