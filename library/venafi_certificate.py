@@ -211,7 +211,10 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils._text import to_bytes
 import time
 from vcert import CertificateRequest, Connection
-
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
+from cryptography.x509.oid import NameOID
+from cryptography.hazmat.primitives import serialization, hashes
 
 class VCertificate:
 
@@ -314,10 +317,35 @@ class VCertificate:
             self.module.fail_json(msg="Failed to write private key file: {0}".format(exc))
 
 
-    def validate(self):
-        # TODO: Test validity of certificate (not expired, subject and extensions are the same as required). If it is
-        # not valid and renew option is true try to renew it.
-        return None
+    def check(self):
+        # TODO: Test validity of certificate (not expired, subject and extensions are the same as required).
+        """Ensure the resource is in its desired state."""
+        try:
+            with open(self.certificate_filename, 'rb') as cert_data:
+                cert = x509.load_pem_x509_certificate(cert_data.read(), default_backend())
+        except OSError as exc:
+            self.module.fail_json(msg="Failed to read certificate file: {0}".format(exc))
+        if self.privatekey_filename:
+            try:
+                with open(self.privatekey_filename, 'rb') as key_data:
+                    password = self.privatekey_passphrase.encode()
+                    pkey = serialization.load_pem_private_key(key_data.read(), password=password,
+                                                              backend=default_backend())
+            except OSError as exc:
+                self.module.fail_json(msg="Failed to read private key file: {0}".format(exc))
+
+            cert_public_key_pem = cert.public_key().public_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PublicFormat.SubjectPublicKeyInfo
+            ).decode()
+
+            private_key_public_key_pem = pkey.public_key().public_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PublicFormat.SubjectPublicKeyInfo
+            ).decode()
+
+            if cert_public_key_pem != private_key_public_key_pem:
+                self.module.fail_json(msg="Private public bytes not matched certificate public bytes:\n {0}\n{1}\n".format(cert_public_key_pem,private_key_public_key_pem))
 
     def dump(self):
 
@@ -384,8 +412,8 @@ def main():
     3. If it present and renew is false just keep it.
     """
     vcert.enroll()
-
     result = vcert.dump()
+    vcert.check()
     module.exit_json(**result)
 
 
