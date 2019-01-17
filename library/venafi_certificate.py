@@ -255,13 +255,17 @@ class VCertificate:
         request = CertificateRequest(common_name=self.common_name)
 
         # TODO: Setup private key options from module params
-        request.key_type = self.privatekey_type
-        if self.privatekey_type == "rsa":
-            request.key_length = self.privatekey_size
-        elif self.privatekey_type == "ecdsa":
-            request.key_curve = self.privatekey_curve
-        else:
-            self.module.fail_json(msg="Failed to determine key type: {0}".format(self.privatekey_type))
+        if self.privatekey_type:
+            if self.privatekey_type == "RSA":
+                request.key_type = "rsa"
+                if self.privatekey_size:
+                    request.key_length = self.privatekey_size
+            elif self.privatekey_type == "ECDSA":
+                request.key_type = "ec"
+                request.key_curve = self.privatekey_curve
+            else:
+                self.module.fail_json(msg="Failed to determine key type: {0}. Must be RSA or ECDSA".format(
+                    self.privatekey_type))
 
 
         request.ip_addresses = []
@@ -355,9 +359,9 @@ def main():
             path=dict(type='path', require=False),
             chain_path=dict(type='path', require=False),
             privatekey_path=dict(type='path', required=False),
-            privatekey_type=dict(type='path', required=False),
-            privatekey_size=dict(type='path', required=False, default=2048),
-            privatekey_curve=dict(type='path', required=False),
+            privatekey_type=dict(type='str', required=False),
+            privatekey_size=dict(type='int', required=False),
+            privatekey_curve=dict(type='str', required=False),
             privatekey_passphrase=dict(type='str', no_log=True),
             signature_algorithms=dict(type='list', elements='str'),
             alt_name=dict(type='list', aliases=['subjectAltName'], elements='str'),
