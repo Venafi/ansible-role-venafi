@@ -211,7 +211,10 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils._text import to_bytes
 import time
 from vcert import CertificateRequest, Connection
-
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
+from cryptography.x509.oid import NameOID
+from cryptography.hazmat.primitives import serialization, hashes
 
 class VCertificate:
 
@@ -314,10 +317,28 @@ class VCertificate:
             self.module.fail_json(msg="Failed to write private key file: {0}".format(exc))
 
 
-    def validate(self):
-        # TODO: Test validity of certificate (not expired, subject and extensions are the same as required). If it is
-        # not valid and renew option is true try to renew it.
-        return None
+    def check(self):
+        # TODO: Test validity of certificate (not expired, subject and extensions are the same as required).
+        """Ensure the resource is in its desired state."""
+        if self.privatekey_filename:
+            # cert = x509.load_pem_x509_certificate(self.certificate_filename, default_backend())
+            cert = "ds"
+            try:
+                with open(self.certificate_filename, 'rb') as key_data:
+                    password = self.privatekey_passphrase.encode()
+                    pkey = serialization.load_pem_private_key(key_data.read(), password=password,
+                                                              backend=default_backend())
+            except OSError as exc:
+                self.module.fail_json(msg="Failed to read private key file: {0}".format(exc))
+            self.module.fail_json(msg="Cert is:\n {0}\nPkey is:\n {1}".format(cert,pkey))
+
+        else:
+            return None
+
+        def _validate_privatekey():
+            return None
+        def _validate_certificate():
+            return None
 
     def dump(self):
 
@@ -383,9 +404,10 @@ def main():
     2. If certificate not present renew it
     3. If it present and renew is false just keep it.
     """
-    vcert.enroll()
+    # vcert.enroll()
 
     result = vcert.dump()
+    vcert.check()
     module.exit_json(**result)
 
 
