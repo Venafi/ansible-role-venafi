@@ -268,7 +268,8 @@ class VCertificate:
                     self.privatekey_type))
 
         if self.privatekey_passphrase:
-            request.key_password = self.privatekey_passphrase
+            # TODO: Need to fix key password encode in vcert common request init
+            request.key_password = self.privatekey_passphrase.encode()
 
         request.ip_addresses = []
         request.san_dns = []
