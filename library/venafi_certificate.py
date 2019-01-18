@@ -207,6 +207,7 @@ chain_filename:
     sample: /etc/ssl/www.venafi.example_chain.pem
 '''
 
+# TODO:  raise JSON error messages when dependency import fails.
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils._text import to_bytes
 import time
