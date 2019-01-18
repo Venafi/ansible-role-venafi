@@ -305,6 +305,9 @@ class VCertificate:
             else:
                 time.sleep(5)
         # TODO: Optionaly separate certificate and it's chain (if chain exists) into different files.
+        # TODO: Don’t write to files directly; use a temporary file and then use the atomic_move function from ansible.module_utils.basic
+        #  to move the updated temporary file into place.
+        #  This prevents data corruption and ensures that the correct context for the file is kept.
         try:
             with open(self.certificate_filename, 'wb') as certfile:
                 certfile.write(to_bytes(cert))
