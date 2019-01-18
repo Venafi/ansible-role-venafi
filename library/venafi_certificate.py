@@ -256,9 +256,11 @@ class VCertificate:
         # TODO: Check if certificate in path parameter already exists.
 
 
+        # TODO: add possibility to provide own CSR
         request = CertificateRequest(common_name=self.common_name)
 
         if self.privatekey_type:
+            # TODO: Add posibility to provide own private key
             if self.privatekey_type == "RSA":
                 request.key_type = "rsa"
                 if self.privatekey_size:
