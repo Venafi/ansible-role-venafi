@@ -38,17 +38,14 @@
 
     # Testing original crypto modules
 
-    - name: "Generate an OpenSSL private key with the default values (4096 bits, RSA) and a passphrase"
+    - name: "Generate an OpenSSL private key with the default values (4096 bits, RSA)"
       openssl_privatekey:
         path: /etc/ssl/private/ansible.com.pem
-        passphrase: ansible
-        cipher: aes256
 
     - name: "Generate an OpenSSL Certificate Signing Request with Subject information"
       openssl_csr:
         path: /etc/ssl/csr/www.ansible.com.csr
         privatekey_path: /etc/ssl/private/ansible.com.pem
-        privatekey_passphrase: ansible
         country_name: FR
         organization_name: Ansible
         email_address: jdoe@ansible.com
