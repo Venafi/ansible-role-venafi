@@ -209,8 +209,9 @@ chain_filename:
 
 # TODO:  raise JSON error messages when dependency import fails.
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils._text import to_bytes
+from ansible.module_utils._text import to_bytes, to_text
 import time
+import os.path
 from vcert import CertificateRequest, Connection
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
@@ -253,29 +254,57 @@ class VCertificate:
             print('Server offline - exit')
             exit(1)
 
+    def check_paths_existed(self):
+        cert_dir = os.path.dirname(self.certificate_filename or "/a")
+        key_dir = os.path.dirname(self.privatekey_filename or "/a")
+        chain_dir = os.path.dirname(self.chain_filename or "/a")
+        for p in (cert_dir, key_dir, chain_dir):
+            if os.path.isdir(p):
+                continue
+            elif os.path.exists(p):
+                raise Exception("%s already exists but not a dir" % p)
+            os.makedirs(p)
+
+
+    def check_private_key_correct(self):
+        if not self.privatekey_filename:
+            return None
+        private_key = to_text(open(self.privatekey_filename, "rb").read())
+
+        r = CertificateRequest(private_key=private_key, key_password=self.privatekey_passphrase)
+        key_type = {"RSA": "rsa", "ECDSA": "ec", "EC": "ec"}.get(self.privatekey_type)
+        if key_type and key_type != r.key_type:
+            return False
+        if key_type == "rsa" and self.privatekey_size:
+            if self.privatekey_size != r.key_length:
+                return False
+        if key_type == "ec" and self.privatekey_curve:
+            if self.privatekey_curve != r.key_curve:
+                return False
+        return True
+
+
     def enroll(self):
         # TODO: Check if certificate in path parameter already exists.
 
-
         # TODO: add possibility to provide own CSR
-        request = CertificateRequest(common_name=self.common_name)
+        request = CertificateRequest(
+            common_name=self.common_name,
+            key_password=self.privatekey_passphrase,
 
-        if self.privatekey_type:
-            # TODO: Add posibility to provide own private key
-            if self.privatekey_type == "RSA":
-                request.key_type = "rsa"
-                if self.privatekey_size:
-                    request.key_length = self.privatekey_size
-            elif self.privatekey_type == "ECDSA":
-                request.key_type = "ec"
-                request.key_curve = self.privatekey_curve
-            else:
+        )
+
+        if self.privatekey_filename:
+            private_key = to_text(open(self.privatekey_filename, "rb").read())
+            request.private_key = private_key
+        elif self.privatekey_type:
+            key_type = {"RSA": "rsa", "ECDSA": "ec", "EC": "ec"}.get(self.privatekey_type)
+            if not key_type:
                 self.module.fail_json(msg="Failed to determine key type: {0}. Must be RSA or ECDSA".format(
                     self.privatekey_type))
-
-        if self.privatekey_passphrase:
-            # TODO: Need to fix key password encode in vcert common request init
-            request.key_password = self.privatekey_passphrase.encode()
+            request.key_type = key_type
+            request.key_curve = self.privatekey_curve
+            request.key_length = self.privatekey_size
 
         request.ip_addresses = []
         request.san_dns = []
@@ -321,7 +350,6 @@ class VCertificate:
             self.changed = True
         except OSError as exc:
             self.module.fail_json(msg="Failed to write private key file: {0}".format(exc))
-
 
     def check(self):
         # TODO: Test validity of certificate (not expired, subject and extensions are the same as required).
