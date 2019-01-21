@@ -211,7 +211,9 @@ chain_filename:
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils._text import to_bytes, to_text
 import time
+import datetime
 import os.path
+import random
 from vcert import CertificateRequest, Connection
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
@@ -262,9 +264,8 @@ class VCertificate:
             if os.path.isdir(p):
                 continue
             elif os.path.exists(p):
-                raise Exception("%s already exists but not a dir" % p)
+                self.module.fail_json(msg="Path %s already exists but this is not directory." % p)
             os.makedirs(p)
-
 
     def check_private_key_correct(self):
         if not self.privatekey_filename:
@@ -351,8 +352,34 @@ class VCertificate:
         except OSError as exc:
             self.module.fail_json(msg="Failed to write private key file: {0}".format(exc))
 
+    def _atomic_write(self, path, content):
+        suffix = ".atomic_%s" % random.randint(100, 100000)
+        try:
+            with open(path+suffix, "wb"), as f:
+                f.write(to_bytes(content))
+        except OSError as e:
+            self.module.fail_json(msg="Failed to write file %s: %s" % (path+suffix, e))
+        try:
+            os.rename(path+suffix, path)
+        except OSError as e:
+            self.module.fail_json(msg="Failed to atomic replace file %s by %s: %s" % (path, path+suffix, e))
+
+    def check_certificate_validity(self):
+        try:
+            with open(self.certificate_filename, 'rb') as cert_data:
+                cert = x509.load_pem_x509_certificate(cert_data.read(), default_backend())  # type: x509.Certificate
+        except OSError as exc:
+            self.module.fail_json(msg="Failed to read certificate file: {0}".format(exc))
+            return
+        if cert.subject != self.common_name:
+            return False
+        if cert.not_valid_after < datetime.datetime.now() - datetime.timedelta(days=2):  # todo: move day to parameter
+            return False
+        if cert.not_valid_before > datetime.datetime.now():  # todo: think add gap for time desyncronyzation
+            return False
+        # TODO: Test what extensions are the same as required
+
     def check(self):
-        # TODO: Test validity of certificate (not expired, subject and extensions are the same as required).
         """Ensure the resource is in its desired state."""
         try:
             with open(self.certificate_filename, 'rb') as cert_data:
