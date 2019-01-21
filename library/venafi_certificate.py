@@ -355,7 +355,7 @@ class VCertificate:
     def _atomic_write(self, path, content):
         suffix = ".atomic_%s" % random.randint(100, 100000)
         try:
-            with open(path+suffix, "wb"), as f:
+            with open(path+suffix, "wb") as f:
                 f.write(to_bytes(content))
         except OSError as e:
             self.module.fail_json(msg="Failed to write file %s: %s" % (path+suffix, e))
