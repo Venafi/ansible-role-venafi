@@ -8,6 +8,39 @@
       provision_docker_inventory_group: "{{ groups['robots'] }}"
       provision_docker_use_docker_connection: true
 
+#Create local CA
+- hosts: localhost
+  tasks:
+    - name: "Create directories"
+      file:
+        path: /tmp/ansible/etc/ssl/{{ item.dir }}
+        state: directory
+        mode: 0755
+      with_items:
+        - { dir: 'csr' }
+        - { dir: 'crt' }
+        - { dir: 'private' }
+
+    - name: "Generate an OpenSSL private key with the default values (4096 bits, RSA)"
+      openssl_privatekey:
+        path: /tmp/ansible/etc/ssl/private/ansible.com.pem
+
+    - name: "Generate an OpenSSL Certificate Signing Request with Subject information"
+      openssl_csr:
+        path: /tmp/ansible/etc/ssl/csr/www.ansible.com.csr
+        privatekey_path: /tmp/ansible/etc/ssl/private/ansible.com.pem
+        country_name: FR
+        organization_name: Ansible
+        email_address: jdoe@ansible.com
+        common_name: www.ansible.com
+
+    - name: "Generate a Self Signed OpenSSL certificate"
+      openssl_certificate:
+        path: /tmp/ansible/etc/ssl/crt/www.ansible.com.crt
+        privatekey_path: /tmp/ansible/etc/ssl/private/ansible.com.pem
+        csr_path: /tmp/ansible/etc/ssl/csr/www.ansible.com.csr
+        provider: selfsigned
+
 - hosts: robots
   tasks:
     - name: "Say hello to my new containers"
