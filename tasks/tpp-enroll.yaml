@@ -11,7 +11,7 @@
       password: "{{ password }}"
       zone: "{{ user }}"
       path: "{{ user }}"
-      common_name: 'testcert-ansible-tpp-{{ 99999999 | random }}.example.com'
+      common_name: '{{ common_name }}'
     register: testout
   - name: dump test output
     debug:

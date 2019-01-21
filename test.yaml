@@ -1,6 +1,6 @@
 #Clone https://github.com/chrismeyersfsu/provision_docker.git to /etc/ansible/roles before run
 ---
-- name: Bring up docker containers for docker connection inventory iface
+- name: "Bring up docker containers for docker connection inventory iface"
   hosts: localhost
   roles:
     - role: provision_docker
@@ -19,8 +19,7 @@
           - python
           - python-pip
           - python-setuptools
-        state: latest
-        update_cache: True
+
     - name: "Install required pip packages"
       pip:
         name:
@@ -33,12 +32,20 @@
         mode: 0755
       with_items:
         - { dir: 'csr' }
+        - { dir: 'crt' }
         - { dir: 'private' }
 
 
-    # Testing original openssl module
-    # Generate an OpenSSL Certificate Signing Request with Subject information
-    - openssl_csr:
+    # Testing original crypto modules
+
+    - name: "Generate an OpenSSL private key with the default values (4096 bits, RSA) and a passphrase"
+      openssl_privatekey:
+        path: /etc/ssl/private/ansible.com.pem
+        passphrase: ansible
+        cipher: aes256
+
+    - name: "Generate an OpenSSL Certificate Signing Request with Subject information"
+      openssl_csr:
         path: /etc/ssl/csr/www.ansible.com.csr
         privatekey_path: /etc/ssl/private/ansible.com.pem
         privatekey_passphrase: ansible
@@ -46,3 +53,10 @@
         organization_name: Ansible
         email_address: jdoe@ansible.com
         common_name: www.ansible.com
+
+    - name: "Generate a Self Signed OpenSSL certificate"
+      openssl_certificate:
+        path: /etc/ssl/crt/ansible.com.crt
+        privatekey_path: /etc/ssl/private/ansible.com.pem
+        csr_path: /etc/ssl/csr/ansible.com.csr
+        provider: selfsigned
