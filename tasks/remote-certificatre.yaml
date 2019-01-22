@@ -1,8 +1,5 @@
+#Generater certificates on remote host
 - name: venafi_certificate_cloud
-  connection: local
-  hosts: localhost
-  tags:
-    - cloud
   tasks:
   - name: venafi_certificate
     venafi_certificate:

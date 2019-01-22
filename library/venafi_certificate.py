@@ -40,7 +40,7 @@ options:
         description:
             - Try to renew certificate if is existing but no valid.
 
-    path:
+    cert_path:
         required: true
         description:
             - Remote absolute path where the generated certificate file should
@@ -121,7 +121,7 @@ EXAMPLES = '''
       test_mode: true
       common_name: 'testcert-fake-{{ 99999999 | random }}.example.com'
       alt_name: 'DNS:www.venafi.example,DNS:m.venafi.example'
-      path: '/tmp'
+      cert_path: '/tmp'
     register: testout
   - name: dump test output
     debug:
@@ -141,7 +141,7 @@ EXAMPLES = '''
       password: !vault |
           $ANSIBLE_VAULT;1.1;AES256
       zone: 'example\\\\policy'
-      path: '/tmp'
+      cert_path: '/tmp'
       common_name: 'testcert-tpp-{{ 99999999 | random }}.example.com'
       "alt_name": "IP:192.168.1.1,DNS:www.venafi.example.com,DNS:m.venafi.example.com,email:test@venafi.com,IP Address:192.168.2.2"
     register: testout
@@ -161,7 +161,7 @@ EXAMPLES = '''
       token: !vault |
           $ANSIBLE_VAULT;1.1;AES256
       zone: 'Default'
-      path: '/tmp'
+      cert_path: '/tmp'
       common_name: 'testcert-cloud.example.com'      
     register: testout
   - name: dump test output
