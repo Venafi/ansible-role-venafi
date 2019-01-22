@@ -1,8 +1,9 @@
 pep8:
 	pycodestyle --first ./library/venafi_certificate.py
 
-ansible-test:
-	ansible-playbook -i test-inventory test.yaml
+#Testing ansible crypto modules for examples and compability checks
+ansible-test-crypto:
+	ansible-playbook -i test-inventory-crypto test-crypto.yaml
 
 python-tpp-test:
 	python3 library/venafi_certificate.py venafi_certificate_tpp.json
