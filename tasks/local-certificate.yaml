@@ -1,11 +1,11 @@
 #Localy generate certificate
 #Copy files to remote host from inventory
 #Generater certificates on remote host
-- name: venafi_certificate_cloud
+- name: venafi_certificate
   tasks:
   - name: venafi_certificate
     local_action:
-    venafi_certificate:
+      module: venafi_certificate
       url: "{{ url }}"
       token: "{{ token }}"
       zone: "{{ zone }}"

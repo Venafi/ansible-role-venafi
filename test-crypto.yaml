@@ -1,6 +1,6 @@
 #Clone https://github.com/chrismeyersfsu/provision_docker.git to /etc/ansible/roles before run
 ---
-- name: "Bring up docker containers for docker connection inventory iface"
+- name: "Bring up docker containers for docker connection inventory"
   hosts: localhost
   roles:
     - role: provision_docker
@@ -27,18 +27,19 @@
 
     - name: "Generate an OpenSSL Certificate Signing Request with Subject information"
       openssl_csr:
-        path: /tmp/ansible/etc/ssl/csr/www.ansible.com.csr
+        path: /tmp/ansible/etc/ssl/csr/ca.csr
         privatekey_path: /tmp/ansible/etc/ssl/private/ansible.com.pem
-        country_name: FR
-        organization_name: Ansible
-        email_address: jdoe@ansible.com
-        common_name: www.ansible.com
+        country_name: US
+        organization_name: CA
+        email_address: ca@example.com
+        common_name: ca
+        basic_constraints: "CA:true"
 
     - name: "Generate a Self Signed OpenSSL certificate"
       openssl_certificate:
-        path: /tmp/ansible/etc/ssl/crt/www.ansible.com.crt
+        path: /tmp/ansible/etc/ssl/crt/ca.crt
         privatekey_path: /tmp/ansible/etc/ssl/private/ansible.com.pem
-        csr_path: /tmp/ansible/etc/ssl/csr/www.ansible.com.csr
+        csr_path: /tmp/ansible/etc/ssl/csr/ca.csr
         provider: selfsigned
 
 - hosts: robots

@@ -16,7 +16,7 @@ test_mode: true
 path: '/tmp/venafi.example.com.pem'
 chain_path: '/tmp/venafi.example.com_chain.pem'
 privatekey_path: "/tmp/venafi.example.com.key",
-commonName: "test111-tpp.example.com",
+common_name: "test111-tpp.example.com",
 alt_name: "IP:192.168.1.1,DNS:www.venafi.example.com,DNS:m.venafi.example.com,email:e@venafi.com,email:e2@venafi.com,IP Address:192.168.2.2"
 
 
