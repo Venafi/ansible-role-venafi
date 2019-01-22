@@ -1,0 +1,5 @@
+- import_tasks:  local-certificate.yml
+    when: enroll_local_certificate
+
+- import_tasks:  remote-certificate.yml
+    when: enroll_remote_certificate

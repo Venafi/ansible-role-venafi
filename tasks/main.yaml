@@ -1,8 +1,0 @@
-- import_tasks:  tpp-enroll.yaml
-    when: enroll_tpp_certificate
-
-- import_tasks:  cloud-enroll.yaml
-    when: enroll_cloud_certificate
-
-- import_tasks:  fake-enroll.yaml
-    when: enroll_fake_certificate
