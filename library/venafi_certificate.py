@@ -373,7 +373,8 @@ class VCertificate:
     def check_certificate_public_key_matched_to_private_key_file(self, cert):
         try:
             with open(self.privatekey_filename, 'rb') as key_data:
-                pkey = serialization.load_pem_private_key(key_data.read(), password=self.privatekey_passphrase,
+                # TODO: need to fix it in vcert. User shouldn't think about encoding password.
+                pkey = serialization.load_pem_private_key(key_data.read(), password=self.privatekey_passphrase.encode(),
                                                           backend=default_backend())
         except OSError as exc:
             self.module.fail_json(msg="Failed to read private key file: {0}".format(exc))
