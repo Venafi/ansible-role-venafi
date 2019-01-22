@@ -1,16 +1,18 @@
-- name: venafi_certificate_tpp
+- name: venafi_certificate_cloud
   connection: local
   hosts: localhost
   tags:
-    - tpp
+    - cloud
   tasks:
   - name: venafi_certificate
     venafi_certificate:
       url: "{{ url }}"
+      token: "{{ token }}"
+      zone: "{{ zone }}"
+      path: "{{ path }}"
+      test_mode: "{{ test_mode }}"
       user: "{{ user }}"
       password: "{{ password }}"
-      zone: "{{ user }}"
-      path: "{{ user }}"
       common_name: '{{ common_name }}'
     register: testout
   - name: dump test output
