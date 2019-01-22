@@ -207,13 +207,15 @@ chain_filename:
     sample: /etc/ssl/www.venafi.example_chain.pem
 '''
 
-# TODO:  raise JSON error messages when dependency import fails.
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils._text import to_bytes, to_text
 import time
 import datetime
 import os.path
 import random
+
+# TODO:  raise JSON error messages when dependency import fails.
+#  lib/ansible/modules/crypto/certificate_complete_chain.py:128
 from vcert import CertificateRequest, Connection
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
@@ -373,7 +375,6 @@ class VCertificate:
     def check_certificate_public_key_matched_to_private_key_file(self, cert):
         try:
             with open(self.privatekey_filename, 'rb') as key_data:
-                # TODO: need to fix it in vcert. User shouldn't think about encoding password.
                 pkey = serialization.load_pem_private_key(key_data.read(), password=self.privatekey_passphrase.encode(),
                                                           backend=default_backend())
         except OSError as exc:
@@ -464,7 +465,7 @@ def main():
 
     vcert = VCertificate(module)
     vcert.ping()
-    # TODO: make a following choice:
+    # TODO: make a following choice (make it after completing role @arykalin):
     """
     1. If certificate is present and renew is true validate it
     2. If certificate not present renew it
