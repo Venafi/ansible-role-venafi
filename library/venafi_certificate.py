@@ -353,6 +353,9 @@ class VCertificate:
         try:
             with open(path+suffix, "wb") as f:
                 f.write(to_bytes(content))
+                file_args = self.module.load_file_common_arguments(self.module.params)
+                if self.module.set_fs_attributes_if_different(file_args, False):
+                    self.changed = True
         except OSError as e:
             self.module.fail_json(msg="Failed to write file %s: %s" % (path+suffix, e))
 
@@ -453,7 +456,11 @@ def main():
             config_section=dict(type='str', required=False, default=''),
 
             # General properties of a certificate
-            cert_path=dict(type='path', require=True),
+            # TODO: to support basic file permissions  parameters like mode, owner, group file parameter need to be
+            #  called path. It is hardcoded in
+            #  github.com/ansible/ansible/module_utils/basic.py Think how we can support those permissions for chain
+            #  and cert paths.
+            path=dict(type='path',aliases=['cert_path'], require=True),
             chain_path=dict(type='path', require=False),
             privatekey_path=dict(type='path', required=False),
             privatekey_type=dict(type='str', required=False),
