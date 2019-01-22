@@ -9,3 +9,6 @@ python-tpp-test:
 
 python-fake-test:
 	python3 ./library/venafi_certificate.py venafi_certificate_fake.json
+
+python-cloud-test:
+	python3 ./library/venafi_certificate.py venafi_certificate_cloud.json
