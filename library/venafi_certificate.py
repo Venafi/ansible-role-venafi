@@ -219,7 +219,7 @@ import random
 from vcert import CertificateRequest, Connection
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
-from cryptography.x509.oid import NameOID
+from cryptography.x509.oid import NameOID, ExtensionOID
 from cryptography.hazmat.primitives import serialization, hashes
 
 class VCertificate:
@@ -243,6 +243,7 @@ class VCertificate:
         self.privatekey_size = module.params['privatekey_size']
         self.privatekey_passphrase = module.params['privatekey_passphrase']
         self.chain_filename = module.params['chain_path']
+        self.csr_path = module.params['csr_path']
         self.args = ""
         self.changed = False
         self.module = module
@@ -287,15 +288,10 @@ class VCertificate:
                 return False
         return True
 
-
     def enroll(self):
-        # TODO: Check if certificate in path parameter already exists.
-
-        # TODO: add possibility to provide own CSR
         request = CertificateRequest(
             common_name=self.common_name,
             key_password=self.privatekey_passphrase,
-
         )
 
         if self.privatekey_filename:
@@ -329,8 +325,13 @@ class VCertificate:
                     request.email_addresses.append(mail)
                 else:
                     self.module.fail_json(msg="Failed to determine extension type: {0}".format(n))
-
         request.chain_option = self.module.params['chain_option']
+        if self.csr_path:
+            try:
+                csr = open(self.csr_path, "rb").read()
+                request.csr = csr
+            except:
+                pass
 
         self.conn.request_cert(request, self.zone)
         while True:
@@ -366,17 +367,25 @@ class VCertificate:
             return
         if cert.subject != self.common_name:
             return False
-        if cert.not_valid_after < datetime.datetime.now() - datetime.timedelta(hours=self.before_expired_hours):
+        if cert.not_valid_after < datetime.datetime.now() + datetime.timedelta(hours=self.before_expired_hours):
             return False
-        if cert.not_valid_before > datetime.datetime.now():  # todo: think add gap for time desyncronyzation
+        if cert.not_valid_before > datetime.datetime.now()-datetime.timedelta(hours=24):
             return False
-        # TODO: Test what extensions are the same as required
+        ips = []
+        dns = []
+        for e in cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME).value:
+            if isinstance(e, x509.general_name.DNSName):
+                dns.append(e.value)
+            elif isinstance(e, x509.general_name.IPAddress):
+                ips.append(e.value.exploded)
+        # TODO: compare sorted dns and ips list to something
 
     def check_certificate_public_key_matched_to_private_key_file(self, cert):
         try:
             with open(self.privatekey_filename, 'rb') as key_data:
-                pkey = serialization.load_pem_private_key(key_data.read(), password=self.privatekey_passphrase.encode(),
-                                                          backend=default_backend())
+                password = self.privatekey_passphrase.encode() if self.privatekey_passphrase else None
+                pkey = serialization.load_pem_private_key(key_data.read(), password=password, backend=default_backend())
+
         except OSError as exc:
             self.module.fail_json(msg="Failed to read private key file: {0}".format(exc))
 
@@ -455,6 +464,7 @@ def main():
             alt_name=dict(type='list', aliases=['subjectAltName'], elements='str'),
             common_name=dict(aliases=['CN', 'commonName', 'common_name'], type='str', required=True),
             chain_option=dict(type='str', required=False, default='last'),
+            csr_path=dict(type='path', require=False),
 
             # Role config
             before_expired_hours=dict(type='int', required=False, default=72)
