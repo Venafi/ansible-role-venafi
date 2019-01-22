@@ -223,7 +223,7 @@ from cryptography.x509.oid import NameOID, ExtensionOID
 from cryptography.hazmat.primitives import serialization, hashes
 
 class VCertificate:
-
+    # TODO: add trust bundle support
     def __init__(self, module):
         """
         :param AnsibleModule module:
