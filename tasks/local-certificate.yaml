@@ -1,2 +1,20 @@
 #Localy generate certificate
 #Copy files to remote host from inventory
+#Generater certificates on remote host
+- name: venafi_certificate_cloud
+  tasks:
+  - name: venafi_certificate
+    local_action:
+    venafi_certificate:
+      url: "{{ url }}"
+      token: "{{ token }}"
+      zone: "{{ zone }}"
+      path: "{{ path }}"
+      test_mode: "{{ test_mode }}"
+      user: "{{ user }}"
+      password: "{{ password }}"
+      common_name: '{{ common_name }}'
+    register: testout
+  - name: dump test output
+    debug:
+      msg: '{{ testout }}'

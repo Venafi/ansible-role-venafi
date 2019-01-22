@@ -1,6 +1,11 @@
 pep8:
 	pycodestyle --first ./library/venafi_certificate.py
 
+lint:
+	ansible-lint ./tasks/*
+	ansible-lint ./meta/*
+	ansible-lint ./defaults/*
+
 #Testing ansible crypto modules for examples and compability checks
 ansible-test-crypto:
 	ansible-playbook -i test-inventory-crypto test-crypto.yaml
