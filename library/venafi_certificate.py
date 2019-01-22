@@ -235,7 +235,7 @@ class VCertificate:
         self.user = module.params['user']
         self.zone = module.params['zone']
         self.privatekey_filename = module.params['privatekey_path']
-        self.certificate_filename = module.params['path']
+        self.certificate_filename = module.params['cert_path']
         self.privatekey_type = module.params['privatekey_type']
         self.privatekey_curve = module.params['privatekey_curve']
         self.privatekey_size = module.params['privatekey_size']
@@ -246,7 +246,8 @@ class VCertificate:
         self.module = module
         self.conn = Connection(url=self.url, token=self.token,
                                user=self.user, password=self.password,
-                               ignore_ssl_errors=True)
+                               http_request_kwargs={"verify": False})
+        self.before_expired_hours = module.params['before_expired_hours']
 
     def ping(self):
         print("Trying to ping url %s" % self.conn._base_url)
@@ -296,8 +297,11 @@ class VCertificate:
         )
 
         if self.privatekey_filename:
-            private_key = to_text(open(self.privatekey_filename, "rb").read())
-            request.private_key = private_key
+            try:
+                private_key = to_text(open(self.privatekey_filename, "rb").read())
+                request.private_key = private_key
+            except:
+                pass
         elif self.privatekey_type:
             key_type = {"RSA": "rsa", "ECDSA": "ec", "EC": "ec"}.get(self.privatekey_type)
             if not key_type:
@@ -324,33 +328,22 @@ class VCertificate:
                 else:
                     self.module.fail_json(msg="Failed to determine extension type: {0}".format(n))
 
-
         request.chain_option = self.module.params['chain_option']
 
         self.conn.request_cert(request, self.zone)
         while True:
-            cert = self.conn.retrieve_cert(request)
+            cert = self.conn.retrieve_cert(request)  # vcert.Certificate
             if cert:
                 break
             else:
                 time.sleep(5)
-        # TODO: Optionaly separate certificate and it's chain (if chain exists) into different files.
-        # TODO: Don’t write to files directly; use a temporary file and then use the atomic_move function from ansible.module_utils.basic
-        #  to move the updated temporary file into place.
-        #  This prevents data corruption and ensures that the correct context for the file is kept.
-        try:
-            with open(self.certificate_filename, 'wb') as certfile:
-                certfile.write(to_bytes(cert))
-            self.changed = True
-        except OSError as exc:
-            self.module.fail_json(msg="Failed to write certificate file: {0}".format(exc))
+        if self.chain_filename:
+            self._atomic_write(self.chain_filename, "\n".join(cert.chain))
+            self._atomic_write(self.certificate_filename, cert.cert)
+        else:
+            self._atomic_write(self.certificate_filename, cert.full_chain)
 
-        try:
-            with open(self.privatekey_filename, 'wb') as keyfile:
-                keyfile.write(to_bytes(request.private_key_pem))
-            self.changed = True
-        except OSError as exc:
-            self.module.fail_json(msg="Failed to write private key file: {0}".format(exc))
+        self._atomic_write(self.privatekey_filename, request.private_key_pem)  #todo: server generated private key
 
     def _atomic_write(self, path, content):
         suffix = ".atomic_%s" % random.randint(100, 100000)
@@ -359,10 +352,8 @@ class VCertificate:
                 f.write(to_bytes(content))
         except OSError as e:
             self.module.fail_json(msg="Failed to write file %s: %s" % (path+suffix, e))
-        try:
-            os.rename(path+suffix, path)
-        except OSError as e:
-            self.module.fail_json(msg="Failed to atomic replace file %s by %s: %s" % (path, path+suffix, e))
+
+        self.module.atomic_move(path+suffix, path)
 
     def check_certificate_validity(self):
         try:
@@ -373,43 +364,43 @@ class VCertificate:
             return
         if cert.subject != self.common_name:
             return False
-        if cert.not_valid_after < datetime.datetime.now() - datetime.timedelta(days=2):  # todo: move day to parameter
+        if cert.not_valid_after < datetime.datetime.now() - datetime.timedelta(hours=self.before_expired_hours):
             return False
         if cert.not_valid_before > datetime.datetime.now():  # todo: think add gap for time desyncronyzation
             return False
         # TODO: Test what extensions are the same as required
 
+    def check_certificate_public_key_matched_to_private_key_file(self, cert):
+        try:
+            with open(self.privatekey_filename, 'rb') as key_data:
+                pkey = serialization.load_pem_private_key(key_data.read(), password=self.privatekey_passphrase,
+                                                          backend=default_backend())
+        except OSError as exc:
+            self.module.fail_json(msg="Failed to read private key file: {0}".format(exc))
+
+        cert_public_key_pem = cert.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        ).decode()
+
+        private_key_public_key_pem = pkey.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        ).decode()
+
+        if cert_public_key_pem != private_key_public_key_pem:
+            self.module.fail_json(msg="Private public bytes not matched certificate public bytes:\n {0}\n{1}\n".format(
+                cert_public_key_pem, private_key_public_key_pem))
+
     def check(self):
         """Ensure the resource is in its desired state."""
         try:
             with open(self.certificate_filename, 'rb') as cert_data:
-                cert = x509.load_pem_x509_certificate(cert_data.read(), default_backend())
+                cert = x509.load_pem_x509_certificate(cert_data.read(), default_backend())  # type: x509.Certificate
         except OSError as exc:
             self.module.fail_json(msg="Failed to read certificate file: {0}".format(exc))
         if self.privatekey_filename:
-            try:
-                with open(self.privatekey_filename, 'rb') as key_data:
-                    if self.privatekey_passphrase:
-                        password = self.privatekey_passphrase.encode()
-                    else:
-                        password = None
-                    pkey = serialization.load_pem_private_key(key_data.read(), password=password,
-                                                              backend=default_backend())
-            except OSError as exc:
-                self.module.fail_json(msg="Failed to read private key file: {0}".format(exc))
-
-            cert_public_key_pem = cert.public_key().public_bytes(
-                encoding=serialization.Encoding.PEM,
-                format=serialization.PublicFormat.SubjectPublicKeyInfo
-            ).decode()
-
-            private_key_public_key_pem = pkey.public_key().public_bytes(
-                encoding=serialization.Encoding.PEM,
-                format=serialization.PublicFormat.SubjectPublicKeyInfo
-            ).decode()
-
-            if cert_public_key_pem != private_key_public_key_pem:
-                self.module.fail_json(msg="Private public bytes not matched certificate public bytes:\n {0}\n{1}\n".format(cert_public_key_pem,private_key_public_key_pem))
+            self.check_certificate_public_key_matched_to_private_key_file(cert)
 
     def dump(self):
 
@@ -451,7 +442,7 @@ def main():
             config_section=dict(type='str', required=False, default=''),
 
             # General properties of a certificate
-            path=dict(type='path', require=True),
+            cert_path=dict(type='path', require=True),
             chain_path=dict(type='path', require=False),
             privatekey_path=dict(type='path', required=False),
             privatekey_type=dict(type='str', required=False),
@@ -462,6 +453,9 @@ def main():
             alt_name=dict(type='list', aliases=['subjectAltName'], elements='str'),
             common_name=dict(aliases=['CN', 'commonName'], type='str', required=True),
             chain_option=dict(type='str', required=False, default='last'),
+
+            # Role config
+            before_expired_hours=dict(type='int', required=False, default=72)
         ),
         supports_check_mode=True,
         add_file_common_args=True,
