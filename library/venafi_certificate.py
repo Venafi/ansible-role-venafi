@@ -226,7 +226,7 @@ class VCertificate:
         """
         :param AnsibleModule module:
         """
-        self.common_name = module.params['commonName']
+        self.common_name = module.params['common_name']
         self.alt_name = module.params['alt_name']
         self.test_mode = module.params['test_mode']
         self.url = module.params['url']
@@ -452,7 +452,7 @@ def main():
             privatekey_passphrase=dict(type='str', no_log=True),
             signature_algorithms=dict(type='list', elements='str'),
             alt_name=dict(type='list', aliases=['subjectAltName'], elements='str'),
-            common_name=dict(aliases=['CN', 'commonName'], type='str', required=True),
+            common_name=dict(aliases=['CN', 'commonName', 'common_name'], type='str', required=True),
             chain_option=dict(type='str', required=False, default='last'),
 
             # Role config
