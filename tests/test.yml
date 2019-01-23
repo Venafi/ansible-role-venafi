@@ -14,13 +14,13 @@
 
     - name: "Install required pip3 packages"
       pip:
-        executable: pip3
         name:
           - vcert
       when: "'python3' in inventory_hostname"
 
     - name: "Install required pip2 packages"
       pip:
+        executable: pip2
         name:
           - vcert
       when: "'python2' in inventory_hostname"
