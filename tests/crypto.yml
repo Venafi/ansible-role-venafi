@@ -47,13 +47,13 @@
     - name: "Say hello to my new containers"
       ping:
 
-    - name: "Install dependencies"
-      apt:
-        name:
-          - python
-          - python-pip
-          - python-setuptools
-
+#    - name: "Install dependencies"
+#      apt:
+#        name:
+#          - python
+#          - python-pip
+#          - python-setuptools
+#
     - name: "Install required pip packages"
       pip:
         name:

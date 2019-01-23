@@ -353,13 +353,13 @@ class VCertificate:
         try:
             with open(path+suffix, "wb") as f:
                 f.write(to_bytes(content))
-                file_args = self.module.load_file_common_arguments(self.module.params)
-                if self.module.set_fs_attributes_if_different(file_args, False):
-                    self.changed = True
         except OSError as e:
             self.module.fail_json(msg="Failed to write file %s: %s" % (path+suffix, e))
 
         self.module.atomic_move(path+suffix, path)
+        file_args = self.module.load_file_common_arguments(self.module.params)
+        if self.module.set_fs_attributes_if_different(file_args, False):
+            self.changed = True
 
     def check_certificate_validity(self):
         try:
