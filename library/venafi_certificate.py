@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
@@ -223,6 +224,8 @@ from cryptography.x509.oid import NameOID, ExtensionOID
 from cryptography.hazmat.primitives import serialization, hashes
 
 class VCertificate:
+    # TODO: verify python 2.7 support (got TypeError: value argument must be a text type. for subject = [
+    #  x509.NameAttribute(NameOID.COMMON_NAME, self.common_name,)])
     # TODO: add trust bundle support
     def __init__(self, module):
         """
