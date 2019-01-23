@@ -13,6 +13,7 @@ test-crypto-playbook:
 #test ansible role with venafi_Certificate module
 test-vcert-role:
 #	#have to copy library to test our module, otherwise test playbook will not
+	docker build ./tests --tag local-ansible-test
 	rm -rv tests/library
 	cp -rv library tests/
 	ansible-playbook -i tests/inventory tests/test.yml

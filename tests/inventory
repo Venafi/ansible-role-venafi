@@ -1,3 +1,3 @@
 [robots]
-venafi-cert-python3 image="arykalin/python-pip"
-venafi-cert-python2 image="arykalin/python-pip" ansible_python_interpreter="/usr/bin/python2.7"
+venafi-cert-python3 image="local-ansible-test"
+venafi-cert-python2 image="local-ansible-test" ansible_python_interpreter="/usr/bin/python2.7"
