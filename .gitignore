@@ -2,6 +2,5 @@
 .idea
 venv
 venafi_certificate_*.json
-/library/openssl_certificate.py
-/library/openssl_csr.py
-/library/openssl_privatekey.py
+tests/library
+*.retry
