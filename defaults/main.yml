@@ -24,13 +24,13 @@ certificate:
   privatekey_path: "/tmp/venafi.example.com.key",
   common_name: "test111-tpp.example.com",
   alt_name: "IP:192.168.1.1,DNS:www.venafi.example.com,DNS:m.venafi.example.com,email:e@venafi.com,email:e2@venafi.com,IP Address:192.168.2.2"
-  # TODO: add example for other certificate parameters, like algorithm, curve etc.
   #Where to execute venafi_certificate module. If set to false certificate will be
   #created on ansible master host and then copied to the remote server
   remote_execution: false
   #  remote location where to place the certificate.
-  # TODO: add same parameters for private key and chain
   remote_cert_path: '/etc/ssl/remote.crt'
+  remote_chain_path: '/etc/ssl/remote_chain.crt'
+  remote_private_key_path: '/etc/ssl/remote.key'
   # Set to false if you don't want to copy private key to remote location
   copy_private_key_to_remote: true
   privatekey_type: "RSA"
