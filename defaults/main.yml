@@ -1,32 +1,6 @@
 ---
-#TODO: maybe move this to README.md or examples section of module or role? Check Ansible role documentation best
-#  practices
-#Most of this variables should be rewritten on playbook or inventory level. There here only for documentation purpose.
-
-#Credentials.
-#TODO:  This section example should be rewritten using Ansible vault.
-venafi:
-  # Venafi Platform connection parameters
-  user: 'admin'
-  password: 'secret'
-  url: 'https://venafi.example.com/vedsdk'
-  zone: "devops\\\\\\\\vcert",
-  # Venafi Cloud connection parameters
-  #token: 'enter-cloud-api-token-here'
-  #zone: 'Default'
-  #Test mode parameter
-  #test_mode: true
-
-#Certificate parameters. This is are examples.
 certificate:
   common_name: "{{ ansible_fqdn }}"
-  alt_name: "IP:192.168.1.1,DNS:www.venafi.example.com,DNS:m.venafi.example.com,email:e@venafi.com,email:e2@venafi.com,IP Address:192.168.2.2"
-
-  privatekey_type: "RSA"
-  privatekey_size: "2048"
-  privatekey_curve: "P251"
-  privatekey_passphrase: "password"
-  chain_option: "last"
 
   cert_dir: "/etc/ssl/{{ certificate.common_name }}"
   cert_path: "{{ cert_dir }}/{{ certificate.common_name }}.pem"

@@ -8,30 +8,9 @@
       provision_docker_use_docker_connection: true
 
 - hosts: robots
-  tasks:
-    - name: "Say hello to my new containers"
-      ping:
-
-    - name: "Install required pip3 packages"
-      pip:
-        name:
-          - vcert
-      when: "'python3' in inventory_hostname"
-
-    - name: "Install required pip2 packages"
-      pip:
-        executable: pip2
-        name:
-          - vcert
-      when: "'python2' in inventory_hostname"
-
-#    - name: "Enroll fake certificate"
-    - venafi_certificate:
-        test_mode: true
-        cert_path: "/tmp/fake.venafi.example.cert.pem"
-        privatekey_path: "/tmp/fake.venafi.example.cert.key"
-        privatekey_type: "RSA"
-        privatekey_size: 8192
-        privatekey_passphrase: "password"
-        common_name: "fake.venafi.example.com"
-        mode: "u=rwx,g=rwx,o=rwx"
+  roles:
+    - role: venafi_certificate
+      venafi: !VAULT
+      certificate:
+        common_name: "{{ ansible_fqdn }}"
+        alt_name: "IP:192.168.1.1,DNS:www.venafi.example.com,DNS:m.venafi.example.com,email:e@venafi.com,email:e2@venafi.com,IP Address:192.168.2.2"
