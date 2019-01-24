@@ -25,16 +25,16 @@
 - name: "Copy Venafi certificate file to remote location"
   copy:
     src: "{{ certificate.cert_path }}"
-    dest: "{{ certificate.remote_cert_path }}"
+    dest: "{{ certificate.remote_cert_path if certificate.remote_cert_path  is defined else certificate.cert_path }}"
 
 - name: "Copy Venafi private key file to remote location"
   copy:
     src: "{{ certificate.privatekey_path }}"
-    dest: "{{ certificate.remote_privatekey_path }}"
+    dest: "{{ certificate.remote_privatekey_path if certificate.remote_privatekey_path else certificate.privatekey_path }}"
   when: copy_private_key_to_remote
 
 - name: "Copy Venafi certificate chain file to remote location"
   copy:
     src: "{{ certificate.chain_path }}"
-    dest: "{{ certificate.chain_cert_path }}"
+    dest: "{{ certificate.chain_cert_path if certificate.chain_cert_path else certificate.chain_path }}"
   when: certificate.chain_path is defined

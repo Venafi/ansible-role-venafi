@@ -3,13 +3,15 @@
   tasks:
   - name: venafi_certificate
     venafi_certificate:
-      url: "{{ venafi.url }}"
-      token: "{{ venafi.token }}"
-      zone: "{{ venafi.zone }}"
-      path: "{{ certificate.path }}"
-      test_mode: "{{ venafi.test_mode }}"
-      user: "{{ venafi.user }}"
-      password: "{{ venafi.password }}"
+      url: "{{ venafi.url if venafi.url is defined else None }}"
+      token: "{{ venafi.token if venafi.token is defined else None }}"
+      zone: "{{ venafi.zone if venafi.zone is defined else None }}"
+      test_mode: "{{ venafi.test_mode if venafi.test_mode is defined is defined else None}}"
+      user: "{{ venafi.user if venafi.user is defined else None }}"
+      password: "{{ venafi.password if venafi.password is defined else None }}"
+      cert_path: "{{ certificate.cert_path }}"
+      chain_path: "{{ certificate.chain_path if certificate.chain_path is defined else None }}"
+      privatekey_path: "{{ certificate.privatekey_path if certificate.privatekey_path is defined else None }}"
       common_name: "{{ certificate.common_name }}"
     register: testout
   - name: "dump test output"
