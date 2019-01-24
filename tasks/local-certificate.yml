@@ -1,6 +1,7 @@
 #Localy generate certificate
 #Copy files to remote host from inventory
 #Generater certificates on remote host
+#TODO: maybe rewrite to delegate to be able to register certificate from any host?
 - name: "Enroll Venafi certificate on local host"
   tasks:
   - name: venafi_certificate
@@ -12,7 +13,7 @@
       test_mode: "{{ venafi.test_mode if venafi.test_mode is defined is defined else None}}"
       user: "{{ venafi.user if venafi.user is defined else None }}"
       password: "{{ venafi.password if venafi.password is defined else None }}"
-      path: "{{ certificate.path }}"
+      cert_path: "{{ certificate.cert_path }}"
       chain_path: "{{ certificate.chain_path if certificate.chain_path is defined else None }}"
       privatekey_path: "{{ certificate.privatekey_path if certificate.privatekey_path is defined else None }}"
       common_name: "{{ certificate.common_name }}"
@@ -21,10 +22,19 @@
     debug:
       msg: "{{ testout }}"
 
-- name: "Copy Venafi certificate files to remote location"
+- name: "Copy Venafi certificate file to remote location"
   copy:
-    src: "{{ ca.local_dir }}/{{ item.file }}"
-    dest: "{{ cert.dir }}"
-  with_items:
-    - { file: "{{ ca.cert_file }}" }
-    - { file: "{{ ca.key_file }}" }
+    src: "{{ certificate.cert_path }}"
+    dest: "{{ certificate.remote_cert_path }}"
+
+- name: "Copy Venafi private key file to remote location"
+  copy:
+    src: "{{ certificate.privatekey_path }}"
+    dest: "{{ certificate.remote_privatekey_path }}"
+  when: copy_private_key_to_remote
+
+- name: "Copy Venafi certificate chain file to remote location"
+  copy:
+    src: "{{ certificate.chain_path }}"
+    dest: "{{ certificate.chain_cert_path }}"
+  when: certificate.chain_path is defined
