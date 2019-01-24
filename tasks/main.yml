@@ -1,10 +1,10 @@
 - name: Include vars of stuff.yaml into the 'stuff' variable (2.2).
   include_vars:
-    file: {{ credentials_file }}
+    file: "{{ credentials_file }}"
     name: venafi
 
 - import_tasks:  local-certificate.yml
-    when: not certificate.remote_execution
+  when: not certificate.remote_execution
 
 - import_tasks:  remote-certificate.yml
-    when: certificate.remote_execution
+  when: certificate.remote_execution
