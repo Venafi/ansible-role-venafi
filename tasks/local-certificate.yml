@@ -1,20 +1,30 @@
 #Localy generate certificate
 #Copy files to remote host from inventory
 #Generater certificates on remote host
-- name: venafi_certificate
+- name: "Enroll Venafi certificate on local host"
   tasks:
   - name: venafi_certificate
     local_action:
       module: venafi_certificate
-      url: "{{ venafi.url }}"
-      token: "{{ venafi.token }}"
-      zone: "{{ venafi.zone }}"
-      path: "{{ path }}"
-      test_mode: "{{ venafi.test_mode }}"
-      user: "{{ venafi.user }}"
-      password: "{{ venafi.password }}"
-      common_name: "{{ common_name }}"
+      url: "{{ venafi.url if venafi.url is defined else None }}"
+      token: "{{ venafi.token if venafi.token is defined else None }}"
+      zone: "{{ venafi.zone if venafi.zone is defined else None }}"
+      test_mode: "{{ venafi.test_mode if venafi.test_mode is defined is defined else None}}"
+      user: "{{ venafi.user if venafi.user is defined else None }}"
+      password: "{{ venafi.password if venafi.password is defined else None }}"
+      path: "{{ certificate.path }}"
+      chain_path: "{{ certificate.chain_path if certificate.chain_path is defined else None }}"
+      privatekey_path: "{{ certificate.privatekey_path if certificate.privatekey_path is defined else None }}"
+      common_name: "{{ certificate.common_name }}"
     register: testout
   - name: "dump test output"
     debug:
       msg: "{{ testout }}"
+
+- name: "Copy Venafi certificate files to remote location"
+  copy:
+    src: "{{ ca.local_dir }}/{{ item.file }}"
+    dest: "{{ cert.dir }}"
+  with_items:
+    - { file: "{{ ca.cert_file }}" }
+    - { file: "{{ ca.key_file }}" }
