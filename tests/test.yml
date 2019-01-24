@@ -9,6 +9,6 @@
 
 - hosts: robots
   roles:
-    - role: venafi_certificate
+    - role: "{{ lookup('env', 'PWD') }}"
       certificate:
         common_name: "{{ ansible_fqdn }}"
