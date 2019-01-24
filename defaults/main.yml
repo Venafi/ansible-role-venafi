@@ -1,4 +1,5 @@
 ---
+credentials_file: credentials.yml
 certificate:
   common_name: "{{ ansible_fqdn }}"
 

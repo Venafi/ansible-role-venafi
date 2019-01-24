@@ -10,7 +10,5 @@
 - hosts: robots
   roles:
     - role: venafi_certificate
-      venafi: !VAULT
       certificate:
         common_name: "{{ ansible_fqdn }}"
-        alt_name: "IP:192.168.1.1,DNS:www.venafi.example.com,DNS:m.venafi.example.com,email:e@venafi.com,email:e2@venafi.com,IP Address:192.168.2.2"
