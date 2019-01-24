@@ -6,15 +6,15 @@
   - name: venafi_certificate
     local_action:
       module: venafi_certificate
-      url: "{{ url }}"
-      token: "{{ token }}"
-      zone: "{{ zone }}"
+      url: "{{ venafi.url }}"
+      token: "{{ venafi.token }}"
+      zone: "{{ venafi.zone }}"
       path: "{{ path }}"
-      test_mode: "{{ test_mode }}"
-      user: "{{ user }}"
-      password: "{{ password }}"
-      common_name: '{{ common_name }}'
+      test_mode: "{{ venafi.test_mode }}"
+      user: "{{ venafi.user }}"
+      password: "{{ venafi.password }}"
+      common_name: "{{ common_name }}"
     register: testout
-  - name: dump test output
+  - name: "dump test output"
     debug:
-      msg: '{{ testout }}'
+      msg: "{{ testout }}"

@@ -1,23 +1,29 @@
 ---
-#Parameters for the Platfrom
-user: 'admin'
-password: 'secret'
-url: 'https://venafi.example.com/vedsdk'
-zone: "devops\\\\\\\\vcert",
+#TODO: maybe move this to README.md or examples section of module or role? Check Ansible role documentation best
+#  practices
+#Most of this variables should be rewritten on playbook or inventory level. There here only for documentation purpose.
 
-#Parameters for the Cloud
-token: 'enter-cloud-api-token-here'
-#zone: 'Default'
+#Credentials.
+#TODO:  This section example should be rewritten using Ansible vault.
+venafi:
+  # Venafi Platform connection parameters
+  user: 'admin'
+  password: 'secret'
+  url: 'https://venafi.example.com/vedsdk'
+  zone: "devops\\\\\\\\vcert",
+  # Venafi Cloud connection parameters
+  #token: 'enter-cloud-api-token-here'
+  #zone: 'Default'
+  #Test mode parameter
+  #test_mode: true
 
-#Test mode
-test_mode: true
-
-#Certificate parameters
-cert_path: '/tmp/venafi.example.com.pem'
-chain_path: '/tmp/venafi.example.com_chain.pem'
-privatekey_path: "/tmp/venafi.example.com.key",
-common_name: "test111-tpp.example.com",
-alt_name: "IP:192.168.1.1,DNS:www.venafi.example.com,DNS:m.venafi.example.com,email:e@venafi.com,email:e2@venafi.com,IP Address:192.168.2.2"
-
-
+#Certificate parameters. This is are examples.
+certificate:
+  cert_path: '/tmp/venafi.example.com.pem'
+  chain_path: '/tmp/venafi.example.com_chain.pem'
+  privatekey_path: "/tmp/venafi.example.com.key",
+  common_name: "test111-tpp.example.com",
+  alt_name: "IP:192.168.1.1,DNS:www.venafi.example.com,DNS:m.venafi.example.com,email:e@venafi.com,email:e2@venafi.com,IP Address:192.168.2.2"
+  # TODO: add example for other certificate parameters, like algorithm, curve etc.
+  execution_mode: "remote"
 
