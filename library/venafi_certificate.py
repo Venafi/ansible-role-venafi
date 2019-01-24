@@ -468,7 +468,6 @@ def main():
             privatekey_size=dict(type='int', required=False),
             privatekey_curve=dict(type='str', required=False),
             privatekey_passphrase=dict(type='str', no_log=True),
-            signature_algorithms=dict(type='list', elements='str'),
             alt_name=dict(type='list', aliases=['subjectAltName'], elements='str'),
             common_name=dict(aliases=['CN', 'commonName', 'common_name'], type='str', required=True),
             chain_option=dict(type='str', required=False, default='last'),

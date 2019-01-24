@@ -33,4 +33,11 @@ certificate:
   remote_cert_path: '/etc/ssl/remote.crt'
   # Set to false if you don't want to copy private key to remote location
   copy_private_key_to_remote: true
+  privatekey_type: "RSA"
+  privatekey_size: "2048"
+  privatekey_curve: "P251"
+  privatekey_passphrase: "password"
+  chain_option: "last"
+  csr_path: '/etc/csr/some.csr'
+
 
