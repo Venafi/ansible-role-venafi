@@ -20,6 +20,16 @@
       organization_name: Example
       email_address: ca@example.com
       common_name: ca
+    cert:
+      dir: /etc/ssl
+      cert_file: example.com.pem
+      key_file: example.com.key
+      csr_file: example.com.csr
+      country_name: US
+      organization_name: Example
+      email_address: ca@example.com
+      common_name: cert.example.com
+
   tasks:
     - name: "Say hello to my new containers"
       ping:
@@ -57,8 +67,11 @@
 
     - name: "Copy CA file to remote location"
       copy:
-        src: /tmp/ansible/etc/ssl/crt/ca.crt
-        dest: /etc/ssl/
+        src: "{{ ca.local_dir }}/{{ item.file }}"
+        dest: "{{ cert.dir }}"
+      with_items:
+        - { file: "{{ ca.cert_file }}" }
+        - { file: "{{ ca.key_file }}" }
 
     - name: "Install required pip packages"
       pip:
@@ -67,7 +80,7 @@
 
     - name: "Create directories"
       file:
-        path: /etc/ssl/{{ item.dir }}
+        path: "{{ cert.dir }}/{{ item.dir }}"
         state: directory
         mode: 0755
       with_items:
@@ -80,20 +93,22 @@
 
     - name: "Generate an OpenSSL private key with the default values (4096 bits, RSA)"
       openssl_privatekey:
-        path: /etc/ssl/private/ansible.com.pem
+        path: "{{ cert.dir }}/private/{{ cert.key_file }}"
 
     - name: "Generate an OpenSSL Certificate Signing Request with Subject information"
       openssl_csr:
-        path: /etc/ssl/csr/www.ansible.com.csr
-        privatekey_path: /etc/ssl/private/ansible.com.pem
-        country_name: FR
-        organization_name: Ansible
-        email_address: jdoe@ansible.com
-        common_name: www.ansible.com
+        path: "{{ cert.dir }}/csr/{{ cert.csr_file }}"
+        privatekey_path: "{{ cert.dir }}/private/{{ cert.key_file }}"
+        country_name: "{{ ca.country_name }}"
+        organization_name: "{{ ca.organization_name }}"
+        email_address: "{{ cert.email_address }}"
+        common_name: "{{ cert.common_name }}"
 
-    - name: "Generate a Self Signed OpenSSL certificate"
+    - name: "Sign certificate with local CA"
       openssl_certificate:
-        path: /etc/ssl/crt/www.ansible.com.crt
-        privatekey_path: /etc/ssl/private/ansible.com.pem
-        csr_path: /etc/ssl/csr/www.ansible.com.csr
-        provider: selfsigned
+        path: "{{ cert.dir }}/crt/{{ cert.cert_file }}"
+        privatekey_path: "{{ cert.dir }}/private/{{ cert.key_file }}"
+        csr_path: "{{ cert.dir }}/csr/{{ cert.csr_file }}"
+        ownca_path: "{{ cert.dir }}/{{ ca.cert_file }}"
+        ownca_privatekey_path: "{{ cert.dir }}/{{ ca.key_file }}"
+        provider: ownca
