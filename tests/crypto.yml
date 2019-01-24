@@ -48,6 +48,11 @@
         csr_path: /tmp/ansible/etc/ssl/csr/ca.csr
         provider: selfsigned
 
+    - name: "Copy CA file to remote location"
+      copy:
+        src: /tmp/ansible/etc/ssl/crt/ca.crt
+        dest: /etc/ssl/
+
     - name: "Install required pip packages"
       pip:
         name:
