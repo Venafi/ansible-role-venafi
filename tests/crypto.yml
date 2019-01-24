@@ -9,6 +9,17 @@
       provision_docker_use_docker_connection: true
 
 - hosts: robots
+  vars:
+    ca:
+      local_dir: /tmp/ansible-ca
+      remote_dir: /etc/ssl
+      cert_file: ca.pem
+      key_file: ca.key
+      csr_file: ca.csr
+      country_name: US
+      organization_name: Example
+      email_address: ca@example.com
+      common_name: ca
   tasks:
     - name: "Say hello to my new containers"
       ping:
@@ -16,36 +27,32 @@
     - name: "Create directories for local CA files"
       local_action:
         module: file
-        path: /tmp/ansible/etc/ssl/{{ item.dir }}
+        path: "{{ ca.local_dir }}"
         state: directory
         mode: 0755
-      with_items:
-        - { dir: 'csr' }
-        - { dir: 'crt' }
-        - { dir: 'private' }
 
     - name: "Generate an OpenSSL private key with the default values (4096 bits, RSA) for local CA"
       local_action:
         module: openssl_privatekey
-        path: /tmp/ansible/etc/ssl/private/ansible.com.pem
+        path: "{{ ca.local_dir }}/{{ ca.key_file }}"
 
     - name: "Generate an OpenSSL Certificate Signing Request with Subject information for local CA"
       local_action:
         module: openssl_csr
-        path: /tmp/ansible/etc/ssl/csr/ca.csr
-        privatekey_path: /tmp/ansible/etc/ssl/private/ansible.com.pem
-        country_name: US
-        organization_name: CA
-        email_address: ca@example.com
-        common_name: ca
+        path: "{{ ca.local_dir }}/{{ ca.csr_file }}"
+        privatekey_path: "{{ ca.local_dir }}/{{ ca.key_file }}"
+        country_name: "{{ ca.country_name }}"
+        organization_name: "{{ ca.organization_name }}"
+        email_address: "{{ ca.email_address }}"
+        common_name: "{{ ca.common_name }}"
         basic_constraints: "CA:true"
 
     - name: "Generate a Self Signed local CA certificate"
       local_action:
         module: openssl_certificate
-        path: /tmp/ansible/etc/ssl/crt/ca.crt
-        privatekey_path: /tmp/ansible/etc/ssl/private/ansible.com.pem
-        csr_path: /tmp/ansible/etc/ssl/csr/ca.csr
+        path: "{{ ca.local_dir }}/{{ ca.cert_file }}"
+        privatekey_path: "{{ ca.local_dir }}/{{ ca.key_file }}"
+        csr_path: "{{ ca.local_dir }}/{{ ca.csr_file }}"
         provider: selfsigned
 
     - name: "Copy CA file to remote location"
