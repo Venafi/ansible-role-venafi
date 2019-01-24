@@ -8,11 +8,14 @@
       provision_docker_inventory_group: "{{ groups['robots'] }}"
       provision_docker_use_docker_connection: true
 
-#Create local CA
-- hosts: localhost
+- hosts: robots
   tasks:
-    - name: "Create directories"
-      file:
+    - name: "Say hello to my new containers"
+      ping:
+
+    - name: "Create directories for local CA files"
+      local_action:
+        module: file
         path: /tmp/ansible/etc/ssl/{{ item.dir }}
         state: directory
         mode: 0755
@@ -21,12 +24,14 @@
         - { dir: 'crt' }
         - { dir: 'private' }
 
-    - name: "Generate an OpenSSL private key with the default values (4096 bits, RSA)"
-      openssl_privatekey:
+    - name: "Generate an OpenSSL private key with the default values (4096 bits, RSA) for local CA"
+      local_action:
+        module: openssl_privatekey
         path: /tmp/ansible/etc/ssl/private/ansible.com.pem
 
-    - name: "Generate an OpenSSL Certificate Signing Request with Subject information"
-      openssl_csr:
+    - name: "Generate an OpenSSL Certificate Signing Request with Subject information for local CA"
+      local_action:
+        module: openssl_csr
         path: /tmp/ansible/etc/ssl/csr/ca.csr
         privatekey_path: /tmp/ansible/etc/ssl/private/ansible.com.pem
         country_name: US
@@ -35,25 +40,14 @@
         common_name: ca
         basic_constraints: "CA:true"
 
-    - name: "Generate a Self Signed OpenSSL certificate"
-      openssl_certificate:
+    - name: "Generate a Self Signed local CA certificate"
+      local_action:
+        module: openssl_certificate
         path: /tmp/ansible/etc/ssl/crt/ca.crt
         privatekey_path: /tmp/ansible/etc/ssl/private/ansible.com.pem
         csr_path: /tmp/ansible/etc/ssl/csr/ca.csr
         provider: selfsigned
 
-- hosts: robots
-  tasks:
-    - name: "Say hello to my new containers"
-      ping:
-
-#    - name: "Install dependencies"
-#      apt:
-#        name:
-#          - python
-#          - python-pip
-#          - python-setuptools
-#
     - name: "Install required pip packages"
       pip:
         name:
