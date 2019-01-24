@@ -19,25 +19,30 @@ venafi:
 
 #Certificate parameters. This is are examples.
 certificate:
-  cert_path: '/tmp/venafi.example.com.pem'
-  chain_path: '/tmp/venafi.example.com_chain.pem'
-  privatekey_path: "/tmp/venafi.example.com.key",
-  common_name: "test111-tpp.example.com",
+  common_name: "{{ ansible_fqdn }}"
   alt_name: "IP:192.168.1.1,DNS:www.venafi.example.com,DNS:m.venafi.example.com,email:e@venafi.com,email:e2@venafi.com,IP Address:192.168.2.2"
-  #Where to execute venafi_certificate module. If set to false certificate will be
-  #created on ansible master host and then copied to the remote server
-  remote_execution: false
-  #  remote location where to place the certificate.
-  remote_cert_path: '/etc/ssl/remote.crt'
-  remote_chain_path: '/etc/ssl/remote_chain.crt'
-  remote_private_key_path: '/etc/ssl/remote.key'
-  # Set to false if you don't want to copy private key to remote location
-  copy_private_key_to_remote: true
+
   privatekey_type: "RSA"
   privatekey_size: "2048"
   privatekey_curve: "P251"
   privatekey_passphrase: "password"
   chain_option: "last"
-  csr_path: '/etc/csr/some.csr'
+
+  cert_dir: "/etc/ssl/{{ certificate.common_name }}"
+  cert_path: "{{ cert_dir }}/{{ certificate.common_name }}.pem"
+  chain_path: "{{ cert_dir }}/{{ certificate.common_name }}.chain.pem"
+  privatekey_path: "{{ cert_dir }}/{{ certificate.common_name }}.key"
+  csr_path: "{{ cert_dir }}/{{ certificate.common_name }}.csr"
+
+  #Where to execute venafi_certificate module. If set to false certificate will be
+  #created on ansible master host and then copied to the remote server
+  remote_execution: false
+  #  remote location where to place the certificate.
+  remote_cert_path: "{{ cert_dir }}/{{ certificate.common_name }}.pem"
+  remote_chain_path: "{{ cert_dir }}/{{ certificate.common_name }}.chain.pem"
+  remote_private_key_path: "{{ cert_dir }}/{{ certificate.common_name }}.key"
+  # Set to false if you don't want to copy private key to remote location
+  copy_private_key_to_remote: true
+
 
 
