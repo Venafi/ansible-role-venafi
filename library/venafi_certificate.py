@@ -215,13 +215,20 @@ import datetime
 import os.path
 import random
 
-# TODO:  raise JSON error messages when dependency import fails.
-#  lib/ansible/modules/crypto/certificate_complete_chain.py:128
-from vcert import CertificateRequest, Connection
-from cryptography import x509
-from cryptography.hazmat.backends import default_backend
-from cryptography.x509.oid import NameOID, ExtensionOID
-from cryptography.hazmat.primitives import serialization, hashes
+
+HAS_VCERT = HAS_CRYPTOGRAPHY = True
+try:
+    from vcert import CertificateRequest, Connection
+except ImportError:
+    HAS_VCERT =False
+try:
+    from cryptography import x509
+    from cryptography.hazmat.backends import default_backend
+    from cryptography.x509.oid import NameOID, ExtensionOID
+    from cryptography.hazmat.primitives import serialization, hashes
+except ImportError:
+    HAS_CRYPTOGRAPHY = False
+
 
 class VCertificate:
     # TODO: add trust bundle support
@@ -230,7 +237,7 @@ class VCertificate:
         :param AnsibleModule module:
         """
         self.common_name = module.params['common_name']
-        self.alt_name = module.params['alt_name']
+
         self.test_mode = module.params['test_mode']
         self.url = module.params['url']
         self.password = module.params['password']
@@ -248,13 +255,29 @@ class VCertificate:
         self.args = ""
         self.changed = False
         self.module = module
+        self.ip_addresses = []
+        self.email_addresses = []
+        self.san_dns = []
+        if module.params['alt_name']:
+            for n in module.params['alt_name']:
+                if n.startswith(("IP:", "IP Address:")):
+                    ip = n.split(":", 1)[1]
+                    self.ip_addresses.append(ip)
+                elif n.startswith("DNS:"):
+                    ns = n.split(":", 1)[1]
+                    self.san_dns.append(ns)
+                elif n.startswith("email:"):
+                    mail = n.split(":", 1)[1]
+                    self.email_addresses.append(mail)
+                else:
+                    self.module.fail_json(msg="Failed to determine extension type: {0}".format(n))
         self.conn = Connection(url=self.url, token=self.token,
                                user=self.user, password=self.password,
                                http_request_kwargs={"verify": False})
         self.before_expired_hours = module.params['before_expired_hours']
 
     def ping(self):
-        print("Trying to ping url %s" % self.conn._base_url)
+        print("Trying to ping url %s" % self.conn)
         status = self.conn.ping()
         print("Server online:", status)
         if not status:
@@ -310,22 +333,10 @@ class VCertificate:
             request.key_curve = self.privatekey_curve
             request.key_length = self.privatekey_size
 
-        request.ip_addresses = []
-        request.san_dns = []
-        request.email_addresses = []
-        if self.alt_name:
-            for n in self.alt_name:
-                if n.startswith(("IP:", "IP Address:")):
-                    ip = n.split(":", 1)[1]
-                    request.ip_addresses.append(ip)
-                elif n.startswith("DNS:"):
-                    ns = n.split(":", 1)[1]
-                    request.san_dns.append(ns)
-                elif n.startswith("email:"):
-                    mail = n.split(":", 1)[1]
-                    request.email_addresses.append(mail)
-                else:
-                    self.module.fail_json(msg="Failed to determine extension type: {0}".format(n))
+        request.ip_addresses = self.ip_addresses
+        request.san_dns = self.san_dns
+        request.email_addresses = self.email_addresses
+
         request.chain_option = self.module.params['chain_option']
         if self.csr_path:
             try:
@@ -359,6 +370,7 @@ class VCertificate:
 
         self.module.atomic_move(path+suffix, path)
         file_args = self.module.load_file_common_arguments(self.module.params)
+        file_args['path'] = path
         if self.module.set_fs_attributes_if_different(file_args, False):
             self.changed = True
 
@@ -382,7 +394,11 @@ class VCertificate:
                 dns.append(e.value)
             elif isinstance(e, x509.general_name.IPAddress):
                 ips.append(e.value.exploded)
-        # TODO: compare sorted dns and ips list to something
+        if self.ip_addresses and sorted(self.ip_addresses) != sorted(ips):
+            return False
+        if self.san_dns and sorted(self.san_dns) != sorted(dns):
+            return False
+        return True
 
     def check_certificate_public_key_matched_to_private_key_file(self, cert):
         try:
@@ -457,10 +473,7 @@ def main():
             config_section=dict(type='str', required=False, default=''),
 
             # General properties of a certificate
-            # TODO: to support basic file permissions  parameters like mode, owner, group file parameter need to be
-            #  called path. It is hardcoded in
-            #  github.com/ansible/ansible/module_utils/basic.py Think how we can support those permissions for chain
-            #  and cert paths.
+            # TODO: check files permissions changing
             path=dict(type='path',aliases=['cert_path'], require=True),
             chain_path=dict(type='path', require=False),
             privatekey_path=dict(type='path', required=False),
@@ -479,7 +492,10 @@ def main():
         supports_check_mode=True,
         add_file_common_args=True,
     )
-
+    if not HAS_VCERT:
+        module.fail_json(msg='"vcert" python library is required')
+    if not HAS_CRYPTOGRAPHY:
+        module.fail_json(msg='"cryptography" python library is required')
     vcert = VCertificate(module)
     vcert.ping()
     # TODO: make a following choice (make it after completing role @arykalin):
