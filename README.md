@@ -65,10 +65,10 @@ certificate_copy_private_key_to_remote: true
 Dependencies
 ------------
 
-vcert
+vcert, ansible
 
 ```
-pip install vcert
+sudo pip install ansible vcert --upgrade
 ```
 
 Example Playbook
