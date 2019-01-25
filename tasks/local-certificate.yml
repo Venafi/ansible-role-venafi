@@ -42,5 +42,5 @@
 - name: "Copy Venafi certificate chain file to remote location"
   copy:
     src: "{{ certificate_chain_path }}"
-    dest: "{{ certificate_chain_cert_path if certificate_chain_cert_path else certificate_chain_path }}"
+    dest: "{{ certificate_remote_chain_path if certificate_remote_chain_path else certificate_chain_path }}"
   when: certificate_chain_path is defined
