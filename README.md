@@ -9,6 +9,10 @@ Requirements
 Install vcert using pip:  
 `pip install vcert`
 
+Quickstart
+------------
+TODO: add quickstart guide
+
 Role Variables
 --------------
 
@@ -75,7 +79,7 @@ playbook file example:
 ```yaml
 - hosts: servers
   roles:
-    - role: "{{ lookup('env', 'PWD') }}"
+    - role: "ansible-role-venafi"
       certificate_common_name: "{{ ansible_fqdn }}.venafi.example.com"
       certificate_cert_dir: "/tmp/ansible/etc/ssl/{{ certificate_common_name }}"
       certificate_cert_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.pem"
@@ -122,6 +126,8 @@ For example:
     ansible-playbook playbook.yml --extra-vars "credentials_file=other_credentials.yml"
 
 Look into tests directory and Makefile for more examples.
+
+Look into official documentation about using roles: https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html
 
 Security best practices
 ----------------
