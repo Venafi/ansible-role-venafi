@@ -1,5 +1,5 @@
 #Generater certificates on remote host
-- name: venafi_certificate
+- name: "Enroll Venafi certificate on remote host"
   venafi_certificate:
     url: "{{ venafi.url if venafi.url is defined else None }}"
     token: "{{ venafi.token if venafi.token is defined else None }}"

@@ -20,6 +20,24 @@ test-vcert-role-tpp:
 	--vault-password-file vault-password.txt \
 	--extra-vars "credentials_file=tpp_credentials.yml"
 
+test-vcert-role-cloud:
+#	#have to copy library to test our module, otherwise test playbook will not
+	docker build ./tests --tag local-ansible-test
+	rm -rv tests/library
+	cp -rv library tests/
+	ansible-playbook -i tests/inventory tests/test.yml \
+	--vault-password-file vault-password.txt \
+	--extra-vars "credentials_file=cloud_credentials.yml"
+
+test-vcert-role-fake:
+#	#have to copy library to test our module, otherwise test playbook will not
+	docker build ./tests --tag local-ansible-test
+	rm -rv tests/library
+	cp -rv library tests/
+	ansible-playbook -i tests/inventory tests/test.yml \
+	--vault-password-file vault-password.txt \
+	--extra-vars "credentials_file=fake_credentials.yml"
+
 #test module with python using json for args
 test-python-module: test-python-module-fake test-python-module-tpp test-python-module-cloud
 

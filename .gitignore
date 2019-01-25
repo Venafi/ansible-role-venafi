@@ -4,6 +4,7 @@ venv
 venafi_certificate_*.json
 tpp_credentials.yml
 cloud_credentials.yml
+fake_credentials.yml
 vault-password.txt
 tests/library
 *.retry
