@@ -231,7 +231,6 @@ except ImportError:
 
 
 class VCertificate:
-    # TODO: add trust bundle support
     def __init__(self, module):
         """
         :param AnsibleModule module:
@@ -271,9 +270,14 @@ class VCertificate:
                     self.email_addresses.append(mail)
                 else:
                     self.module.fail_json(msg="Failed to determine extension type: {0}".format(n))
-        self.conn = Connection(url=self.url, token=self.token,
-                               user=self.user, password=self.password,
-                               http_request_kwargs={"verify": False})
+        trust_bundle = module.params['trust_bundle']
+        if trust_bundle:
+            self.conn = Connection(url=self.url, token=self.token,
+                                   user=self.user, password=self.password,
+                                   http_request_kwargs={"verify": trust_bundle})
+        else:
+            self.conn = Connection(url=self.url, token=self.token,
+                                   user=self.user, password=self.password)
         self.before_expired_hours = module.params['before_expired_hours']
 
     def ping(self):
@@ -471,10 +475,10 @@ def main():
             log_verbose=dict(type='str', required=False, default=''),
             config_file=dict(type='str', required=False, default=''),
             config_section=dict(type='str', required=False, default=''),
+            trust_bundle=dict(type='str', required=False),
 
             # General properties of a certificate
-            # TODO: check files permissions changing
-            path=dict(type='path',aliases=['cert_path'], require=True),
+            path=dict(type='path', aliases=['cert_path'], require=True),
             chain_path=dict(type='path', require=False),
             privatekey_path=dict(type='path', required=False),
             privatekey_type=dict(type='str', required=False),
