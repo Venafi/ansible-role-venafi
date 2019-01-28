@@ -11,7 +11,57 @@ Install vcert using pip:
 
 Quickstart
 ------------
-TODO: add quickstart guide
+1. Install ansible and vcert via pip  
+    `sudo pip install ansible vcert --upgrade` 
+
+2. Prepare demo environment (if you want to use your own environment 
+you can skip this step. Change tests/inventory file to use your own inventory.)  
+
+    2. To run test\demo playbook you'll need demo-provision role.
+    Download docker-provision role into /etc/ansible/roles 
+    directory  
+        ```
+        git clone https://github.com/chrismeyersfsu/provision_docker.git \
+         tests/roles/provision_docker
+        ```
+        
+    2. Build docker images needed for the  demo playbook:
+    ```bash
+    docker build ./tests --tag local-ansible-test
+    ```
+    
+3. Generate credentials file.  
+    
+    1. For Venafi Platform make following credentials.yml:  
+    ```yaml
+    user: 'admin'
+    password: 'secret'
+    url: 'https://venafi.example.com/vedsdk/'
+    zone: "example\\\\\\\\policy"
+    ```  
+    2. For Venafi Cloud make following credentials.yml:
+    ```yaml
+    token: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx"
+    zone: "Default"
+    ```
+    3. Encrypt credentials file using ansible-vault, you will be asked to enter password:
+    ```bash
+    ansible-vault encrypt credentials.yml
+    ```
+    
+4. Run ansible playbook (remove docker_demo=true if you want to use your own inventory).
+Choice between Cloud and Platform depends on 
+credentials provided (if you have token Cloud will be chosen, 
+if user,password,url then Platform). You will be asked for the vault 
+password you entered before.
+    ```bash
+    ansible-playbook -i tests/inventory \
+     tests/venafi-playbook-example.yml \
+    --extra-vars "credentials_file=credentials.yml docker_demo=true" \
+    --ask-vault-pass
+    ```
+
+
 
 Role Variables
 --------------
