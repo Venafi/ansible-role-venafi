@@ -28,18 +28,18 @@
   debug:
     msg: "{{ testout }}"
 
-- name: "Copy Venafi certificate file to remote location"
+- name: "Copy Venafi certificate file to remote location {{ certificate_remote_cert_path if certificate_remote_cert_path  is defined else certificate_cert_path }}"
   copy:
     src: "{{ certificate_cert_path }}"
     dest: "{{ certificate_remote_cert_path if certificate_remote_cert_path  is defined else certificate_cert_path }}"
 
-- name: "Copy Venafi private key file to remote location"
+- name: "Copy Venafi private key file to remote location {{ certificate_remote_privatekey_path if certificate_remote_privatekey_path else certificate_privatekey_path }}"
   copy:
     src: "{{ certificate_privatekey_path }}"
     dest: "{{ certificate_remote_privatekey_path if certificate_remote_privatekey_path else certificate_privatekey_path }}"
   when: certificate_copy_private_key_to_remote
 
-- name: "Copy Venafi certificate chain file to remote location"
+- name: "Copy Venafi certificate chain file to remote location {{ certificate_remote_chain_path if certificate_remote_chain_path else certificate_chain_path }}"
   copy:
     src: "{{ certificate_chain_path }}"
     dest: "{{ certificate_remote_chain_path if certificate_remote_chain_path else certificate_chain_path }}"

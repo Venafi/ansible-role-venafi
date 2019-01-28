@@ -18,7 +18,7 @@ Quickstart
 you can skip this step. Change tests/inventory file to use your own inventory.)  
 
     2. To run test\demo playbook you'll need demo-provision role.
-    Download docker-provision role into /etc/ansible/roles 
+    Download docker-provision role into tests/roles/provision_docker 
     directory  
         ```
         git clone https://github.com/chrismeyersfsu/provision_docker.git \
@@ -29,6 +29,9 @@ you can skip this step. Change tests/inventory file to use your own inventory.)
     ```bash
     docker build ./tests --tag local-ansible-test
     ```
+    
+    Demo certificates will be placed on ansible host into /tmp/ansible/etc/ssl directory,
+    from there they will be ditributed to the remote hosts into theirs /etc/ssl/ folders.
     
 3. Generate credentials file.  
     
