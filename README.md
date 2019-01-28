@@ -15,7 +15,8 @@ Quickstart
     `sudo pip install ansible vcert --upgrade` 
 
 2. Prepare demo environment (if you want to use your own environment 
-you can skip this step. Change tests/inventory file to use your own inventory.)
+you can skip this step. Change tests/inventory file to use your own inventory.)  
+
     2. To run test\demo playbook you'll need demo-provision role.
     Download docker-provision role into /etc/ansible/roles 
     directory  
@@ -28,7 +29,9 @@ you can skip this step. Change tests/inventory file to use your own inventory.)
     ```bash
     docker build ./tests --tag local-ansible-test
     ```
+    
 3. Generate credentials file.  
+    
     1. For Venafi Platform make following credentials.yml:  
     ```yaml
     user: 'admin'
