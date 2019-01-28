@@ -280,28 +280,27 @@ class VCertificate:
                                    user=self.user, password=self.password)
         self.before_expired_hours = module.params['before_expired_hours']
 
-    def ping(self):
-        print("Trying to ping url %s" % self.conn)
-        status = self.conn.ping()
-        print("Server online:", status)
-        if not status:
-            print('Server offline - exit')
-            exit(1)
-
-    def check_paths_existed(self):
+    def check_dirs_existed(self, create=False):
         cert_dir = os.path.dirname(self.certificate_filename or "/a")
         key_dir = os.path.dirname(self.privatekey_filename or "/a")
         chain_dir = os.path.dirname(self.chain_filename or "/a")
-        for p in (cert_dir, key_dir, chain_dir):
+        ok = True
+        for p in set((cert_dir, key_dir, chain_dir)):
             if os.path.isdir(p):
                 continue
             elif os.path.exists(p):
                 self.module.fail_json(msg="Path %s already exists but this is not directory." % p)
-            os.makedirs(p)
+            ok = False
+            if create:
+                os.makedirs(p)
+                self.changed = True
+        return ok
 
-    def check_private_key_correct(self):
+    def _check_private_key_correct(self):
         if not self.privatekey_filename:
             return None
+        if not os.path.exists(self.privatekey_filename):
+            return False
         private_key = to_text(open(self.privatekey_filename, "rb").read())
 
         r = CertificateRequest(private_key=private_key, key_password=self.privatekey_passphrase)
@@ -321,13 +320,11 @@ class VCertificate:
             common_name=self.common_name,
             key_password=self.privatekey_passphrase,
         )
-
-        if self.privatekey_filename:
-            try:
-                private_key = to_text(open(self.privatekey_filename, "rb").read())
-                request.private_key = private_key
-            except:
-                pass
+        use_existed_key = False
+        if self._check_private_key_correct():  # May be None
+            private_key = to_text(open(self.privatekey_filename, "rb").read())
+            request.private_key = private_key
+            use_existed_key = True
         elif self.privatekey_type:
             key_type = {"RSA": "rsa", "ECDSA": "ec", "EC": "ec"}.get(self.privatekey_type)
             if not key_type:
@@ -342,12 +339,12 @@ class VCertificate:
         request.email_addresses = self.email_addresses
 
         request.chain_option = self.module.params['chain_option']
-        if self.csr_path:
-            try:
-                csr = open(self.csr_path, "rb").read()
-                request.csr = csr
-            except:
-                pass
+        try:
+            csr = open(self.csr_path, "rb").read()
+            request.csr = csr
+        except:
+            # todo log
+            pass
 
         self.conn.request_cert(request, self.zone)
         while True:
@@ -361,8 +358,8 @@ class VCertificate:
             self._atomic_write(self.certificate_filename, cert.cert)
         else:
             self._atomic_write(self.certificate_filename, cert.full_chain)
-
-        self._atomic_write(self.privatekey_filename, request.private_key_pem)  #todo: server generated private key
+        if not use_existed_key:
+            self._atomic_write(self.privatekey_filename, request.private_key_pem)  #todo: server generated private key
 
     def _atomic_write(self, path, content):
         suffix = ".atomic_%s" % random.randint(100, 100000)
@@ -373,23 +370,21 @@ class VCertificate:
             self.module.fail_json(msg="Failed to write file %s: %s" % (path+suffix, e))
 
         self.module.atomic_move(path+suffix, path)
+        self.changed = True
+        self._check_and_update_permissions(path)
+
+    def _check_and_update_permissions(self, path):
         file_args = self.module.load_file_common_arguments(self.module.params)
         file_args['path'] = path
         if self.module.set_fs_attributes_if_different(file_args, False):
             self.changed = True
 
-    def check_certificate_validity(self):
-        try:
-            with open(self.certificate_filename, 'rb') as cert_data:
-                cert = x509.load_pem_x509_certificate(cert_data.read(), default_backend())  # type: x509.Certificate
-        except OSError as exc:
-            self.module.fail_json(msg="Failed to read certificate file: {0}".format(exc))
-            return
-        if cert.subject != self.common_name:
+    def _check_certificate_validity(self, cert):
+        if cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value != self.common_name:
             return False
-        if cert.not_valid_after < datetime.datetime.now() + datetime.timedelta(hours=self.before_expired_hours):
+        if cert.not_valid_after - datetime.timedelta(hours=self.before_expired_hours) < datetime.datetime.now():
             return False
-        if cert.not_valid_before > datetime.datetime.now()-datetime.timedelta(hours=24):
+        if cert.not_valid_before - datetime.timedelta(hours=24) > datetime.datetime.now():
             return False
         ips = []
         dns = []
@@ -404,7 +399,11 @@ class VCertificate:
             return False
         return True
 
-    def check_certificate_public_key_matched_to_private_key_file(self, cert):
+    def _check_certificate_public_key_matched_to_private_key_file(self, cert):
+        if not self.privatekey_filename:
+            return True
+        if not os.path.exists(self.privatekey_filename):
+            return False
         try:
             with open(self.privatekey_filename, 'rb') as key_data:
                 password = self.privatekey_passphrase.encode() if self.privatekey_passphrase else None
@@ -424,18 +423,51 @@ class VCertificate:
         ).decode()
 
         if cert_public_key_pem != private_key_public_key_pem:
-            self.module.fail_json(msg="Private public bytes not matched certificate public bytes:\n {0}\n{1}\n".format(
-                cert_public_key_pem, private_key_public_key_pem))
+            return False
+        return True
+
+    def _check_files_permissions(self):
+        files = (self.privatekey_filename, self.certificate_filename, self.chain_filename)
+        return all([self._check_file_permissions(x) for x in files])
+
+    def _check_file_permissions(self, path, update=False):
+        return True  # todo: write
 
     def check(self):
+        """Return true if running will change anything"""
+        if not self.check_dirs_existed():
+            return False
+        if not os.path.exists(self.certificate_filename):
+            return True
+        if self._check_private_key_correct() == False:  # may be None
+            return True
+        try:
+            with open(self.certificate_filename, 'rb') as cert_data:
+                cert = x509.load_pem_x509_certificate(cert_data.read(), default_backend())  # type: x509.Certificate
+        except OSError as exc:
+            self.module.fail_json(msg="Failed to read certificate file: {0}".format(exc))
+
+        if not self._check_certificate_public_key_matched_to_private_key_file(cert):
+            return True
+        if not self._check_certificate_validity(cert):
+            return True
+
+    def validate(self):
         """Ensure the resource is in its desired state."""
         try:
             with open(self.certificate_filename, 'rb') as cert_data:
                 cert = x509.load_pem_x509_certificate(cert_data.read(), default_backend())  # type: x509.Certificate
         except OSError as exc:
             self.module.fail_json(msg="Failed to read certificate file: {0}".format(exc))
-        if self.privatekey_filename:
-            self.check_certificate_public_key_matched_to_private_key_file(cert)
+
+        if not self._check_certificate_public_key_matched_to_private_key_file(cert):
+            self.module.fail_json(msg="Private public bytes not matched certificate public bytes")
+        if not self._check_certificate_validity(cert):
+            self.module.fail_json(msg="failing check certificate validity")
+        if not self._check_private_key_correct():
+            self.module.fail_json(msg="Bad private key")
+        if not self._check_files_permissions():
+            self.module.fail_json(msg="Bad files permissions")
 
     def dump(self):
 
@@ -501,16 +533,22 @@ def main():
     if not HAS_CRYPTOGRAPHY:
         module.fail_json(msg='"cryptography" python library is required')
     vcert = VCertificate(module)
-    vcert.ping()
+    will_be_changed = vcert.check()
+    if module.check_mode:
+        module.exit_json(changed=will_be_changed)
+
+
     # TODO: make a following choice (make it after completing role @arykalin):
     """
     1. If certificate is present and renew is true validate it
     2. If certificate not present renew it
     3. If it present and renew is false just keep it.
     """
-    vcert.enroll()
+    if will_be_changed or module.params['force']:
+        vcert.check_dirs_existed(create=True)
+        vcert.enroll()
+    vcert.validate()
     result = vcert.dump()
-    vcert.check()
     module.exit_json(**result)
 
 
