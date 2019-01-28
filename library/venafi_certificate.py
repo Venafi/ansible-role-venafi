@@ -1,7 +1,25 @@
 #!/usr/bin/env python3
 
 from __future__ import absolute_import, division, print_function, unicode_literals
+import time
+import datetime
+import os.path
+import random
+from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils._text import to_bytes, to_text
 
+HAS_VCERT = HAS_CRYPTOGRAPHY = True
+try:
+    from vcert import CertificateRequest, Connection
+except ImportError:
+    HAS_VCERT = False
+try:
+    from cryptography import x509
+    from cryptography.hazmat.backends import default_backend
+    from cryptography.x509.oid import NameOID, ExtensionOID
+    from cryptography.hazmat.primitives import serialization, hashes
+except ImportError:
+    HAS_CRYPTOGRAPHY = False
 
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
@@ -144,7 +162,9 @@ EXAMPLES = '''
       zone: 'example\\\\policy'
       cert_path: '/tmp'
       common_name: 'testcert-tpp-{{ 99999999 | random }}.example.com'
-      "alt_name": "IP:192.168.1.1,DNS:www.venafi.example.com,DNS:m.venafi.example.com,email:test@venafi.com,IP Address:192.168.2.2"
+      alt_name: |
+        IP:192.168.1.1,DNS:www.venafi.example.com,
+        DNS:m.venafi.example.com,email:test@venafi.com,IP Address:192.168.2.2
     register: testout
   - name: dump test output
     debug:
@@ -207,27 +227,6 @@ chain_filename:
     type: string
     sample: /etc/ssl/www.venafi.example_chain.pem
 '''
-
-from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils._text import to_bytes, to_text
-import time
-import datetime
-import os.path
-import random
-
-
-HAS_VCERT = HAS_CRYPTOGRAPHY = True
-try:
-    from vcert import CertificateRequest, Connection
-except ImportError:
-    HAS_VCERT =False
-try:
-    from cryptography import x509
-    from cryptography.hazmat.backends import default_backend
-    from cryptography.x509.oid import NameOID, ExtensionOID
-    from cryptography.hazmat.primitives import serialization, hashes
-except ImportError:
-    HAS_CRYPTOGRAPHY = False
 
 
 class VCertificate:
@@ -342,8 +341,8 @@ class VCertificate:
         try:
             csr = open(self.csr_path, "rb").read()
             request.csr = csr
-        except:
-            # todo log
+        except Exception as e:
+            self.module.log(msg=str(e))
             pass
 
         self.conn.request_cert(request, self.zone)
@@ -359,7 +358,8 @@ class VCertificate:
         else:
             self._atomic_write(self.certificate_filename, cert.full_chain)
         if not use_existed_key:
-            self._atomic_write(self.privatekey_filename, request.private_key_pem)  #todo: server generated private key
+            self._atomic_write(self.privatekey_filename, request.private_key_pem)
+        # todo: server generated private key
 
     def _atomic_write(self, path, content):
         suffix = ".atomic_%s" % random.randint(100, 100000)
@@ -439,7 +439,7 @@ class VCertificate:
             return False
         if not os.path.exists(self.certificate_filename):
             return True
-        if self._check_private_key_correct() == False:  # may be None
+        if self._check_private_key_correct() is False:  # may be None
             return True
         try:
             with open(self.certificate_filename, 'rb') as cert_data:
@@ -536,7 +536,6 @@ def main():
     will_be_changed = vcert.check()
     if module.check_mode:
         module.exit_json(changed=will_be_changed)
-
 
     # TODO: make a following choice (make it after completing role @arykalin):
     """
