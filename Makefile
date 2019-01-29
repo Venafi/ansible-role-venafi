@@ -6,6 +6,9 @@ lint:
 	ansible-lint ./meta/*
 	ansible-lint ./defaults/*
 
+ansible-molecule:
+	ANSIBLE_VAULT_PASSWORD_FILE=${PWD}/vault-password.txt molecule check
+
 #Testing ansible crypto modules for examples and compability checks
 test-crypto-playbook:
 	ansible-playbook -i tests/inventory tests/crypto.yml
