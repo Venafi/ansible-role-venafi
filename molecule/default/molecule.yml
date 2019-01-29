@@ -1,4 +1,11 @@
 ---
+molecule:
+  ignore_paths:
+    - ../../.git
+    - ../../.venv37
+    - ../../venv27
+    - ../../venv
+    - ../../.molecule
 dependency:
   name: galaxy
 driver:
