@@ -279,7 +279,7 @@ class VCertificate:
                                    user=self.user, password=self.password)
         self.before_expired_hours = module.params['before_expired_hours']
 
-    def check_dirs_existed(self, create=False):
+    def check_dirs_existed(self):
         cert_dir = os.path.dirname(self.certificate_filename or "/a")
         key_dir = os.path.dirname(self.privatekey_filename or "/a")
         chain_dir = os.path.dirname(self.chain_filename or "/a")
@@ -290,9 +290,6 @@ class VCertificate:
             elif os.path.exists(p):
                 self.module.fail_json(msg="Path %s already exists but this is not directory." % p)
             ok = False
-            if create:
-                os.makedirs(p)
-                self.changed = True
         return ok
 
     def _check_private_key_correct(self):
@@ -435,8 +432,6 @@ class VCertificate:
 
     def check(self):
         """Return true if running will change anything"""
-        if not self.check_dirs_existed():
-            return False
         if not os.path.exists(self.certificate_filename):
             return True
         if self._check_private_key_correct() is False:  # may be None
@@ -543,8 +538,9 @@ def main():
     2. If certificate not present renew it
     3. If it present and renew is false just keep it.
     """
+    if not vcert.check_dirs_existed():
+        module.fail_json(msg="Dirs not existed")
     if will_be_changed or module.params['force']:
-        vcert.check_dirs_existed(create=True)
         vcert.enroll()
     vcert.validate()
     result = vcert.dump()

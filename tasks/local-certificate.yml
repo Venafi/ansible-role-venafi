@@ -3,7 +3,6 @@
 #Generater certificates on remote host
 #TODO: maybe rewrite to delegate to be able to register certificate from any host?
 
-#TODO: this is bad practice actually. Create directories in user playbook or in module
 - name: "Create directories"
   local_action:
     module: file
