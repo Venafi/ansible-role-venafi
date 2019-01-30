@@ -74,7 +74,7 @@ Role Variables
 venafi:
   # Venafi Platform connection parameters
   user: 'admin'
-  password: 'secret'
+  password: 'myTPPpassword'
   url: 'https://venafi.example.com/vedsdk'
   zone: "devops\\\\\\\\vcert",
   # Venafi Cloud connection parameters
