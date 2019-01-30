@@ -1,6 +1,6 @@
 #Localy generate certificate
 #Copy files to remote host from inventory
-#Generater certificates on remote host
+#Generates certificates on remote host
 #TODO: maybe rewrite to delegate to be able to register certificate from any host?
 
 - name: "Create directories"
