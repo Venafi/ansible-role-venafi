@@ -55,3 +55,8 @@ test-python-module-fake:
 
 test-python-module-cloud:
 	python3 ./library/venafi_certificate.py venafi_certificate_cloud.json
+
+unit-test:
+	rm -rvf tests/library
+	cp -rv library tests/
+	PYTHONPATH=./:$PYTHONPATH py.test -v
