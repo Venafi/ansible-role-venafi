@@ -343,6 +343,7 @@ class VCertificate:
             pass
 
         self.conn.request_cert(request, self.zone)
+        print(request.csr)
         while True:
             cert = self.conn.retrieve_cert(request)  # vcert.Certificate
             if cert:
