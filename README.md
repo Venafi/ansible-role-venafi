@@ -31,7 +31,7 @@ you can skip this step. Change tests/inventory file to use your own inventory.)
     ```
     
     Demo certificates will be placed on Ansible host into /tmp/ansible/etc/ssl directory,
-    from there they will be distributed to the remote hosts into theirs /etc/ssl/ folders.
+    from there they will be distributed on remote hosts into /etc/ssl/ folders.
     
 1. Generate credentials file.  
     
