@@ -57,7 +57,7 @@ options:
         default: False
         type: bool
         description:
-            - Try to renew certificate if is existing but no valid.
+            - Try to renew certificate if is existing but not valid.
 
     cert_path:
         required: true
@@ -94,7 +94,7 @@ options:
     privatekey_path:
         required: false
         description:
-            - Path to the privatekey to use when signing the certificate signing request. If not set will be placed 
+            - Path to the private key to use when signing the certificate signing request. If not set will be placed 
             near certificate with key suffix.
 
     privatekey_type:
@@ -113,7 +113,7 @@ options:
         required: false
         default: "P521"
         description:
-            - Curves name for ecdsa algorithm. Choices are "P521", "P384", "P256", "P224".
+            - Curves name for ECDSA algorithm. Choices are "P224", "P256", "P384", "P521".
 
     privatekey_passphrase:
         required: false
@@ -146,7 +146,7 @@ EXAMPLES = '''
     debug:
       msg: '{{ testout }}'
 
-# Enroll Platform certificate with a lof of alt names
+# Enroll Platform certificate with a lot of alt names
 - name: venafi_certificate_tpp
   connection: local
   hosts: localhost
