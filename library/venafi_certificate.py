@@ -452,7 +452,7 @@ class VCertificate:
         try:
             with open(self.certificate_filename, 'rb') as cert_data:
                 cert = x509.load_pem_x509_certificate(cert_data.read(), default_backend())  # type: x509.Certificate
-        except OSError as exc:
+        except (OSError, ValueError)as exc:
             self.module.fail_json(msg="Failed to read certificate file: {0}".format(exc))
 
         if not self._check_certificate_public_key_matched_to_private_key_file(cert):
