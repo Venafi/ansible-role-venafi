@@ -33,14 +33,15 @@ you can skip this step. Change tests/inventory file to use your own inventory.)
     Demo certificates will be placed on Ansible host into /tmp/ansible/etc/ssl directory,
     from there they will be distributed on remote hosts into /etc/ssl/ folders.
     
-1. Generate credentials file.  
+1. Generate credentials file from either a Venafi Platform credentials or Cloud.  
     
     1. For Venafi Platform make following credentials.yml:  
     ```yaml
     user: 'admin'
-    password: 'secret'
+    password: 'myStrongTPP-Password'
     url: 'https://venafi.example.com/vedsdk/'
     zone: "example\\\\\\\\policy"
+    trust_bundle: "/path/to/the/TPP/trust/bundle.pem/if/needed"
     ```  
     1. For Venafi Cloud set the token in credentials.yml:
     ```yaml
@@ -76,13 +77,17 @@ venafi:
   user: 'admin'
   password: 'myTPPpassword'
   url: 'https://venafi.example.com/vedsdk'
-  zone: "devops\\\\\\\\vcert",
+  zone: "devops\\\\\\\\vcert"
+  #Path to the trust bundle for Venafi Platform server. 
+  #Look into Security best practices section for more information.
+  trust_bundle: "/opt/venafi/bundle.pem"
   # Venafi Cloud connection parameters
   #token: 'enter-cloud-api-token-here'
   #zone: 'Default'
   #Test mode parameter
   #test_mode: true
-
+  
+#All variables from venafi section should be in credentials file
 credentials_file: credentials.yml
 
 #Certificate parameters. This is are examples.
@@ -102,7 +107,7 @@ certificate_privatekey_path: "{{ certificate_cert_dir }}/{{ certificate_common_n
 certificate_csr_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.csr"
 
 #Where to execute venafi_certificate module. If set to false, certificate will be
-#created on ansible master host and then copied to the remote server
+#created on Ansible master host and then copied to the remote server
 certificate_remote_execution: false
 #  remote location where to place the certificate_
 certificate_remote_cert_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.pem"
