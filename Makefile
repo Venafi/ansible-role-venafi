@@ -59,4 +59,4 @@ test-python-module-cloud:
 unit-test:
 	rm -rvf tests/library
 	cp -rv library tests/
-	PYTHONPATH=./:$PYTHONPATH py.test -v
+	PYTHONPATH=./:$PYTHONPATH pytest tests/test_venafi_certificate.py
