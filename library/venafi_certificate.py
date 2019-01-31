@@ -289,6 +289,8 @@ class VCertificate:
                 continue
             elif os.path.exists(p):
                 self.module.fail_json(msg="Path %s already exists but this is not directory." % p)
+            elif not os.path.exists(p):
+                self.module.fail_json(msg="Directory %s does not exists." % p)
             ok = False
         return ok
 
