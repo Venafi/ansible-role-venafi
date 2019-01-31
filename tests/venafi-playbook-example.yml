@@ -1,6 +1,6 @@
 ---
-#We need docker provisioning only for demo purpose
-- name: "Bring up docker containers for docker connection inventory iface"
+#We need Docker provisioning only for demo purpose
+- name: "Bring up Docker containers for Docker connection inventory iface"
   hosts: localhost
   roles:
     - role: provision_docker

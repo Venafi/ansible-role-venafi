@@ -12,7 +12,7 @@ venafi:
   #Test mode parameter
   #test_mode: true
 
-#Certificate parameters. This is are examples.
+#Certificate parameters. These are just examples.
 certificate_common_name: "{{ ansible_fqdn }}"
 certificate_alt_name: "IP:192.168.1.1,DNS:www.venafi.example.com,DNS:m.venafi.example.com,email:e@venafi.com,email:e2@venafi.com,IP Address:192.168.2.2"
 

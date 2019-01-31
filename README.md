@@ -11,13 +11,13 @@ Install vcert using pip:
 
 Quickstart
 ------------
-1. Install ansible and vcert via pip  
+1. Install Ansible and vcert via pip  
     `sudo pip install ansible vcert --upgrade` 
 
-2. Prepare demo environment (if you want to use your own environment 
+1. Prepare demo environment (if you want to use your own environment 
 you can skip this step. Change tests/inventory file to use your own inventory.)  
 
-    2. To run test\demo playbook you'll need demo-provision role.
+    1. To run test\demo playbook you'll need demo-provision role.
     Download docker-provision role into tests/roles/provision_docker 
     directory  
         ```
@@ -25,15 +25,15 @@ you can skip this step. Change tests/inventory file to use your own inventory.)
          tests/roles/provision_docker
         ```
         
-    2. Build docker images needed for the  demo playbook:
+    1. Build Docker images needed for the  demo playbook:
     ```bash
     docker build ./tests --tag local-ansible-test
     ```
     
-    Demo certificates will be placed on ansible host into /tmp/ansible/etc/ssl directory,
-    from there they will be ditributed to the remote hosts into theirs /etc/ssl/ folders.
+    Demo certificates will be placed on Ansible host into /tmp/ansible/etc/ssl directory,
+    from there they will be distributed on remote hosts into /etc/ssl/ folders.
     
-3. Generate credentials file.  
+1. Generate credentials file.  
     
     1. For Venafi Platform make following credentials.yml:  
     ```yaml
@@ -42,20 +42,20 @@ you can skip this step. Change tests/inventory file to use your own inventory.)
     url: 'https://venafi.example.com/vedsdk/'
     zone: "example\\\\\\\\policy"
     ```  
-    2. For Venafi Cloud make following credentials.yml:
+    1. For Venafi Cloud set the token in credentials.yml:
     ```yaml
     token: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx"
     zone: "Default"
     ```
-    3. Encrypt credentials file using ansible-vault, you will be asked to enter password:
+    1. Encrypt credentials file using ansible-vault, you will be asked to enter password:
     ```bash
     ansible-vault encrypt credentials.yml
     ```
     
-4. Run ansible playbook (remove docker_demo=true if you want to use your own inventory).
+1. Run Ansible playbook (remove docker_demo=true if you want to use your own inventory).
 Choice between Cloud and Platform depends on 
-credentials provided (if you have token Cloud will be chosen, 
-if user,password,url then Platform). You will be asked for the vault 
+credentials provided. If you set a token, the playbook runs on Venafi Cloud.
+If you set a password, the playbook runs on Venafi Platform. You will be asked for the vault 
 password you entered before.
     ```bash
     ansible-playbook -i tests/inventory \
@@ -74,7 +74,7 @@ Role Variables
 venafi:
   # Venafi Platform connection parameters
   user: 'admin'
-  password: 'secret'
+  password: 'myTPPpassword'
   url: 'https://venafi.example.com/vedsdk'
   zone: "devops\\\\\\\\vcert",
   # Venafi Cloud connection parameters
@@ -101,7 +101,7 @@ certificate_chain_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }
 certificate_privatekey_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.key"
 certificate_csr_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.csr"
 
-#Where to execute venafi_certificate module. If set to false certificate will be
+#Where to execute venafi_certificate module. If set to false, certificate will be
 #created on ansible master host and then copied to the remote server
 certificate_remote_execution: false
 #  remote location where to place the certificate_
@@ -185,10 +185,10 @@ Look into official documentation about using roles: https://docs.ansible.com/ans
 Security best practices
 ----------------
 
-We are strongly recommend to use ansible-vault for credentials file
+We are strongly recommend that you use ansible-vault for the credentials file
 to do so you can do the following steps:
 
-1. Create credentials file credentials.yml and fill it with connection parameters:
+1. Create the credentials.yml and fill it with connection parameters:
     ```bash
     cat <<EOF >>credentials.yml
     user: 'admin'
@@ -197,10 +197,10 @@ to do so you can do the following steps:
     zone: "some\\\\\\\\policy"
     EOF
     ```
-2. Encrypt it with ansible-vault:
+1. Encrypt it with ansible-vault:
     `ansible-vault encrypt credentials.yml`
 
-3. Add option "--vault-id @prompt" to your ansible-playbook
+1. Add option "--vault-id @prompt" to your ansible-playbook
  command to prompt for vault password:  
     ```bash
     ansible-playbook --vault-id @prompt playbook.yml
