@@ -6,11 +6,8 @@ lint:
 	ansible-lint ./meta/*
 	ansible-lint ./defaults/*
 
-ansible-molecule-check:
-	ANSIBLE_VAULT_PASSWORD_FILE=${PWD}/vault-password.txt molecule check
-
-ansible-molecule-verify:
-	ANSIBLE_VAULT_PASSWORD_FILE=${PWD}/vault-password.txt molecule verify
+ansible-molecule:
+	ANSIBLE_VAULT_PASSWORD_FILE=${PWD}/vault-password.txt molecule converge
 
 #Testing ansible crypto modules for examples and compability checks
 test-crypto-playbook:
