@@ -3,7 +3,7 @@
   hosts: all
   roles:
     - role: ansible-role-venafi
-      certificate_common_name: "{{ ansible_fqdn }}.venafi.example.com"
+      certificate_common_name: "{{ ansible_fqdn }}-{{ 99999999 | random | to_uuid }}.venafi.example.com"
       certificate_cert_dir: "/tmp/ansible/etc/ssl/{{ certificate_common_name }}"
       certificate_cert_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.pem"
       certificate_chain_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.chain.pem"
