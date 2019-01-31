@@ -1,8 +1,11 @@
 import unittest
 import shutil
+import os
 from collections import namedtuple, defaultdict
 from library.venafi_certificate import VCertificate
-from ansible.module_utils._text import to_bytes
+
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 testAsset = namedtuple("testAssert", "is_valid cert chain private_key password common_name alt_name")
 
@@ -53,7 +56,7 @@ def create_testfiles(asset):
     """
     for p, v in ((CERT_PATH, asset.cert), (CHAIN_PATH, asset.chain), (PRIV_PATH, asset.private_key)):
 
-        shutil.copy("assets/" + v, p)
+        shutil.copy(CURRENT_DIR + "/assets/" + v, p)
 
 
 TEST_ASSETS = [
