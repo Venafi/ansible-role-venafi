@@ -3,7 +3,9 @@
 Role Name
 =========
 
-Ansible role Vcert with vcert module in library.  
+This solution implements an Ansible Role that uses the VCert-Python
+library to simplify certificate enrollment and ensure compliance with
+enterprise security policy.  
 
 Requirements
 ------------
