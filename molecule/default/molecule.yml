@@ -17,6 +17,7 @@ platforms:
     image: centos:7
 provisioner:
   name: ansible
+  log: true
   lint:
     name: ansible-lint
 scenario:
