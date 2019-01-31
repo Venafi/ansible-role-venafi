@@ -271,11 +271,11 @@ class VCertificate:
                     self.module.fail_json(msg="Failed to determine extension type: {0}".format(n))
         trust_bundle = module.params['trust_bundle']
         if trust_bundle:
-            self.conn = Connection(url=self.url, token=self.token,
+            self.conn = Connection(url=self.url, token=self.token, fake=self.test_mode,
                                    user=self.user, password=self.password,
                                    http_request_kwargs={"verify": trust_bundle})
         else:
-            self.conn = Connection(url=self.url, token=self.token,
+            self.conn = Connection(url=self.url, token=self.token, fake=self.test_mode,
                                    user=self.user, password=self.password)
         self.before_expired_hours = module.params['before_expired_hours']
 

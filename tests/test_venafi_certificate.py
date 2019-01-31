@@ -21,6 +21,7 @@ class FakeModule(object):
         self.params["privatekey_path"] = PRIV_PATH
         self.params["common_name"] = asset.common_name
         self.params["before_expired_hours"] = 72
+        self.params["test_mode"] = True
 
     def exit_json(self, **kwargs):
         self.exit_code = kwargs
