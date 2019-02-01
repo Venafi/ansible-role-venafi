@@ -90,7 +90,10 @@ Using with ansible galaxy
     It will generate certificate and place it into folder in /tmp/etc/ssl/ directory. 
     You can change other parameters by changin more variables described bellow. Also look into variables in
     defaults/main.yml file. 
-    
+
+For more information about Ansible Galaxy please refer to official documentation: 
+https://galaxy.ansible.com/docs/using/installing.html    
+
 Role Variables
 --------------
 
