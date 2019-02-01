@@ -1,0 +1,46 @@
+#Localy generate certificate
+#Copy files to remote host from inventory
+#Generates certificates on remote host
+#TODO: maybe rewrite to delegate to be able to register certificate from any host?
+
+- name: "Create directories"
+  local_action:
+    module: file
+    path: "{{ certificate_cert_dir }}"
+    state: directory
+
+- name: "Enroll Venafi certificate on local host"
+  local_action:
+    module: venafi_certificate
+    url: "{{ venafi.url if venafi.url is defined else None }}"
+    token: "{{ venafi.token if venafi.token is defined else None }}"
+    zone: "{{ venafi.zone if venafi.zone is defined else None }}"
+    test_mode: "{{ venafi.test_mode if venafi.test_mode is defined else 'false'}}"
+    user: "{{ venafi.user if venafi.user is defined else None }}"
+    password: "{{ venafi.password if venafi.password is defined else None }}"
+    trust_bundle: "{{ venafi.trust_bundle if venafi.trust_bundle is defined else None}}"
+    cert_path: "{{ certificate_cert_path }}"
+    chain_path: "{{ certificate_chain_path if certificate_chain_path is defined else None }}"
+    privatekey_path: "{{ certificate_privatekey_path if certificate_privatekey_path is defined else None }}"
+    common_name: "{{ certificate_common_name }}"
+  register: testout
+- name: "dump test output"
+  debug:
+    msg: "{{ testout }}"
+
+- name: "Copy Venafi certificate file to remote location {{ certificate_remote_cert_path if certificate_remote_cert_path  is defined else certificate_cert_path }}"
+  copy:
+    src: "{{ certificate_cert_path }}"
+    dest: "{{ certificate_remote_cert_path if certificate_remote_cert_path  is defined else certificate_cert_path }}"
+
+- name: "Copy Venafi private key file to remote location {{ certificate_remote_privatekey_path if certificate_remote_privatekey_path else certificate_privatekey_path }}"
+  copy:
+    src: "{{ certificate_privatekey_path }}"
+    dest: "{{ certificate_remote_privatekey_path if certificate_remote_privatekey_path else certificate_privatekey_path }}"
+  when: certificate_copy_private_key_to_remote
+
+- name: "Copy Venafi certificate chain file to remote location {{ certificate_remote_chain_path if certificate_remote_chain_path else certificate_chain_path }}"
+  copy:
+    src: "{{ certificate_chain_path }}"
+    dest: "{{ certificate_remote_chain_path if certificate_remote_chain_path else certificate_chain_path }}"
+  when: certificate_chain_path is defined
