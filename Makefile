@@ -1,7 +1,10 @@
 pep8:
 	pycodestyle --first ./library/venafi_certificate.py
 
-lint:
+yamllint:
+	yamllint `find . -name '*yml'`
+
+lint: yamllint pep8
 	ansible-lint ./tasks/*
 	ansible-lint ./meta/*
 	ansible-lint ./defaults/*
