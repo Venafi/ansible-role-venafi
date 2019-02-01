@@ -1,8 +1,11 @@
 ---
 credentials_file: credentials.yml
+#Use ansible host FQDN for certificate common name
 certificate_common_name: "{{ ansible_fqdn }}"
 
+#Directory where to place certificates
 certificate_cert_dir: "/etc/ssl/{{ certificate_common_name }}"
+#Paths for certficaite and keys
 certificate_cert_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.pem"
 certificate_chain_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.chain.pem"
 certificate_privatekey_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.key"
