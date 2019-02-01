@@ -287,11 +287,11 @@ class VCertificate:
                     self.module.fail_json(msg="Failed to determine extension type: {0}".format(n))
         trust_bundle = module.params['trust_bundle']
         if trust_bundle:
-            self.conn = Connection(url=self.url, token=self.token,
+            self.conn = Connection(url=self.url, token=self.token, fake=self.test_mode,
                                    user=self.user, password=self.password,
                                    http_request_kwargs={"verify": trust_bundle})
         else:
-            self.conn = Connection(url=self.url, token=self.token,
+            self.conn = Connection(url=self.url, token=self.token, fake=self.test_mode,
                                    user=self.user, password=self.password)
         self.before_expired_hours = module.params['before_expired_hours']
 
@@ -305,6 +305,8 @@ class VCertificate:
                 continue
             elif os.path.exists(p):
                 self.module.fail_json(msg="Path %s already exists but this is not directory." % p)
+            elif not os.path.exists(p):
+                self.module.fail_json(msg="Directory %s does not exists." % p)
             ok = False
         return ok
 
@@ -359,6 +361,7 @@ class VCertificate:
             pass
 
         self.conn.request_cert(request, self.zone)
+        print(request.csr)
         while True:
             cert = self.conn.retrieve_cert(request)  # vcert.Certificate
             if cert:
@@ -468,7 +471,7 @@ class VCertificate:
         try:
             with open(self.certificate_filename, 'rb') as cert_data:
                 cert = x509.load_pem_x509_certificate(cert_data.read(), default_backend())  # type: x509.Certificate
-        except OSError as exc:
+        except (OSError, ValueError)as exc:
             self.module.fail_json(msg="Failed to read certificate file: {0}".format(exc))
 
         if not self._check_certificate_public_key_matched_to_private_key_file(cert):

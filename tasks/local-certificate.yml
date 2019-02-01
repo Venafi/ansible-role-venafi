@@ -3,7 +3,7 @@
 #Generates certificates on remote host
 #TODO: maybe rewrite to delegate to be able to register certificate from any host?
 
-- name: "Create directories"
+- name: "Create directory {{ certificate_cert_dir }}"
   local_action:
     module: file
     path: "{{ certificate_cert_dir }}"

@@ -6,6 +6,9 @@ lint:
 	ansible-lint ./meta/*
 	ansible-lint ./defaults/*
 
+ansible-molecule:
+	ANSIBLE_VAULT_PASSWORD_FILE=${PWD}/vault-password.txt molecule converge
+
 #Testing ansible crypto modules for examples and compability checks
 test-crypto-playbook:
 	ansible-playbook -i tests/inventory tests/crypto.yml
@@ -49,3 +52,8 @@ test-python-module-fake:
 
 test-python-module-cloud:
 	python3 ./library/venafi_certificate.py venafi_certificate_cloud.json
+
+unit-test:
+	rm -rvf tests/library
+	cp -rv library tests/
+	PYTHONPATH=./:$PYTHONPATH pytest tests/test_venafi_certificate.py
