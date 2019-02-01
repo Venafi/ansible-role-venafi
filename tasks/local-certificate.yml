@@ -4,13 +4,15 @@
 # TODO: maybe rewrite to delegate to be able to register certificate from any host?
 ---
 - name: "Create directory {{ certificate_cert_dir }}"
-  local_action:
+  task:
+    delegate_to: localhost
     module: file
     path: "{{ certificate_cert_dir }}"
     state: directory
 
 - name: "Enroll Venafi certificate on local host"
-  local_action:
+  task:
+    delegate_to: localhost
     module: venafi_certificate
     url: "{{ venafi.url if venafi.url is defined else None }}"
     token: "{{ venafi.token if venafi.token is defined else None }}"
