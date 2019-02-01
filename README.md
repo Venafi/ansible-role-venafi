@@ -97,6 +97,8 @@ https://galaxy.ansible.com/docs/using/installing.html
 Role Variables
 --------------
 
+For default variables values please look into defaults/main.yml file.
+
 ```yaml
 #Credentials.
 venafi:
