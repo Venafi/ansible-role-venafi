@@ -44,7 +44,7 @@ you can skip this step. Change tests/inventory file to use your own inventory.)
     user: 'admin'
     password: 'myStrongTPP-Password'
     url: 'https://venafi.example.com/vedsdk/'
-    zone: "example\\\\\\\\policy"
+    zone: "example\\policy"
     trust_bundle: "/path/to/the/TPP/trust/bundle.pem/if/needed"
     ```  
     1. For Venafi Cloud set the token in credentials.yml:
@@ -81,7 +81,7 @@ venafi:
   user: 'admin'
   password: 'myTPPpassword'
   url: 'https://venafi.example.com/vedsdk'
-  zone: "devops\\\\\\\\vcert"
+  zone: "devops\\vcert"
   #Path to the trust bundle for Venafi Platform server. 
   #Look into Security best practices section for more information.
   trust_bundle: "/opt/venafi/bundle.pem"
@@ -170,7 +170,7 @@ for Venafi Platform:
 user: 'admin'
 password: 'secret'
 url: 'https://venafi.example.com/vedsdk/'
-zone: "some\\\\\\\\policy"
+zone: "some\\policy"
 
 ```
 
@@ -203,7 +203,7 @@ to do so you can do the following steps:
     user: 'admin'
     password: 'secret'
     url: 'https://venafi.example.com/vedsdk/'
-    zone: "some\\\\\\\\policy"
+    zone: "some\\policy"
     EOF
     ```
 1. Encrypt it with ansible-vault:

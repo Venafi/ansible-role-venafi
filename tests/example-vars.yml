@@ -5,7 +5,7 @@ venafi:
   user: 'admin'
   password: 'secret'
   url: 'https://venafi.example.com/vedsdk'
-  zone: "devops\\\\\\\\vcert",
+  zone: "devops\\vcert",
   # Venafi Cloud connection parameters
   #token: 'enter-cloud-api-token-here'
   #zone: 'Default'
