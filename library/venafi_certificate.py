@@ -334,7 +334,7 @@ class VCertificate:
         r = CertificateRequest(private_key=private_key,
                                key_password=self.privatekey_passphrase)
         key_type = {"RSA": "rsa", "ECDSA": "ec", "EC": "ec"}.\
-            get(self.privatekey_type.upper())
+            get(self.privatekey_type)
         if key_type and key_type != r.key_type:
             return False
         if key_type == "rsa" and self.privatekey_size:
@@ -357,7 +357,7 @@ class VCertificate:
             use_existed_key = True
         elif self.privatekey_type:
             key_type = {"RSA": "rsa", "ECDSA": "ec", "EC": "ec"}.\
-                get(self.privatekey_type.upper())
+                get(self.privatekey_type)
             if not key_type:
 
                 self.module.fail_json(msg=(
