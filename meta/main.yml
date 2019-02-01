@@ -24,14 +24,14 @@ galaxy_info:
   # To view available platforms and versions (or releases), visit:
   # https://galaxy.ansible.com/api/v1/platforms/
   #
-   platforms:
-   - name: Centos
-     versions:
-     - all
+  platforms:
+  - name: Centos
+    versions:
+    - all
 
-   - name: Ubuntu
-     versions:
-     - all
+  - name: Ubuntu
+    versions:
+    - all
 
   galaxy_tags: ['certificates','ssl','security','venafi']
     # List tags for your role here, one per line. A tag is a keyword that describes
