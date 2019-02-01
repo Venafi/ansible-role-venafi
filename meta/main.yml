@@ -1,6 +1,6 @@
 galaxy_info:
   author: Alexander Rykalin, Denis Subbotin
-  description:  Ansible Role that uses Venafi to streamline machine identity (certificate and key) acquisition.
+  description:  Streamline machine identity (certificate and key) acquisition using Venafi vcert.
   company: Venafi, Inc.
 
   license: Apache License 2.0
