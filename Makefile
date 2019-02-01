@@ -2,12 +2,12 @@ pep8:
 	pycodestyle --first ./library/venafi_certificate.py
 
 yamllint:
-	yamllint `find . -name '*yml'`
+		yamllint `find . -name '*yml' | grep -v credentials.yml`
 
 lint: yamllint pep8
-	ansible-lint ./tasks/*
-	ansible-lint ./meta/*
-	ansible-lint ./defaults/*
+#	ansible-lint ./tasks/*
+#	ansible-lint ./meta/*
+#	ansible-lint ./defaults/*
 
 ansible-molecule:
 	ANSIBLE_VAULT_PASSWORD_FILE=${PWD}/vault-password.txt molecule converge
