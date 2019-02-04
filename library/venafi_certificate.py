@@ -253,7 +253,12 @@ chain_filename:
     type: string
     sample: /etc/ssl/www.venafi.example_chain.pem
 '''
-
+# Some strings variables
+string_failed_to_check_cert_validity = "Failing check certificate validity"
+string_pkey_not_matched = "Private public key not matched certificate public key"
+string_bad_pkey = "Bad private key"
+string_cert_file_not_exists = "Certificate file doesn't exists"
+string_bad_permissions = "Bad files permissions"
 
 class VCertificate:
     def __init__(self, module):
@@ -307,13 +312,6 @@ class VCertificate:
                 url=self.url, token=self.token, fake=self.test_mode,
                 user=self.user, password=self.password)
         self.before_expired_hours = module.params['before_expired_hours']
-
-        # Some strings variables
-        self.string_failed_to_check_cert_validity = "Failing check certificate validity"
-        self.string_pkey_not_matched = "Private public key not matched certificate public key"
-        self.string_bad_pkey = "Bad private key"
-        self.string_cert_file_not_exists = "%s file doesn't exists" % self.certificate_filename
-        self.string_bad_permissions = "Bad files permissions"
 
     def check_dirs_existed(self):
         cert_dir = os.path.dirname(self.certificate_filename or "/a")
@@ -492,13 +490,13 @@ class VCertificate:
         if not os.path.exists(self.certificate_filename):
             result = {
                 'changed': True,
-                'changed_msg': self.string_cert_file_not_exists,
+                'changed_msg': string_cert_file_not_exists,
             }
             return result
         if self._check_private_key_correct() is False:  # may be None
             result = {
                 'changed': True,
-                'changed_msg': self.string_bad_pkey,
+                'changed_msg': string_bad_pkey,
             }
             return result
         try:
@@ -512,19 +510,19 @@ class VCertificate:
         if not self._check_certificate_public_key_matched_to_private_key(cert):
             result = {
                 'changed': True,
-                'changed_msg': self.string_pkey_not_matched,
+                'changed_msg': string_pkey_not_matched,
             }
             return result
         if not self._check_certificate_validity(cert):
             result = {
                 'changed': True,
-                'changed_msg': self.string_failed_to_check_cert_validity,
+                'changed_msg': string_failed_to_check_cert_validity,
             }
             return result
         if not self._check_files_permissions():
             result = {
                 'changed': True,
-                'changed_msg': self.string_failed_to_check_cert_validity,
+                'changed_msg': string_failed_to_check_cert_validity,
             }
             return result
         result = {
@@ -544,13 +542,13 @@ class VCertificate:
 
         if not self._check_certificate_public_key_matched_to_private_key(cert):
             self.module.fail_json(
-                msg=self.string_pkey_not_matched)
+                msg=string_pkey_not_matched)
         if not self._check_certificate_validity(cert):
-            self.module.fail_json(msg=self.string_failed_to_check_cert_validity)
+            self.module.fail_json(msg=string_failed_to_check_cert_validity)
         if not self._check_private_key_correct():
-            self.module.fail_json(msg=self.string_bad_pkey)
+            self.module.fail_json(msg=string_bad_pkey)
         if not self._check_files_permissions():
-            self.module.fail_json(msg=self.string_bad_permissions)
+            self.module.fail_json(msg=string_bad_permissions)
 
     def dump(self):
 
