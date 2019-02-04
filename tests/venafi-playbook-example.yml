@@ -107,10 +107,10 @@
         cert_path: "{{ certificate_remote_cert_path if certificate_remote_cert_path  is defined else certificate_cert_path }}"
         chain_path: "{{ certificate_remote_chain_path if certificate_remote_chain_path else certificate_chain_path }}"
         privatekey_path: "{{ certificate_remote_privatekey_path if certificate_remote_privatekey_path else certificate_privatekey_path }}"
-        common_name: "{{ certificate_common_name }}"
+        common_name: "{{ certificate_common_name }}-1"
       check_mode: yes
       register: cert_validation
 
     - debug:
-        msg: "Certificate {{ certificate_common_name }} is not in valid state"
+        msg: "Certificate {{ certificate_common_name }} is not in valid state: {{ cert_validation.changed_msg }}"
       when: cert_validation is changed

@@ -483,9 +483,19 @@ class VCertificate:
     def check(self):
         """Return true if running will change anything"""
         if not os.path.exists(self.certificate_filename):
-            return True
+            changed_msg = "%s file doesn't exists" % self.certificate_filename
+            result = {
+                'changed': True,
+                'changed_msg': changed_msg,
+            }
+            return result
         if self._check_private_key_correct() is False:  # may be None
-            return True
+            changed_msg = "Bad private key"
+            result = {
+                'changed': True,
+                'changed_msg': changed_msg,
+            }
+            return result
         try:
             with open(self.certificate_filename, 'rb') as cert_data:
                 cert = x509.load_pem_x509_certificate(
@@ -495,9 +505,19 @@ class VCertificate:
                 msg="Failed to read certificate file: %s" % exc)
 
         if not self._check_certificate_public_key_matched_to_private_key(cert):
-            return True
+            changed_msg = "Private public key not matched certificate public key"
+            result = {
+                'changed': True,
+                'changed_msg': changed_msg,
+            }
+            return result
         if not self._check_certificate_validity(cert):
-            return True
+            changed_msg = "Failing check certificate validity"
+            result = {
+                'changed': True,
+                'changed_msg': changed_msg,
+            }
+            return result
 
     def validate(self):
         """Ensure the resource is in its desired state."""
@@ -585,9 +605,9 @@ def main():
     if not HAS_CRYPTOGRAPHY:
         module.fail_json(msg='"cryptography" python library is required')
     vcert = VCertificate(module)
-    will_be_changed = vcert.check()
+    change_dump = vcert.check()
     if module.check_mode:
-        module.exit_json(changed=will_be_changed)
+        module.exit_json(**change_dump)
 
     # TODO: make a following choice (make it after completing role @arykalin):
     """
@@ -597,7 +617,7 @@ def main():
     """
     if not vcert.check_dirs_existed():
         module.fail_json(msg="Dirs not existed")
-    if will_be_changed or module.params['force']:
+    if change_dump or module.params['force']:
         vcert.enroll()
     vcert.validate()
     result = vcert.dump()
