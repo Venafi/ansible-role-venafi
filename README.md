@@ -66,10 +66,35 @@ You will be asked for the vault password you entered before.
      --ask-vault-pass
     ```
 
+Using with Ansible Galaxy
+--------------------------
 
+1. Install role with Ansible Galaxy command:
+    `ansible-galaxy install venafi.ansible_role_venafi` 
+
+1. Generate credentials.yml as described in Quickstart
+
+1. Write a simple playbook:
+    ```yaml
+    - hosts: localhost
+      roles:
+        - role: venafi.ansible_role_venafi
+          certificate_cert_dir: "/tmp/etc/ssl/{{ certificate_common_name }}"
+    ```
+
+1. Run the playbook:
+    `ansible-playbook vcert.yml --ask-vault-pass`
+    It will generate a certificate and place it into folder in /tmp/etc/ssl/ directory. 
+    You can change other parameters by changin more variables described bellow. Also look into variables in
+    defaults/main.yml file. 
+
+For more information about Ansible Galaxy, please refer to official documentation: 
+https://galaxy.ansible.com/docs/using/installing.html    
 
 Role Variables
 --------------
+
+For default variables values, please look into defaults/main.yml file.
 
 ```yaml
 # Credentials.
