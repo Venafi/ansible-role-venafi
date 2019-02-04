@@ -112,3 +112,12 @@
         ownca_path: "{{ cert.dir }}/{{ ca.cert_file }}"
         ownca_privatekey_path: "{{ cert.dir }}/{{ ca.key_file }}"
         provider: ownca
+
+    - name: "Verify certificate"
+      openssl_certificate:
+        path: "{{ cert.dir }}/crt/{{ cert.cert_file }}"
+        privatekey_path: "{{ cert.dir }}/private/{{ cert.key_file }}"
+        issuer:
+          CN: ca
+        has_expired: no
+        provider: assertonly

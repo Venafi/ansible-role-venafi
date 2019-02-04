@@ -11,7 +11,7 @@ ansible-molecule:
 
 #Testing ansible crypto modules for examples and compability checks
 test-crypto-playbook:
-	ansible-playbook -i tests/inventory tests/crypto.yml
+	ansible-playbook -i tests/inventory tests/original-ansible-crypto-playbook-example.yml
 
 #test ansible role with venafi_Certificate module
 test-vcert-role-tpp:
