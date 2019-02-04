@@ -16,7 +16,7 @@
 #
 
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import absolute_import, print_function, unicode_literals
 import time
 import datetime
 import os.path
@@ -67,7 +67,8 @@ options:
         default: "present"
         choices: [ present, absent ]
         description:
-            - Whether the certificate should exist or not, taking action if the state is different from what is stated.
+            - > Whether the certificate should exist or not,
+            taking action if the state is different from what is stated.
 
     renew:
         default: False
@@ -84,15 +85,18 @@ options:
     chain_path:
         required: false
         description:
-            - Remote absolute path where the generated certificate chain file should
-            be created or is already located. If set certificate and chain will be in separated files.
+            - > Remote absolute path where the generated certificate chain file
+            should
+            be created or is already located. If set certificate and chain will
+            be in separated files.
 
     chain_option:
         required: false
         default: "last"
         description:
-            - Specify ordering certificates in chain. Root can be "first" or "last"
-                
+            - > Specify ordering certificates in chain. Root can be "first" or
+            "last"
+
     common_name:
         required: false
         aliases: [ 'CN', 'commonName' ]
@@ -106,11 +110,12 @@ options:
             - SAN extension to attach to the certificate signing request
             - This can either be a 'comma separated string' or a YAML list.
             - Values should be prefixed by their options. (IP:,email:,DNS:)
-            
+
     privatekey_path:
         required: false
         description:
-            - Path to the private key to use when signing the certificate signing request. If not set will be placed 
+            - > Path to the private key to use when signing the certificate
+            signing request. If not set will be placed
             near certificate with key suffix.
 
     privatekey_type:
@@ -123,19 +128,20 @@ options:
         required: false
         default: 2048
         description:
-            - Size (in bits) of the TLS/SSL key to generate. Used only for RSA. 
+            - Size (in bits) of the TLS/SSL key to generate. Used only for RSA.
 
     privatekey_curve:
         required: false
         default: "P521"
         description:
-            - Curves name for ECDSA algorithm. Choices are "P224", "P256", "P384", "P521".
+            - | Curves name for ECDSA algorithm. Choices are "P224", "P256",
+            "P384", "P521".
 
     privatekey_passphrase:
         required: false
         description:
             - The passphrase for the privatekey.
-                        
+
 extends_documentation_fragment:
     - files
 
@@ -199,7 +205,7 @@ EXAMPLES = '''
           $ANSIBLE_VAULT;1.1;AES256
       zone: 'Default'
       cert_path: '/tmp'
-      common_name: 'testcert-cloud.example.com'      
+      common_name: 'testcert-cloud.example.com'
     register: testout
   - name: dump test output
     debug:
@@ -212,7 +218,7 @@ privatekey_filename:
     returned: changed or success
     type: string
     sample: /etc/ssl/private/venafi.example.pem
-    
+
 privatekey_size:
     description: Size (in bits) of the TLS/SSL private key
     returned: changed or success
@@ -220,17 +226,21 @@ privatekey_size:
     sample: 4096
 
 privatekey_curve:
-    description: ECDSA curve of generated private key. Variants are "P521", "P384", "P256", "P224".
+    description: > ECDSA curve of generated private key. Variants are "P521",
+     "P384", "P256", "P224".
+
     returned: changed or success
     type: string
     sample: "P521"
-    
+
 privatekey_type:
-    description: Algorithm used to generate the TLS/SSL private key. Variants are RSA or ECDSA
+    description: > Algorithm used to generate the TLS/SSL private key.
+    Variants are RSA or ECDSA
+
     returned: changed or success
     type: string
     sample: RSA
-        
+
 certificate_filename:
     description: Path to the signed Certificate Signing Request
     returned: changed or success
@@ -284,15 +294,18 @@ class VCertificate:
                     mail = n.split(":", 1)[1]
                     self.email_addresses.append(mail)
                 else:
-                    self.module.fail_json(msg="Failed to determine extension type: {0}".format(n))
+                    self.module.fail_json(
+                        msg="Failed to determine extension type: %s" % n)
         trust_bundle = module.params['trust_bundle']
         if trust_bundle:
-            self.conn = Connection(url=self.url, token=self.token, fake=self.test_mode,
-                                   user=self.user, password=self.password,
-                                   http_request_kwargs={"verify": trust_bundle})
+            self.conn = Connection(
+                url=self.url, token=self.token, password=self.password,
+                user=self.user, fake=self.test_mode,
+                http_request_kwargs={"verify": trust_bundle})
         else:
-            self.conn = Connection(url=self.url, token=self.token, fake=self.test_mode,
-                                   user=self.user, password=self.password)
+            self.conn = Connection(
+                url=self.url, token=self.token, fake=self.test_mode,
+                user=self.user, password=self.password)
         self.before_expired_hours = module.params['before_expired_hours']
 
     def check_dirs_existed(self):
@@ -304,9 +317,10 @@ class VCertificate:
             if os.path.isdir(p):
                 continue
             elif os.path.exists(p):
-                self.module.fail_json(msg="Path %s already exists but this is not directory." % p)
+                self.module.fail_json(
+                    msg="Path %s already exists but this is not directory" % p)
             elif not os.path.exists(p):
-                self.module.fail_json(msg="Directory %s does not exists." % p)
+                self.module.fail_json(msg="Directory %s does not exists" % p)
             ok = False
         return ok
 
@@ -317,8 +331,10 @@ class VCertificate:
             return False
         private_key = to_text(open(self.privatekey_filename, "rb").read())
 
-        r = CertificateRequest(private_key=private_key, key_password=self.privatekey_passphrase)
-        key_type = {"RSA": "rsa", "ECDSA": "ec", "EC": "ec"}.get(self.privatekey_type)
+        r = CertificateRequest(private_key=private_key,
+                               key_password=self.privatekey_passphrase)
+        key_type = {"RSA": "rsa", "ECDSA": "ec", "EC": "ec"}.\
+            get(self.privatekey_type)
         if key_type and key_type != r.key_type:
             return False
         if key_type == "rsa" and self.privatekey_size:
@@ -340,10 +356,13 @@ class VCertificate:
             request.private_key = private_key
             use_existed_key = True
         elif self.privatekey_type:
-            key_type = {"RSA": "rsa", "ECDSA": "ec", "EC": "ec"}.get(self.privatekey_type)
+            key_type = {"RSA": "rsa", "ECDSA": "ec", "EC": "ec"}.\
+                get(self.privatekey_type)
             if not key_type:
-                self.module.fail_json(msg="Failed to determine key type: {0}. Must be RSA or ECDSA".format(
-                    self.privatekey_type))
+
+                self.module.fail_json(msg=(
+                        "Failed to determine key type: "
+                        "%s. Must be RSA or ECDSA" % self.privatekey_type))
             request.key_type = key_type
             request.key_curve = self.privatekey_curve
             request.key_length = self.privatekey_size
@@ -374,7 +393,8 @@ class VCertificate:
         else:
             self._atomic_write(self.certificate_filename, cert.full_chain)
         if not use_existed_key:
-            self._atomic_write(self.privatekey_filename, request.private_key_pem)
+            self._atomic_write(self.privatekey_filename,
+                               request.private_key_pem)
         # todo: server generated private key
 
     def _atomic_write(self, path, content):
@@ -383,7 +403,8 @@ class VCertificate:
             with open(path+suffix, "wb") as f:
                 f.write(to_bytes(content))
         except OSError as e:
-            self.module.fail_json(msg="Failed to write file %s: %s" % (path+suffix, e))
+            self.module.fail_json(msg="Failed to write file %s: %s" % (
+                path+suffix, e))
 
         self.module.atomic_move(path+suffix, path)
         self.changed = True
@@ -396,15 +417,20 @@ class VCertificate:
             self.changed = True
 
     def _check_certificate_validity(self, cert):
-        if cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value != self.common_name:
+        cn = cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
+        if cn != self.common_name:
             return False
-        if cert.not_valid_after - datetime.timedelta(hours=self.before_expired_hours) < datetime.datetime.now():
+        if cert.not_valid_after - datetime.timedelta(
+                hours=self.before_expired_hours) < datetime.datetime.now():
             return False
-        if cert.not_valid_before - datetime.timedelta(hours=24) > datetime.datetime.now():
+        if cert.not_valid_before - datetime.timedelta(
+                hours=24) > datetime.datetime.now():
             return False
         ips = []
         dns = []
-        for e in cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME).value:
+        alternative_names = cert.extensions.get_extension_for_oid(
+            ExtensionOID.SUBJECT_ALTERNATIVE_NAME).value
+        for e in alternative_names:
             if isinstance(e, x509.general_name.DNSName):
                 dns.append(e.value)
             elif isinstance(e, x509.general_name.IPAddress):
@@ -415,18 +441,22 @@ class VCertificate:
             return False
         return True
 
-    def _check_certificate_public_key_matched_to_private_key_file(self, cert):
+    def _check_certificate_public_key_matched_to_private_key(self, cert):
         if not self.privatekey_filename:
             return True
         if not os.path.exists(self.privatekey_filename):
             return False
         try:
             with open(self.privatekey_filename, 'rb') as key_data:
-                password = self.privatekey_passphrase.encode() if self.privatekey_passphrase else None
-                pkey = serialization.load_pem_private_key(key_data.read(), password=password, backend=default_backend())
+                password = self.privatekey_passphrase.encode() if \
+                    self.privatekey_passphrase else None
+                pkey = serialization.load_pem_private_key(
+                    key_data.read(), password=password,
+                    backend=default_backend())
 
         except OSError as exc:
-            self.module.fail_json(msg="Failed to read private key file: {0}".format(exc))
+            self.module.fail_json(
+                msg="Failed to read private key file: %s" % exc)
 
         cert_public_key_pem = cert.public_key().public_bytes(
             encoding=serialization.Encoding.PEM,
@@ -443,7 +473,8 @@ class VCertificate:
         return True
 
     def _check_files_permissions(self):
-        files = (self.privatekey_filename, self.certificate_filename, self.chain_filename)
+        files = (self.privatekey_filename, self.certificate_filename,
+                 self.chain_filename)
         return all([self._check_file_permissions(x) for x in files])
 
     def _check_file_permissions(self, path, update=False):
@@ -457,11 +488,13 @@ class VCertificate:
             return True
         try:
             with open(self.certificate_filename, 'rb') as cert_data:
-                cert = x509.load_pem_x509_certificate(cert_data.read(), default_backend())  # type: x509.Certificate
+                cert = x509.load_pem_x509_certificate(
+                    cert_data.read(), default_backend())
         except OSError as exc:
-            self.module.fail_json(msg="Failed to read certificate file: {0}".format(exc))
+            self.module.fail_json(
+                msg="Failed to read certificate file: %s" % exc)
 
-        if not self._check_certificate_public_key_matched_to_private_key_file(cert):
+        if not self._check_certificate_public_key_matched_to_private_key(cert):
             return True
         if not self._check_certificate_validity(cert):
             return True
@@ -470,12 +503,15 @@ class VCertificate:
         """Ensure the resource is in its desired state."""
         try:
             with open(self.certificate_filename, 'rb') as cert_data:
-                cert = x509.load_pem_x509_certificate(cert_data.read(), default_backend())  # type: x509.Certificate
+                cert = x509.load_pem_x509_certificate(cert_data.read(),
+                                                      default_backend())
         except (OSError, ValueError)as exc:
-            self.module.fail_json(msg="Failed to read certificate file: {0}".format(exc))
+            self.module.fail_json(
+                msg="Failed to read certificate file: %s" % exc)
 
-        if not self._check_certificate_public_key_matched_to_private_key_file(cert):
-            self.module.fail_json(msg="Private public bytes not matched certificate public bytes")
+        if not self._check_certificate_public_key_matched_to_private_key(cert):
+            self.module.fail_json(
+                msg="Private public key not matched certificate public key")
         if not self._check_certificate_validity(cert):
             self.module.fail_json(msg="failing check certificate validity")
         if not self._check_private_key_correct():
@@ -531,8 +567,10 @@ def main():
             privatekey_size=dict(type='int', required=False),
             privatekey_curve=dict(type='str', required=False),
             privatekey_passphrase=dict(type='str', no_log=True),
-            alt_name=dict(type='list', aliases=['subjectAltName'], elements='str'),
-            common_name=dict(aliases=['CN', 'commonName', 'common_name'], type='str', required=True),
+            alt_name=dict(type='list', aliases=['subjectAltName'],
+                          elements='str'),
+            common_name=dict(aliases=['CN', 'commonName', 'common_name'],
+                             type='str', required=True),
             chain_option=dict(type='str', required=False, default='last'),
             csr_path=dict(type='path', require=False),
 

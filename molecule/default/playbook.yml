@@ -18,10 +18,10 @@
       certificate_privatekey_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.key"
       certificate_csr_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.csr"
 
-      #Where to execute venafi_certificate module. If set to false certificate will be
-      #created on ansible master host and then copied to the remote server
+      # Where to execute venafi_certificate module. If set to false certificate will be
+      # created on ansible master host and then copied to the remote server
       certificate_remote_execution: false
-      #  remote location where to place the certificate.
+      # remote location where to place the certificate.
       certificate_remote_cert_dir: "/etc/ssl"
       certificate_remote_cert_path: "{{ certificate_remote_cert_dir }}/{{ certificate_common_name }}.pem"
       certificate_remote_chain_path: "{{ certificate_remote_cert_dir }}/{{ certificate_common_name }}.chain.pem"

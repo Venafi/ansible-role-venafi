@@ -1,72 +1,69 @@
+Venafi Role for Ansible
+=======================
+
 <img src="https://www.venafi.com/sites/default/files/content/body/Light_background_logo.png" width="330px" height="69px"/>
 
-Role Name
-=========
-
-This solution implements an Ansible Role that uses the VCert-Python
+This solution implements an Ansible Role that uses the [VCert-Python](https://github.com/Venafi/vcert-python)
 library to simplify certificate enrollment and ensure compliance with
 enterprise security policy.  
 
 Requirements
 ------------
 
-Install vcert using pip:  
+Install VCert-Python using pip:  
 `pip install vcert`
 
 Quickstart
 ------------
-1. Install Ansible and vcert via pip  
+1. Install Ansible and VCert via pip  
     `sudo pip install ansible vcert --upgrade` 
 
 1. Prepare demo environment (if you want to use your own environment 
 you can skip this step. Change tests/inventory file to use your own inventory.)  
 
-    1. To run test\demo playbook you'll need demo-provision role.
-    Download docker-provision role into tests/roles/provision_docker 
-    directory  
-        ```
-        git clone https://github.com/chrismeyersfsu/provision_docker.git \
-         tests/roles/provision_docker
+    1. To run our test/demo playbook you'll need the Docker provisioning role.
+    Download it into the tests/roles/provision_docker directory: 
+        ```bash
+        git clone https://github.com/chrismeyersfsu/provision_docker.git tests/roles/provision_docker
         ```
         
-    1. Build Docker images needed for the  demo playbook:
-    ```bash
-    docker build ./tests --tag local-ansible-test
-    ```
+    1. Build Docker images needed for the demo playbook:
+       ```bash
+       docker build ./tests --tag local-ansible-test
+       ```
     
-    Demo certificates will be placed on Ansible host into /tmp/ansible/etc/ssl directory,
-    from there they will be distributed on remote hosts into /etc/ssl/ folders.
+    Demo certificates will be placed in the /tmp/ansible/etc/ssl directory on the Ansible host.
+    From there they will be distributed to the /etc/ssl/ directory of remote hosts.
     
-1. Generate credentials file from either a Venafi Platform credentials or Cloud.  
+1. Generate a credentials file for either Venafi Platform or Venafi Cloud.  
     
-    1. For Venafi Platform make following credentials.yml:  
-    ```yaml
-    user: 'admin'
-    password: 'myStrongTPP-Password'
-    url: 'https://venafi.example.com/vedsdk/'
-    zone: "example\\policy"
-    trust_bundle: "/path/to/the/TPP/trust/bundle.pem/if/needed"
-    ```  
-    1. For Venafi Cloud set the token in credentials.yml:
-    ```yaml
-    token: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx"
-    zone: "Default"
-    ```
-    1. Encrypt credentials file using ansible-vault, you will be asked to enter password:
-    ```bash
-    ansible-vault encrypt credentials.yml
-    ```
+    1. For Venafi Platform create a `credentials.yml` similar to the following:  
+       ```yaml
+       user: 'admin'
+       password: 'myStrongTPP-Password'
+       url: 'https://tpp.venafi.example/vedsdk/'
+       zone: "example\\policy"
+       trust_bundle: "/path-to/tpp-trust-bundle.pem"
+       ```  
+    1. For Venafi Cloud set the token to your API key in the credentials.yml:
+       ```yaml
+       token: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx"
+       zone: "Default"
+       ```
+    1. Encrypt the credentials file using ansible-vault; you will be asked to enter a password:
+       ```bash
+       ansible-vault encrypt credentials.yml
+       ```
     
 1. Run Ansible playbook (remove docker_demo=true if you want to use your own inventory).
-Choice between Cloud and Platform depends on 
-credentials provided. If you set a token, the playbook runs on Venafi Cloud.
-If you set a password, the playbook runs on Venafi Platform. You will be asked for the vault 
-password you entered before.
+Choice between Cloud and Platform depends on credentials provided. If you set a token, the
+playbook runs using Venafi Cloud. If you set a password, the playbook runs using Venafi Platform. 
+You will be asked for the vault password you entered before.
     ```bash
     ansible-playbook -i tests/inventory \
      tests/venafi-playbook-example.yml \
-    --extra-vars "credentials_file=credentials.yml docker_demo=true" \
-    --ask-vault-pass
+     --extra-vars "credentials_file=credentials.yml docker_demo=true" \
+     --ask-vault-pass
     ```
 
 Using with Ansible Galaxy
@@ -100,15 +97,14 @@ Role Variables
 For default variables values, please look into defaults/main.yml file.
 
 ```yaml
-#Credentials.
+# Credentials.
 venafi:
   # Venafi Platform connection parameters
   user: 'admin'
   password: 'myTPPpassword'
-  url: 'https://venafi.example.com/vedsdk'
+  url: 'https://tpp.venafi.example/vedsdk'
   zone: "devops\\vcert"
-  #Path to the trust bundle for Venafi Platform server. 
-  #Look into Security best practices section for more information.
+  # Path to the trust bundle for Venafi Platform server
   trust_bundle: "/opt/venafi/bundle.pem"
   # Venafi Cloud connection parameters
   #token: 'enter-cloud-api-token-here'
@@ -116,10 +112,10 @@ venafi:
   #Test mode parameter
   #test_mode: true
   
-#All variables from venafi section should be in credentials file
+# All variables from venafi section should be in credentials file.
 credentials_file: credentials.yml
 
-#Certificate parameters. This is are examples.
+# Certificate parameters. These are examples.
 certificate_common_name: "{{ ansible_fqdn }}"
 certificate_alt_name: "IP:192.168.1.1,DNS:www.venafi.example.com,DNS:m.venafi.example.com,email:e@venafi.com,email:e2@venafi.com,IP Address:192.168.2.2"
 
@@ -135,14 +131,14 @@ certificate_chain_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }
 certificate_privatekey_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.key"
 certificate_csr_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.csr"
 
-#Where to execute venafi_certificate module. If set to false, certificate will be
-#created on Ansible master host and then copied to the remote server
+# Where to execute venafi_certificate module. If set to false, certificate will be
+# created on Ansible master host and then copied to the remote server.
 certificate_remote_execution: false
-#  remote location where to place the certificate_
+# Remote location where to place the certificate.
 certificate_remote_cert_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.pem"
 certificate_remote_chain_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.chain.pem"
 certificate_remote_privatekey_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.key"
-# Set to false if you don't want to copy private key to remote location
+# Set to false if you don't want to copy private key to remote location.
 certificate_copy_private_key_to_remote: true
 
 ```
@@ -161,7 +157,7 @@ sudo pip install ansible vcert --upgrade
 Example Playbook
 ----------------
 
-playbook file example:  
+Playbook file example:  
 
 ```yaml
 - hosts: servers
@@ -174,27 +170,27 @@ playbook file example:
       certificate_privatekey_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.key"
       certificate_csr_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.csr"
 
-      #Where to execute venafi_certificate module. If set to false certificate will be
-      #created on ansible master host and then copied to the remote server
+      # Where to execute venafi_certificate module. If set to false, certificate will be
+      # created on ansible master host and then copied to the remote server.
       certificate_remote_execution: false
-      #  remote location where to place the certificate.
+      # Remote location where to place the certificate.
       certificate_remote_cert_dir: "/etc/ssl"
       certificate_remote_cert_path: "{{ certificate_remote_cert_dir }}/{{ certificate_common_name }}.pem"
       certificate_remote_chain_path: "{{ certificate_remote_cert_dir }}/{{ certificate_common_name }}.chain.pem"
       certificate_remote_privatekey_path: "{{ certificate_remote_cert_dir }}/{{ certificate_common_name }}.key"
-      # Set to false if you don't want to copy private key to remote location
+      # Set to false if you don't want to copy private key to remote location.
       certificate_copy_private_key_to_remote: true
 
 ```
 
-credentials files examples:  
+Credential file examples:  
 
 for Venafi Platform:
 
 ```yaml
 user: 'admin'
 password: 'secret'
-url: 'https://venafi.example.com/vedsdk/'
+url: 'https://tpp.venafi.example/vedsdk/'
 zone: "some\\policy"
 
 ```
@@ -206,32 +202,31 @@ token: "xxxxx-xxxxx-xxxxx-xxxx-xxxxx"
 zone: "Default"
 ```
 
-By default credentials are read from file credentials.yml you can rewrite it 
-with variable credentials_file  
-For example:  
+By default credentials are read from file credentials.yml but can be overridden using 
+the *credentials_file* variable, for example:  
 
     ansible-playbook playbook.yml --extra-vars "credentials_file=other_credentials.yml"
 
-Look into tests directory and Makefile for more examples.
+Look in the tests directory and Makefile for additional examples.
 
-Look into official documentation about using roles: https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html
+For official documentation about using roles see https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html
 
 Security best practices
 ----------------
 
-We are strongly recommend that you use ansible-vault for the credentials file
-to do so you can do the following steps:
+We strongly recommend that you use ansible-vault for the credentials file.
+To do so you can use the following steps:
 
-1. Create the credentials.yml and fill it with connection parameters:
+1. Create the `credentials.yml` and populate it with connection parameters:
     ```bash
     cat <<EOF >>credentials.yml
     user: 'admin'
     password: 'secret'
-    url: 'https://venafi.example.com/vedsdk/'
+    url: 'https://tpp.venafi.example/vedsdk/'
     zone: "some\\policy"
     EOF
     ```
-1. Encrypt it with ansible-vault:
+1. Encrypt it using ansible-vault:
     `ansible-vault encrypt credentials.yml`
 
 1. Add option "--vault-id @prompt" to your ansible-playbook
@@ -240,11 +235,10 @@ to do so you can do the following steps:
     ansible-playbook --vault-id @prompt playbook.yml
     ``` 
 
-For other Vault use cases see official documentation:
-https://docs.ansible.com/ansible/latest/user_guide/vault.html
+For other Vault use cases see https://docs.ansible.com/ansible/latest/user_guide/vault.html
 
 
-Venafi Platform configuration notice
+Venafi Platform configuration requirements
 ----------------
 Please refer to this section:  
 https://github.com/Venafi/vcert-python#prerequisites-for-using-with-trust-protection-platform
