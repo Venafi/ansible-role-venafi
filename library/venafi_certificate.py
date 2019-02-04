@@ -163,10 +163,10 @@ EXAMPLES = '''
       common_name: 'testcert-fake-{{ 99999999 | random }}.example.com'
       alt_name: 'DNS:www.venafi.example,DNS:m.venafi.example'
       cert_path: '/tmp'
-    register: testout
+    register: certout
   - name: dump test output
     debug:
-      msg: '{{ testout }}'
+      msg: '{{ certout }}'
 
 # Enroll Platform certificate with a lot of alt names
 - name: venafi_certificate_tpp
@@ -187,10 +187,10 @@ EXAMPLES = '''
       alt_name: |
         IP:192.168.1.1,DNS:www.venafi.example.com,
         DNS:m.venafi.example.com,email:test@venafi.com,IP Address:192.168.2.2
-    register: testout
+    register: certout
   - name: dump test output
     debug:
-      msg: '{{ testout }}'
+      msg: '{{ certout }}'
 
 # Enroll Cloud certificate
 - name: venafi_certificate_cloud
@@ -206,10 +206,10 @@ EXAMPLES = '''
       zone: 'Default'
       cert_path: '/tmp'
       common_name: 'testcert-cloud.example.com'
-    register: testout
+    register: certout
   - name: dump test output
     debug:
-      msg: '{{ testout }}'
+      msg: '{{ certout }}'
 '''
 
 RETURN = '''
