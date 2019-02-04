@@ -1,4 +1,4 @@
-#Clone https://github.com/chrismeyersfsu/provision_docker.git to /etc/ansible/roles before run
+# Clone https://github.com/chrismeyersfsu/provision_docker.git to /etc/ansible/roles before run
 ---
 - name: "Bring up Docker containers for Docker connection inventory"
   hosts: localhost

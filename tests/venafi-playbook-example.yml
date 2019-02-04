@@ -1,5 +1,5 @@
 ---
-#We need Docker provisioning only for demo purpose
+# We need Docker provisioning only for demo purpose
 - name: "Bring up Docker containers for Docker connection inventory iface"
   hosts: localhost
   roles:
@@ -27,8 +27,8 @@
       certificate_privatekey_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.key"
       certificate_csr_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.csr"
 
-      #Where to execute venafi_certificate module. If set to false certificate will be
-      #created on ansible master host and then copied to the remote server
+      # Where to execute venafi_certificate module. If set to false certificate will be
+      # created on ansible master host and then copied to the remote server
       certificate_remote_execution: false
       #  remote location where to place the certificate.
       certificate_remote_cert_dir: "/etc/ssl"
