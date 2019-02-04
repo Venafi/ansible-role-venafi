@@ -1,6 +1,6 @@
 ---
 credentials_file: credentials.yml
-#Use ansible host FQDN for certificate common name
+#Use Ansible host FQDN for certificate common name
 certificate_common_name: "{{ ansible_fqdn }}"
 
 #Directory where to place certificates
