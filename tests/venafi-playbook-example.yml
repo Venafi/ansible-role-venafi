@@ -107,7 +107,7 @@
         cert_path: "{{ certificate_remote_cert_path if certificate_remote_cert_path  is defined else certificate_cert_path }}"
         chain_path: "{{ certificate_remote_chain_path if certificate_remote_chain_path else certificate_chain_path }}"
         privatekey_path: "{{ certificate_remote_privatekey_path if certificate_remote_privatekey_path else certificate_privatekey_path }}"
-        common_name: "{{ certificate_common_name }}-1"
+        common_name: "{{ certificate_common_name }}"
       check_mode: yes
       register: cert_validation
 

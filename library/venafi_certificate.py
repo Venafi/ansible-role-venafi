@@ -308,6 +308,13 @@ class VCertificate:
                 user=self.user, password=self.password)
         self.before_expired_hours = module.params['before_expired_hours']
 
+        # Some strings variables
+        self.string_failed_to_check_cert_validity = "Failing check certificate validity"
+        self.string_pkey_not_matched = "Private public key not matched certificate public key"
+        self.string_bad_pkey = "Bad private key"
+        self.string_cert_file_not_exists = "%s file doesn't exists" % self.certificate_filename
+        self.string_bad_permissions = "Bad files permissions"
+
     def check_dirs_existed(self):
         cert_dir = os.path.dirname(self.certificate_filename or "/a")
         key_dir = os.path.dirname(self.privatekey_filename or "/a")
@@ -483,17 +490,15 @@ class VCertificate:
     def check(self):
         """Return true if running will change anything"""
         if not os.path.exists(self.certificate_filename):
-            changed_msg = "%s file doesn't exists" % self.certificate_filename
             result = {
                 'changed': True,
-                'changed_msg': changed_msg,
+                'changed_msg': self.string_cert_file_not_exists,
             }
             return result
         if self._check_private_key_correct() is False:  # may be None
-            changed_msg = "Bad private key"
             result = {
                 'changed': True,
-                'changed_msg': changed_msg,
+                'changed_msg': self.string_bad_pkey,
             }
             return result
         try:
@@ -505,19 +510,27 @@ class VCertificate:
                 msg="Failed to read certificate file: %s" % exc)
 
         if not self._check_certificate_public_key_matched_to_private_key(cert):
-            changed_msg = "Private public key not matched certificate public key"
             result = {
                 'changed': True,
-                'changed_msg': changed_msg,
+                'changed_msg': self.string_pkey_not_matched,
             }
             return result
         if not self._check_certificate_validity(cert):
-            changed_msg = "Failing check certificate validity"
             result = {
                 'changed': True,
-                'changed_msg': changed_msg,
+                'changed_msg': self.string_failed_to_check_cert_validity,
             }
             return result
+        if not self._check_files_permissions():
+            result = {
+                'changed': True,
+                'changed_msg': self.string_failed_to_check_cert_validity,
+            }
+            return result
+        result = {
+            'changed': False,
+        }
+        return result
 
     def validate(self):
         """Ensure the resource is in its desired state."""
@@ -531,13 +544,13 @@ class VCertificate:
 
         if not self._check_certificate_public_key_matched_to_private_key(cert):
             self.module.fail_json(
-                msg="Private public key not matched certificate public key")
+                msg=self.string_pkey_not_matched)
         if not self._check_certificate_validity(cert):
-            self.module.fail_json(msg="failing check certificate validity")
+            self.module.fail_json(msg=self.string_failed_to_check_cert_validity)
         if not self._check_private_key_correct():
-            self.module.fail_json(msg="Bad private key")
+            self.module.fail_json(msg=self.string_bad_pkey)
         if not self._check_files_permissions():
-            self.module.fail_json(msg="Bad files permissions")
+            self.module.fail_json(msg=self.string_bad_permissions)
 
     def dump(self):
 
