@@ -242,23 +242,23 @@ privatekey_type:
     sample: RSA
 
 certificate_filename:
-    description: Path to the signed Certificate Signing Request
+    description: Path to the signed certificate
     returned: changed or success
     type: string
     sample: /etc/ssl/www.venafi.example.pem
 
 chain_filename:
-    description: Path to the signed Certificate Signing Request
+    description: Path to the chain of CA certificates that link the certificate to a trust anchor
     returned: changed or success
     type: string
     sample: /etc/ssl/www.venafi.example_chain.pem
 '''
 # Some strings variables
-string_failed_to_check_cert_validity = "Failing check certificate validity"
-string_pkey_not_matched = "Private public key not matched certificate public key"
-string_bad_pkey = "Bad private key"
-string_cert_file_not_exists = "Certificate file doesn't exists"
-string_bad_permissions = "Bad files permissions"
+string_failed_to_check_cert_validity = "Certificate is not yet valid, has expired, or has CN or SANs that differ from the request"
+string_pkey_not_matched = "Private key does not match certificate public key"
+string_bad_pkey = "Private key file does not contain a valid private key"
+string_cert_file_not_exists = "Certificate file does not exist"
+string_bad_permissions = "Insufficient file permissions"
 
 class VCertificate:
     def __init__(self, module):
@@ -522,7 +522,7 @@ class VCertificate:
         if not self._check_files_permissions():
             result = {
                 'changed': True,
-                'changed_msg': string_failed_to_check_cert_validity,
+                'changed_msg': string_bad_permissions,
             }
             return result
         result = {
