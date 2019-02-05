@@ -532,23 +532,11 @@ class VCertificate:
 
     def validate(self):
         """Ensure the resource is in its desired state."""
-        try:
-            with open(self.certificate_filename, 'rb') as cert_data:
-                cert = x509.load_pem_x509_certificate(cert_data.read(),
-                                                      default_backend())
-        except (OSError, ValueError)as exc:
+        result = self.check()
+        if result['changed']:
             self.module.fail_json(
-                msg="Failed to read certificate file: %s" % exc)
-
-        if not self._check_certificate_public_key_matched_to_private_key(cert):
-            self.module.fail_json(
-                msg=string_pkey_not_matched)
-        if not self._check_certificate_validity(cert):
-            self.module.fail_json(msg=string_failed_to_check_cert_validity)
-        if not self._check_private_key_correct():
-            self.module.fail_json(msg=string_bad_pkey)
-        if not self._check_files_permissions():
-            self.module.fail_json(msg=string_bad_permissions)
+                msg=result['changed_msg']
+            )
 
     def dump(self):
 

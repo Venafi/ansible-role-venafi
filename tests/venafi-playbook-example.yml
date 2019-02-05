@@ -114,3 +114,23 @@
     - debug:
         msg: "Certificate {{ certificate_common_name }} is not in valid state: {{ cert_validation.changed_msg }}"
       when: cert_validation is changed
+
+    - name: "Example verification which will always fail with debug message"
+      venafi_certificate:
+        url: "{{ venafi.url if venafi.url is defined else None }}"
+        token: "{{ venafi.token if venafi.token is defined else None }}"
+        zone: "{{ venafi.zone if venafi.zone is defined else None }}"
+        test_mode: "{{ venafi.test_mode if venafi.test_mode is defined else 'false' }}"
+        user: "{{ venafi.user if venafi.user is defined else None }}"
+        password: "{{ venafi.password if venafi.password is defined else None }}"
+        trust_bundle: "{{ venafi.trust_bundle if venafi.trust_bundle is defined else None }}"
+        cert_path: "{{ certificate_remote_cert_path if certificate_remote_cert_path  is defined else certificate_cert_path }}"
+        chain_path: "{{ certificate_remote_chain_path if certificate_remote_chain_path else certificate_chain_path }}"
+        privatekey_path: "{{ certificate_remote_privatekey_path if certificate_remote_privatekey_path else certificate_privatekey_path }}"
+        common_name: "{{ certificate_common_name }}-fail-check"
+      check_mode: yes
+      register: cert_validation_failed
+
+    - debug:
+        msg: "Certificate {{ certificate_common_name }} is not in valid state: {{ cert_validation_failed.changed_msg }}"
+      when: cert_validation_failed is changed
