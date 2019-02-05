@@ -260,6 +260,7 @@ string_bad_pkey = "Private key file does not contain a valid private key"
 string_cert_file_not_exists = "Certificate file does not exist"
 string_bad_permissions = "Insufficient file permissions"
 
+
 class VCertificate:
     def __init__(self, module):
         """
@@ -287,6 +288,7 @@ class VCertificate:
         self.ip_addresses = []
         self.email_addresses = []
         self.san_dns = []
+        self.changed_message = []
         if module.params['alt_name']:
             for n in module.params['alt_name']:
                 if n.startswith(("IP:", "IP Address:")):
@@ -338,7 +340,7 @@ class VCertificate:
 
         r = CertificateRequest(private_key=private_key,
                                key_password=self.privatekey_passphrase)
-        key_type = {"RSA": "rsa", "ECDSA": "ec", "EC": "ec"}.\
+        key_type = {"RSA": "rsa", "ECDSA": "ec", "EC": "ec"}. \
             get(self.privatekey_type)
         if key_type and key_type != r.key_type:
             return False
@@ -361,10 +363,9 @@ class VCertificate:
             request.private_key = private_key
             use_existed_key = True
         elif self.privatekey_type:
-            key_type = {"RSA": "rsa", "ECDSA": "ec", "EC": "ec"}.\
+            key_type = {"RSA": "rsa", "ECDSA": "ec", "EC": "ec"}. \
                 get(self.privatekey_type)
             if not key_type:
-
                 self.module.fail_json(msg=(
                         "Failed to determine key type: "
                         "%s. Must be RSA or ECDSA" % self.privatekey_type))
@@ -405,13 +406,13 @@ class VCertificate:
     def _atomic_write(self, path, content):
         suffix = ".atomic_%s" % random.randint(100, 100000)
         try:
-            with open(path+suffix, "wb") as f:
+            with open(path + suffix, "wb") as f:
                 f.write(to_bytes(content))
         except OSError as e:
             self.module.fail_json(msg="Failed to write file %s: %s" % (
-                path+suffix, e))
+                path + suffix, e))
 
-        self.module.atomic_move(path+suffix, path)
+        self.module.atomic_move(path + suffix, path)
         self.changed = True
         self._check_and_update_permissions(path)
 
@@ -424,12 +425,24 @@ class VCertificate:
     def _check_certificate_validity(self, cert):
         cn = cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
         if cn != self.common_name:
+            self.changed_message.append(
+                'Certificate CN %s not matched to expected %s' % (cn, self.common_name)
+            )
             return False
         if cert.not_valid_after - datetime.timedelta(
                 hours=self.before_expired_hours) < datetime.datetime.now():
+            self.changed_message.append(
+                'Certificate expiration date %s is less than %s' % (cert.not_valid_after - datetime.timedelta(
+                    hours=self.before_expired_hours), datetime.datetime.now())
+            )
             return False
         if cert.not_valid_before - datetime.timedelta(
                 hours=24) > datetime.datetime.now():
+            self.changed_message.append(
+                'Certificate expiration date %s is set to future from server time %s.' % (cert.not_valid_before -
+                                                                                          datetime.timedelta(hours=24),
+                                                                                          (datetime.datetime.now()))
+            )
             return False
         ips = []
         dns = []
@@ -487,47 +500,40 @@ class VCertificate:
 
     def check(self):
         """Return true if running will change anything"""
-        if not os.path.exists(self.certificate_filename):
-            result = {
-                'changed': True,
-                'changed_msg': string_cert_file_not_exists,
-            }
-            return result
-        if self._check_private_key_correct() is False:  # may be None
-            result = {
-                'changed': True,
-                'changed_msg': string_bad_pkey,
-            }
-            return result
-        try:
-            with open(self.certificate_filename, 'rb') as cert_data:
-                cert = x509.load_pem_x509_certificate(
-                    cert_data.read(), default_backend())
-        except OSError as exc:
-            self.module.fail_json(
-                msg="Failed to read certificate file: %s" % exc)
-
-        if not self._check_certificate_public_key_matched_to_private_key(cert):
-            result = {
-                'changed': True,
-                'changed_msg': string_pkey_not_matched,
-            }
-            return result
-        if not self._check_certificate_validity(cert):
-            result = {
-                'changed': True,
-                'changed_msg': string_failed_to_check_cert_validity,
-            }
-            return result
-        if not self._check_files_permissions():
-            result = {
-                'changed': True,
-                'changed_msg': string_bad_permissions,
-            }
-            return result
         result = {
             'changed': False,
         }
+        if not os.path.exists(self.certificate_filename):
+            result = {
+                'changed': True,
+                'changed_msg': self.changed_message.append(string_cert_file_not_exists),
+            }
+        else:
+            try:
+                with open(self.certificate_filename, 'rb') as cert_data:
+                    cert = x509.load_pem_x509_certificate(
+                        cert_data.read(), default_backend())
+            except OSError as exc:
+                self.module.fail_json(
+                    msg="Failed to read certificate file: %s" % exc)
+
+            if not self._check_certificate_public_key_matched_to_private_key(cert):
+                result['changed'] = True
+                self.changed_message.append(string_pkey_not_matched)
+
+            if not self._check_certificate_validity(cert):
+                result['changed'] = True
+                self.changed_message.append(string_failed_to_check_cert_validity)
+
+        if self._check_private_key_correct() is False:  # may be None
+            result['changed'] = True
+            self.changed_message.append(string_bad_pkey)
+
+        if not self._check_files_permissions():
+            result['changed'] = True
+            self.changed_message.append(string_bad_permissions)
+
+        result['changed_msg'] = ' | '.join(self.changed_message)
         return result
 
     def validate(self):

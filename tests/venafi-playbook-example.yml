@@ -124,7 +124,7 @@
         user: "{{ venafi.user if venafi.user is defined else None }}"
         password: "{{ venafi.password if venafi.password is defined else None }}"
         trust_bundle: "{{ venafi.trust_bundle if venafi.trust_bundle is defined else None }}"
-        cert_path: "{{ certificate_remote_cert_path if certificate_remote_cert_path  is defined else certificate_cert_path }}"
+        cert_path: "{{ certificate_remote_cert_path if certificate_remote_cert_path  is defined else certificate_cert_path }}-fail-check"
         chain_path: "{{ certificate_remote_chain_path if certificate_remote_chain_path else certificate_chain_path }}"
         privatekey_path: "{{ certificate_remote_privatekey_path if certificate_remote_privatekey_path else certificate_privatekey_path }}"
         common_name: "{{ certificate_common_name }}-fail-check"
