@@ -20,12 +20,12 @@
 - hosts: robots
   vars:
     credentials_file: "../credentials.yml"
-    #Use Ansible host FQDN for certificate common name
+    # Use Ansible host FQDN for certificate common name
     certificate_common_name: "{{ ansible_fqdn }}"
 
-    #Directory where to place certificates
+    # Directory where to place certificates
     certificate_cert_dir: "/tmp/ansible/etc/ssl/{{ certificate_common_name }}"
-    #Paths for certficaite and keys
+    # Paths for certficaite and keys
     certificate_cert_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.pem"
     certificate_chain_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.chain.pem"
     certificate_privatekey_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.key"
@@ -34,7 +34,7 @@
     # Where to execute venafi_certificate module. If set to false, certificate will be
     # created on ansible master host and then copied to the remote server
     certificate_remote_execution: false
-    #  remote location where to place the certificate_
+    # remote location where to place the certificate_
     certificate_remote_cert_path: "/etc/ssl/{{ certificate_common_name }}.pem"
     certificate_remote_chain_path: "/etc/ssl/{{ certificate_common_name }}.chain.pem"
     certificate_remote_privatekey_path: "/etc/ssl/{{ certificate_common_name }}.key"
