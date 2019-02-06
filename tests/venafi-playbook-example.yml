@@ -135,6 +135,11 @@
         msg: "Certificate {{ certificate_common_name }} is not in valid state: {{ cert_validation_failed.changed_msg }}"
       when: cert_validation_failed is changed
 
+    - name: "Fail playbook if cert_validation_failed is not in changed state"
+      fail:
+        msg: "Certificate should be in changed stage but it is not"
+      when: cert_validation_failed is not changed
+
     - name: "This one shouldn't enroll new Venafi certificate on remote host because it's valid"
       venafi_certificate:
         url: "{{ venafi.url if venafi.url is defined else None }}"
