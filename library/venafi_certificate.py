@@ -626,7 +626,7 @@ def main():
     """
     if not vcert.check_dirs_existed():
         module.fail_json(msg="Dirs not existed")
-    if change_dump or module.params['force']:
+    if change_dump['changed'] or module.params['force']:
         vcert.enroll()
     vcert.validate()
     result = vcert.dump()
