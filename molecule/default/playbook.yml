@@ -96,4 +96,3 @@
     - name: "Certificate is in following state:"
       debug:
         msg: "{{ result }}"
-
