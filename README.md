@@ -208,8 +208,8 @@ the *credentials_file* variable, for example:
     ansible-playbook playbook.yml --extra-vars "credentials_file=other_credentials.yml"
 
 Look in the [/tests](/tests) directory and Makefile for additional examples.
-For playbook examples look into [tests/venafi-playbook-example.yml](venafi-playbook-example.yml) file
-For role examples look into [tests/venafi-role-playbook-example.yml](venafi-role-playbook-example.yml) file
+For playbook examples look into [venafi-playbook-example.yml](tests/venafi-playbook-example.yml) file.
+For role examples look into [venafi-role-playbook-example.yml](tests/venafi-role-playbook-example.yml) file
 
 For official documentation about using roles see https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html
 
