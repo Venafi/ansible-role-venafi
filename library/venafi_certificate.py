@@ -248,13 +248,16 @@ certificate_filename:
     sample: /etc/ssl/www.venafi.example.pem
 
 chain_filename:
-    description: Path to the chain of CA certificates that link the certificate to a trust anchor
+    description: > Path to the chain of CA certificates that link
+    the certificate to a trust anchor
+
     returned: changed or success
     type: string
     sample: /etc/ssl/www.venafi.example_chain.pem
 '''
 # Some strings variables
-STRING_FAILED_TO_CHECK_CERT_VALIDITY = "Certificate is not yet valid, has expired, or has CN or SANs that differ from the request"
+STRING_FAILED_TO_CHECK_CERT_VALIDITY = "Certificate is not yet valid, " \
+    "has expired, or has CN or SANs that differ from the request"
 STRING_PKEY_NOT_MATCHED = "Private key does not match certificate public key"
 STRING_BAD_PKEY = "Private key file does not contain a valid private key"
 STRING_CERT_FILE_NOT_EXISTS = "Certificate file does not exist"
@@ -367,8 +370,8 @@ class VCertificate:
                 get(self.privatekey_type)
             if not key_type:
                 self.module.fail_json(msg=(
-                        "Failed to determine key type: "
-                        "%s. Must be RSA or ECDSA" % self.privatekey_type))
+                    "Failed to determine key type: %s."
+                    "Must be RSA or ECDSA" % self.privatekey_type))
             request.key_type = key_type
             request.key_curve = self.privatekey_curve
             request.key_length = self.privatekey_size
@@ -426,22 +429,26 @@ class VCertificate:
         cn = cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
         if cn != self.common_name:
             self.changed_message.append(
-                'Certificate CN %s not matched to expected %s' % (cn, self.common_name)
+                'Certificate CN %s not matched to expected %s'
+                % (cn, self.common_name)
             )
             return False
         if cert.not_valid_after - datetime.timedelta(
                 hours=self.before_expired_hours) < datetime.datetime.now():
             self.changed_message.append(
-                'Certificate expiration date %s is less than %s' % (cert.not_valid_after - datetime.timedelta(
+                'Certificate expiration date %s is less than %s'
+                % (cert.not_valid_after - datetime.timedelta(
                     hours=self.before_expired_hours), datetime.datetime.now())
             )
             return False
         if cert.not_valid_before - datetime.timedelta(
                 hours=24) > datetime.datetime.now():
             self.changed_message.append(
-                'Certificate expiration date %s is set to future from server time %s.' % (cert.not_valid_before -
-                                                                                          datetime.timedelta(hours=24),
-                                                                                          (datetime.datetime.now()))
+                "Certificate expiration date %s "
+                "is set to future from server time %s."
+                % (cert.not_valid_before -
+                    datetime.timedelta(hours=24),
+                    (datetime.datetime.now()))
             )
             return False
         ips = []
@@ -459,7 +466,7 @@ class VCertificate:
             return False
         return True
 
-    def _check_certificate_public_key_matched_to_private_key(self, cert):
+    def _check_public_key_matched_to_private_key(self, cert):
         if not self.privatekey_filename:
             return True
         if not os.path.exists(self.privatekey_filename):
@@ -506,7 +513,8 @@ class VCertificate:
         if not os.path.exists(self.certificate_filename):
             result = {
                 'changed': True,
-                'changed_msg': self.changed_message.append(STRING_CERT_FILE_NOT_EXISTS),
+                'changed_msg':
+                self.changed_message.append(STRING_CERT_FILE_NOT_EXISTS),
             }
         else:
             try:
@@ -516,18 +524,20 @@ class VCertificate:
                             cert_data.read(), default_backend())
                     except Exception:
                         self.module.fail_json(
-                            msg="Failed to load certificate from file: %s" % self.certificate_filename)
+                            msg="Failed to load certificate from file: %s"
+                                % self.certificate_filename)
             except OSError as exc:
                 self.module.fail_json(
                     msg="Failed to read certificate file: %s" % exc)
 
-            if not self._check_certificate_public_key_matched_to_private_key(cert):
+            if not self._check_public_key_matched_to_private_key(cert):
                 result['changed'] = True
                 self.changed_message.append(STRING_PKEY_NOT_MATCHED)
 
             if not self._check_certificate_validity(cert):
                 result['changed'] = True
-                self.changed_message.append(STRING_FAILED_TO_CHECK_CERT_VALIDITY)
+                self.changed_message.append(
+                    STRING_FAILED_TO_CHECK_CERT_VALIDITY)
 
         if self._check_private_key_correct() is False:  # may be None
             result['changed'] = True
