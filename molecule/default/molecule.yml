@@ -14,7 +14,7 @@ lint:
   name: yamllint
 platforms:
   - name: instance
-    image: local-ansible-test:latest
+    image: python:3.7
 provisioner:
   name: ansible
   log: true

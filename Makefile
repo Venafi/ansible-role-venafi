@@ -11,7 +11,7 @@ lint: yamllint pep8
 
 ansible-molecule:
 	docker build ./tests --tag local-ansible-test
-	ANSIBLE_VAULT_PASSWORD_FILE=${PWD}/vault-password.txt molecule converge
+	ANSIBLE_VAULT_PASSWORD_FILE=${PWD}/vault-password.txt molecule --debug converge
 
 #Testing ansible crypto modules for examples and compability checks
 test-crypto-playbook:
