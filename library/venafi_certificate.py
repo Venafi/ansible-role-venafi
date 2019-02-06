@@ -254,11 +254,11 @@ chain_filename:
     sample: /etc/ssl/www.venafi.example_chain.pem
 '''
 # Some strings variables
-string_failed_to_check_cert_validity = "Certificate is not yet valid, has expired, or has CN or SANs that differ from the request"
-string_pkey_not_matched = "Private key does not match certificate public key"
-string_bad_pkey = "Private key file does not contain a valid private key"
-string_cert_file_not_exists = "Certificate file does not exist"
-string_bad_permissions = "Insufficient file permissions"
+STRING_FAILED_TO_CHECK_CERT_VALIDITY = "Certificate is not yet valid, has expired, or has CN or SANs that differ from the request"
+STRING_PKEY_NOT_MATCHED = "Private key does not match certificate public key"
+STRING_BAD_PKEY = "Private key file does not contain a valid private key"
+STRING_CERT_FILE_NOT_EXISTS = "Certificate file does not exist"
+STRING_BAD_PERMISSIONS = "Insufficient file permissions"
 
 
 class VCertificate:
@@ -506,7 +506,7 @@ class VCertificate:
         if not os.path.exists(self.certificate_filename):
             result = {
                 'changed': True,
-                'changed_msg': self.changed_message.append(string_cert_file_not_exists),
+                'changed_msg': self.changed_message.append(STRING_CERT_FILE_NOT_EXISTS),
             }
         else:
             try:
@@ -523,19 +523,19 @@ class VCertificate:
 
             if not self._check_certificate_public_key_matched_to_private_key(cert):
                 result['changed'] = True
-                self.changed_message.append(string_pkey_not_matched)
+                self.changed_message.append(STRING_PKEY_NOT_MATCHED)
 
             if not self._check_certificate_validity(cert):
                 result['changed'] = True
-                self.changed_message.append(string_failed_to_check_cert_validity)
+                self.changed_message.append(STRING_FAILED_TO_CHECK_CERT_VALIDITY)
 
         if self._check_private_key_correct() is False:  # may be None
             result['changed'] = True
-            self.changed_message.append(string_bad_pkey)
+            self.changed_message.append(STRING_BAD_PKEY)
 
         if not self._check_files_permissions():
             result['changed'] = True
-            self.changed_message.append(string_bad_permissions)
+            self.changed_message.append(STRING_BAD_PERMISSIONS)
 
         result['changed_msg'] = ' | '.join(self.changed_message)
         return result
