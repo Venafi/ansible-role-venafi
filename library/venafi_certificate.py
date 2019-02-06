@@ -511,8 +511,12 @@ class VCertificate:
         else:
             try:
                 with open(self.certificate_filename, 'rb') as cert_data:
-                    cert = x509.load_pem_x509_certificate(
-                        cert_data.read(), default_backend())
+                    try:
+                        cert = x509.load_pem_x509_certificate(
+                            cert_data.read(), default_backend())
+                    except Exception:
+                        self.module.fail_json(
+                            msg="Failed to load certificate from file: %s" % self.certificate_filename)
             except OSError as exc:
                 self.module.fail_json(
                     msg="Failed to read certificate file: %s" % exc)
