@@ -79,7 +79,7 @@
       when: cert_validation_failed is changed
 
     - name: "Fail playbook if cert_validation_failed is not in changed state"
-      fail: "Certificate shouldn't be in changed stage but it is"
+      fail: "Certificate should be in changed stage but it is not"
       when: cert_validation_failed is not changed
 
     - name: "This one shouldn't enroll new Venafi certificate on remote host because it's valid"
@@ -102,5 +102,5 @@
         msg: "{{ cert_is_valid }}"
 
     - name: "Fail playbook if cert_is_valid is in changed state"
-      fail: "Certificate shouldn't be in changed stage but it is"
+      fail: "Certificate should not be in changed stage but it is"
       when: cert_is_valid is changed
