@@ -1,4 +1,4 @@
-# Generater certificates on remote host
+# Generates certificates on remote host
 ---
 - name: "Enroll Venafi certificate on remote host"
   venafi_certificate:

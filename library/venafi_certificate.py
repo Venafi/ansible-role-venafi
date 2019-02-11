@@ -54,7 +54,7 @@ version_added: "2.7"
 
 description:
     - This is Venafi certificate module for working with Venafi Cloud or
-     Venafi Trusted Platform "
+     Venafi Trust Platform"
 
 options:
     force:

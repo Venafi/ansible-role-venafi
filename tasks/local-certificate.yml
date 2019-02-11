@@ -1,4 +1,4 @@
-# Localy generate certificate
+# Locally generate certificate
 # Copy files to remote host from inventory
 # Generates certificates on remote host
 # TODO: maybe rewrite to delegate to be able to register certificate from any host?
