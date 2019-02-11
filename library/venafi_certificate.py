@@ -54,7 +54,7 @@ version_added: "2.7"
 
 description:
     - This is Venafi certificate module for working with Venafi Cloud or
-     Venafi Trusted Platform "
+     Venafi Trust Platform"
 
 options:
     force:
@@ -163,10 +163,10 @@ EXAMPLES = '''
       common_name: 'testcert-fake-{{ 99999999 | random }}.example.com'
       alt_name: 'DNS:www.venafi.example,DNS:m.venafi.example'
       cert_path: '/tmp'
-    register: testout
+    register: certout
   - name: dump test output
     debug:
-      msg: '{{ testout }}'
+      msg: '{{ certout }}'
 
 # Enroll Platform certificate with a lot of alt names
 - name: venafi_certificate_tpp
@@ -187,10 +187,10 @@ EXAMPLES = '''
       alt_name: |
         IP:192.168.1.1,DNS:www.venafi.example.com,
         DNS:m.venafi.example.com,email:test@venafi.com,IP Address:192.168.2.2
-    register: testout
+    register: certout
   - name: dump test output
     debug:
-      msg: '{{ testout }}'
+      msg: '{{ certout }}'
 
 # Enroll Cloud certificate
 - name: venafi_certificate_cloud
@@ -206,10 +206,10 @@ EXAMPLES = '''
       zone: 'Default'
       cert_path: '/tmp'
       common_name: 'testcert-cloud.example.com'
-    register: testout
+    register: certout
   - name: dump test output
     debug:
-      msg: '{{ testout }}'
+      msg: '{{ certout }}'
 '''
 
 RETURN = '''
@@ -242,17 +242,26 @@ privatekey_type:
     sample: RSA
 
 certificate_filename:
-    description: Path to the signed Certificate Signing Request
+    description: Path to the signed certificate
     returned: changed or success
     type: string
     sample: /etc/ssl/www.venafi.example.pem
 
 chain_filename:
-    description: Path to the signed Certificate Signing Request
+    description: > Path to the chain of CA certificates that link
+    the certificate to a trust anchor
+
     returned: changed or success
     type: string
     sample: /etc/ssl/www.venafi.example_chain.pem
 '''
+# Some strings variables
+STRING_FAILED_TO_CHECK_CERT_VALIDITY = "Certificate is not yet valid, " \
+    "has expired, or has CN or SANs that differ from the request"
+STRING_PKEY_NOT_MATCHED = "Private key does not match certificate public key"
+STRING_BAD_PKEY = "Private key file does not contain a valid private key"
+STRING_CERT_FILE_NOT_EXISTS = "Certificate file does not exist"
+STRING_BAD_PERMISSIONS = "Insufficient file permissions"
 
 
 class VCertificate:
@@ -282,6 +291,7 @@ class VCertificate:
         self.ip_addresses = []
         self.email_addresses = []
         self.san_dns = []
+        self.changed_message = []
         if module.params['alt_name']:
             for n in module.params['alt_name']:
                 if n.startswith(("IP:", "IP Address:")):
@@ -333,7 +343,7 @@ class VCertificate:
 
         r = CertificateRequest(private_key=private_key,
                                key_password=self.privatekey_passphrase)
-        key_type = {"RSA": "rsa", "ECDSA": "ec", "EC": "ec"}.\
+        key_type = {"RSA": "rsa", "ECDSA": "ec", "EC": "ec"}. \
             get(self.privatekey_type)
         if key_type and key_type != r.key_type:
             return False
@@ -356,13 +366,12 @@ class VCertificate:
             request.private_key = private_key
             use_existed_key = True
         elif self.privatekey_type:
-            key_type = {"RSA": "rsa", "ECDSA": "ec", "EC": "ec"}.\
+            key_type = {"RSA": "rsa", "ECDSA": "ec", "EC": "ec"}. \
                 get(self.privatekey_type)
             if not key_type:
-
                 self.module.fail_json(msg=(
-                        "Failed to determine key type: "
-                        "%s. Must be RSA or ECDSA" % self.privatekey_type))
+                    "Failed to determine key type: %s."
+                    "Must be RSA or ECDSA" % self.privatekey_type))
             request.key_type = key_type
             request.key_curve = self.privatekey_curve
             request.key_length = self.privatekey_size
@@ -400,13 +409,13 @@ class VCertificate:
     def _atomic_write(self, path, content):
         suffix = ".atomic_%s" % random.randint(100, 100000)
         try:
-            with open(path+suffix, "wb") as f:
+            with open(path + suffix, "wb") as f:
                 f.write(to_bytes(content))
         except OSError as e:
             self.module.fail_json(msg="Failed to write file %s: %s" % (
-                path+suffix, e))
+                path + suffix, e))
 
-        self.module.atomic_move(path+suffix, path)
+        self.module.atomic_move(path + suffix, path)
         self.changed = True
         self._check_and_update_permissions(path)
 
@@ -419,12 +428,28 @@ class VCertificate:
     def _check_certificate_validity(self, cert):
         cn = cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
         if cn != self.common_name:
+            self.changed_message.append(
+                'Certificate CN %s not matched to expected %s'
+                % (cn, self.common_name)
+            )
             return False
         if cert.not_valid_after - datetime.timedelta(
                 hours=self.before_expired_hours) < datetime.datetime.now():
+            self.changed_message.append(
+                'Certificate expiration date %s is less than %s'
+                % (cert.not_valid_after - datetime.timedelta(
+                    hours=self.before_expired_hours), datetime.datetime.now())
+            )
             return False
         if cert.not_valid_before - datetime.timedelta(
                 hours=24) > datetime.datetime.now():
+            self.changed_message.append(
+                "Certificate expiration date %s "
+                "is set to future from server time %s."
+                % (cert.not_valid_before -
+                    datetime.timedelta(hours=24),
+                    (datetime.datetime.now()))
+            )
             return False
         ips = []
         dns = []
@@ -441,7 +466,7 @@ class VCertificate:
             return False
         return True
 
-    def _check_certificate_public_key_matched_to_private_key(self, cert):
+    def _check_public_key_matched_to_private_key(self, cert):
         if not self.privatekey_filename:
             return True
         if not os.path.exists(self.privatekey_filename):
@@ -482,42 +507,56 @@ class VCertificate:
 
     def check(self):
         """Return true if running will change anything"""
+        result = {
+            'changed': False,
+        }
         if not os.path.exists(self.certificate_filename):
-            return True
-        if self._check_private_key_correct() is False:  # may be None
-            return True
-        try:
-            with open(self.certificate_filename, 'rb') as cert_data:
-                cert = x509.load_pem_x509_certificate(
-                    cert_data.read(), default_backend())
-        except OSError as exc:
-            self.module.fail_json(
-                msg="Failed to read certificate file: %s" % exc)
+            result = {
+                'changed': True,
+                'changed_msg':
+                self.changed_message.append(STRING_CERT_FILE_NOT_EXISTS),
+            }
+        else:
+            try:
+                with open(self.certificate_filename, 'rb') as cert_data:
+                    try:
+                        cert = x509.load_pem_x509_certificate(
+                            cert_data.read(), default_backend())
+                    except Exception:
+                        self.module.fail_json(
+                            msg="Failed to load certificate from file: %s"
+                                % self.certificate_filename)
+            except OSError as exc:
+                self.module.fail_json(
+                    msg="Failed to read certificate file: %s" % exc)
 
-        if not self._check_certificate_public_key_matched_to_private_key(cert):
-            return True
-        if not self._check_certificate_validity(cert):
-            return True
+            if not self._check_public_key_matched_to_private_key(cert):
+                result['changed'] = True
+                self.changed_message.append(STRING_PKEY_NOT_MATCHED)
+
+            if not self._check_certificate_validity(cert):
+                result['changed'] = True
+                self.changed_message.append(
+                    STRING_FAILED_TO_CHECK_CERT_VALIDITY)
+
+        if self._check_private_key_correct() is False:  # may be None
+            result['changed'] = True
+            self.changed_message.append(STRING_BAD_PKEY)
+
+        if not self._check_files_permissions():
+            result['changed'] = True
+            self.changed_message.append(STRING_BAD_PERMISSIONS)
+
+        result['changed_msg'] = ' | '.join(self.changed_message)
+        return result
 
     def validate(self):
         """Ensure the resource is in its desired state."""
-        try:
-            with open(self.certificate_filename, 'rb') as cert_data:
-                cert = x509.load_pem_x509_certificate(cert_data.read(),
-                                                      default_backend())
-        except (OSError, ValueError)as exc:
+        result = self.check()
+        if result['changed']:
             self.module.fail_json(
-                msg="Failed to read certificate file: %s" % exc)
-
-        if not self._check_certificate_public_key_matched_to_private_key(cert):
-            self.module.fail_json(
-                msg="Private public key not matched certificate public key")
-        if not self._check_certificate_validity(cert):
-            self.module.fail_json(msg="failing check certificate validity")
-        if not self._check_private_key_correct():
-            self.module.fail_json(msg="Bad private key")
-        if not self._check_files_permissions():
-            self.module.fail_json(msg="Bad files permissions")
+                msg=result['changed_msg']
+            )
 
     def dump(self):
 
@@ -585,9 +624,9 @@ def main():
     if not HAS_CRYPTOGRAPHY:
         module.fail_json(msg='"cryptography" python library is required')
     vcert = VCertificate(module)
-    will_be_changed = vcert.check()
+    change_dump = vcert.check()
     if module.check_mode:
-        module.exit_json(changed=will_be_changed)
+        module.exit_json(**change_dump)
 
     # TODO: make a following choice (make it after completing role @arykalin):
     """
@@ -597,7 +636,7 @@ def main():
     """
     if not vcert.check_dirs_existed():
         module.fail_json(msg="Dirs not existed")
-    if will_be_changed or module.params['force']:
+    if change_dump['changed'] or module.params['force']:
         vcert.enroll()
     vcert.validate()
     result = vcert.dump()
