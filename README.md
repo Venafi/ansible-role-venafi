@@ -48,8 +48,8 @@ you can skip this step. Change tests/inventory file to use your own inventory.)
     1. For Venafi Cloud set the token to your API key in the credentials.yml and the Zone ID
     of the Venafi Cloud zone that you want to request certificates from:
        ```yaml
-       token: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx"
-       zone: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx"
+       token: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+       zone: "zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz"
        ```
     1. Encrypt the credentials file using ansible-vault; you will be asked to enter a password:
        ```bash
@@ -199,8 +199,8 @@ zone: "some\\policy"
 for Venafi Cloud:  
 
 ```yaml
-token: "xxxxx-xxxxx-xxxxx-xxxx-xxxxx"
-zone: "xxxxx-xxxxx-xxxxx-xxxx-xxxxx"
+token: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+zone: "zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz"
 ```
 
 By default credentials are read from file credentials.yml but can be overridden using 
