@@ -360,6 +360,9 @@ class VCertificate:
             common_name=self.common_name,
             key_password=self.privatekey_passphrase,
         )
+        zone_config = self.conn.read_zone_conf(self.zone)
+        request.update_from_zone_config(zone_config)
+
         use_existed_key = False
         if self._check_private_key_correct():  # May be None
             private_key = to_text(open(self.privatekey_filename, "rb").read())
