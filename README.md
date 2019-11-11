@@ -9,7 +9,7 @@ library to simplify certificate enrollment and ensure compliance with enterprise
 Requirements
 ------------
 `ansible`
-`VCert >= 0.6.7`
+`VCert >= 0.6.8`
 
 Quickstart
 ------------
