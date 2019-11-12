@@ -592,9 +592,9 @@ def main():
             # Endpoint
             test_mode=dict(type='bool', required=False, default=False),
             url=dict(type='str', required=False, default=''),
-            password=dict(type='str', required=False, default=''),
-            token=dict(type='str', required=False, default=''),
-            user=dict(type='str', required=False, default=''),
+            password=dict(type='str', required=False, default='', no_log=True),
+            token=dict(type='str', required=False, default='', no_log=True),
+            user=dict(type='str', required=False, default='', no_log=True),
             zone=dict(type='str', required=False, default=''),
             log_verbose=dict(type='str', required=False, default=''),
             config_file=dict(type='str', required=False, default=''),
