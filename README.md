@@ -4,22 +4,59 @@ Venafi Role for Ansible
 <img src="https://www.venafi.com/sites/default/files/content/body/Light_background_logo.png" width="330px" height="69px"/>
 
 This solution implements an Ansible Role that uses the [VCert-Python](https://github.com/Venafi/vcert-python)
-library to simplify certificate enrollment and ensure compliance with
-enterprise security policy.  
+library to simplify certificate enrollment and ensure compliance with enterprise security policy.  
 
 Requirements
 ------------
-
-Install VCert-Python using pip:  
-`pip install vcert`
+`ansible`
+`VCert >= 0.6.8`
 
 Quickstart
 ------------
 1. Install Ansible and VCert via pip  
     `sudo pip install ansible vcert --upgrade` 
 
-1. Prepare demo environment (if you want to use your own environment 
-you can skip this step. Change tests/inventory file to use your own inventory.)  
+Using with Ansible Galaxy
+--------------------------
+For more information about Ansible Galaxy, please refer to official documentation: 
+https://galaxy.ansible.com/docs/using/installing.html    
+
+1. Install role with Ansible Galaxy command:
+    `ansible-galaxy install venafi.ansible_role_venafi` 
+   This will install the Venafi Ansible Role from Ansible Galaxy - https://galaxy.ansible.com/venafi/ansible_role_venafi
+
+1. Create the `credentials.yml` and populate it with connection parameters:
+    ```bash
+    cat <<EOF >>credentials.yml
+    user: 'admin'
+    password: 'secret'
+    url: 'https://tpp.venafi.instance.com/vedsdk/'
+    zone: "Your\\policy\\folder"
+    trust_bundle: "/path-to/tpp-trust-bundle.pem"
+    EOF
+    ```
+
+1. Encrypt it using ansible-vault: This is not mandatory but it is highly recommended to encrypt the credentials file
+    `ansible-vault encrypt credentials.yml`
+
+1. Write a simple playbook: Let's call the file sample.yml
+    ```yaml
+    - hosts: localhost
+      roles:
+        - role: venafi.ansible_role_venafi
+          certificate_cert_dir: "/tmp/etc/ssl/{{ certificate_common_name }}"
+    ```
+
+1. Run the playbook:
+    `ansible-playbook sample.yml --ask-vault-pass`
+    Running the playbook will generate a certificate and place it into folder in /tmp/etc/ssl/ directory. 
+    Additional parameters can be added to the playbook to control the values of the variables for certificate management. Variables are documented below. You can also review defaults/main.yml file for the variables used. 
+
+    Use `--ask-vault-pass` if you have encrypted the `credentials.yml` file. You can decrypt the file by providing the vault password to make changes to `credentials.yml` file at anytime. 
+
+Preparing a demo environemnt with docker to run ansible 
+
+1. Prepare demo environment (Skip this step if you want to use your own environment. Change tests/inventory file to use your own inventory.)  
 
     1. To run our test/demo playbook you'll need the Docker provisioning role.
     Download it into the tests/roles/provision_docker directory: 
@@ -35,17 +72,11 @@ you can skip this step. Change tests/inventory file to use your own inventory.)
     Demo certificates will be placed in the /tmp/ansible/etc/ssl directory on the Ansible host.
     From there they will be distributed to the /etc/ssl/ directory of remote hosts.
     
-1. Generate a credentials file for either Venafi Platform or Venafi Cloud.  
+1. Generate a credentials file for either Venafi Platform or Venafi Cloud as described in the QuickStart.  
     
     1. For Venafi Platform create a `credentials.yml` similar to the following:  
-       ```yaml
-       user: 'admin'
-       password: 'myStrongTPP-Password'
-       url: 'https://tpp.venafi.example/vedsdk/'
-       zone: "example\\policy"
-       trust_bundle: "/path-to/tpp-trust-bundle.pem"
-       ```  
-    1. For Venafi Cloud set the token to your API key in the credentials.yml and the Zone ID
+      
+    1. For Venafi Cloud set the token to your API key in the `credentials.yml` and the Zone ID
     of the Venafi Cloud zone that you want to request certificates from:
        ```yaml
        token: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
@@ -57,7 +88,7 @@ you can skip this step. Change tests/inventory file to use your own inventory.)
        ```
     
 1. Run Ansible playbook (remove docker_demo=true if you want to use your own inventory).
-Choice between Cloud and Platform depends on credentials provided. If you set a token, the
+The contents of `credentials.yml` will be used to decide whether Venafi Cloud of the TPP Platform is used. If you set a token, the
 playbook runs using Venafi Cloud. If you set a password, the playbook runs using Venafi Platform. 
 You will be asked for the vault password you entered before.
     ```bash
@@ -67,30 +98,6 @@ You will be asked for the vault password you entered before.
      --ask-vault-pass
     ```
 
-Using with Ansible Galaxy
---------------------------
-
-1. Install role with Ansible Galaxy command:
-    `ansible-galaxy install venafi.ansible_role_venafi` 
-
-1. Generate credentials.yml as described in Quickstart
-
-1. Write a simple playbook:
-    ```yaml
-    - hosts: localhost
-      roles:
-        - role: venafi.ansible_role_venafi
-          certificate_cert_dir: "/tmp/etc/ssl/{{ certificate_common_name }}"
-    ```
-
-1. Run the playbook:
-    `ansible-playbook vcert.yml --ask-vault-pass`
-    It will generate a certificate and place it into folder in /tmp/etc/ssl/ directory. 
-    You can change other parameters by changin more variables described bellow. Also look into variables in
-    defaults/main.yml file. 
-
-For more information about Ansible Galaxy, please refer to official documentation: 
-https://galaxy.ansible.com/docs/using/installing.html    
 
 Role Variables
 --------------
@@ -144,17 +151,6 @@ certificate_copy_private_key_to_remote: true
 
 ```
 
-
-
-Dependencies
-------------
-
-vcert, ansible
-
-```
-sudo pip install ansible vcert --upgrade
-```
-
 Example Playbook
 ----------------
 
@@ -186,17 +182,17 @@ Playbook file example:
 
 Credential file examples:  
 
-for Venafi Platform:
+For Venafi Trust Protection Platform:
 
 ```yaml
 user: 'admin'
 password: 'secret'
-url: 'https://tpp.venafi.example/vedsdk/'
-zone: "some\\policy"
-
+url: 'https://tpp.venafi.instance.com/vedsdk/'
+zone: "Your\\policy\\folder"
+trust_bundle: "/path-to/tpp-trust-bundle.pem"
 ```
 
-for Venafi Cloud:  
+For Venafi Cloud:  
 
 ```yaml
 token: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
@@ -225,8 +221,9 @@ To do so you can use the following steps:
     cat <<EOF >>credentials.yml
     user: 'admin'
     password: 'secret'
-    url: 'https://tpp.venafi.example/vedsdk/'
-    zone: "some\\policy"
+    url: 'https://tpp.venafi.instance.com/vedsdk/'
+    zone: "Your\\policy\\folder"
+    trust_bundle: "/path-to/tpp-trust-bundle.pem"
     EOF
     ```
 1. Encrypt it using ansible-vault:
