@@ -479,7 +479,8 @@ class VCertificate:
                 ips.append(e.value.exploded)
         if self.ip_addresses and sorted(self.ip_addresses) != sorted(ips):
             self.changed_message.append("IP addresses in request: %s and in "
-                                        "certificate: %s are different" % (ips, sorted(self.ip_addresses)))
+                                        "certificate: %s are different"
+                                        % (ips, sorted(self.ip_addresses)))
             return False
         expected_dns = self.san_dns.append(cn)
         if expected_dns and sorted(expected_dns) != sorted(dns):
