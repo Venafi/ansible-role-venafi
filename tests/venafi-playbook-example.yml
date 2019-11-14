@@ -21,9 +21,9 @@
   vars:
     credentials_file: "../credentials.yml"
     # Use Ansible host FQDN for certificate common name
-    certificate_common_name: "{{ ansible_fqdn }}"
+    certificate_common_name: "{{ ansible_fqdn }}-{{ cn }}.venafi.example.com"
     # Use ansible default IP for DNS
-    certificate_alt_name: "IP:{{ansible_default_ipv4.address}}"
+    certificate_alt_name: "IP:{{ansible_default_ipv4.address}},DNS:{{ ansible_fqdn }}-{{ cn }}-alt.venafi.example.com"
 
     # Directory where to place certificates
     certificate_cert_dir: "/tmp/ansible/etc/ssl/{{ certificate_common_name }}"
