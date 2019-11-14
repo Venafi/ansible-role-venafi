@@ -147,13 +147,14 @@ options:
         type: bool
         description:
             - If set to false new key won't be generated
-            
+
     before_expired_hours:
         required: false
         type: int
         default: 72
         description:
-            - If certificate will expire in less hours than this value module will try to renew it.
+            - | If certificate will expire in less hours than this value
+            module will try to renew it.
 extends_documentation_fragment:
     - files
 
@@ -377,7 +378,7 @@ class VCertificate:
         request.update_from_zone_config(zone_config)
 
         use_existed_key = False
-        if self._check_private_key_correct() and not self.privatekey_reuse:  # May be None
+        if self._check_private_key_correct() and not self.privatekey_reuse:
             private_key = to_text(open(self.privatekey_filename, "rb").read())
             request.private_key = private_key
             use_existed_key = True
@@ -477,11 +478,13 @@ class VCertificate:
             elif isinstance(e, x509.general_name.IPAddress):
                 ips.append(e.value.exploded)
         if self.ip_addresses and sorted(self.ip_addresses) != sorted(ips):
-            self.changed_message.append("IP addresses in request and in certificate are different")
+            self.changed_message.append("IP addresses in request and in "
+                                        "certificate are different")
             return False
         expected_dns = self.san_dns.append(cn)
         if expected_dns and sorted(expected_dns) != sorted(dns):
-            self.changed_message.append("DNS addresses in request and in certificate are different")
+            self.changed_message.append("DNS addresses in request and in "
+                                        "certificate are different")
             return False
         return True
 
