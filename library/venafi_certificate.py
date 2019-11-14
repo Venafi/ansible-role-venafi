@@ -142,6 +142,18 @@ options:
         description:
             - The passphrase for the privatekey.
 
+    privatekey_reuse:
+        required: false
+        type: bool
+        description:
+            - If set to false new key won't be generated
+            
+    before_expired_hours:
+        required: false
+        type: int
+        default: 72
+        description:
+            - If certificate will expire in less hours than this value module will try to renew it.
 extends_documentation_fragment:
     - files
 
@@ -283,6 +295,7 @@ class VCertificate:
         self.privatekey_curve = module.params['privatekey_curve']
         self.privatekey_size = module.params['privatekey_size']
         self.privatekey_passphrase = module.params['privatekey_passphrase']
+        self.privatekey_reuse = module.params['privatekey_reuse']
         self.chain_filename = module.params['chain_path']
         self.csr_path = module.params['csr_path']
         self.args = ""
@@ -364,7 +377,7 @@ class VCertificate:
         request.update_from_zone_config(zone_config)
 
         use_existed_key = False
-        if self._check_private_key_correct():  # May be None
+        if self._check_private_key_correct() and not self.privatekey_reuse:  # May be None
             private_key = to_text(open(self.privatekey_filename, "rb").read())
             request.private_key = private_key
             use_existed_key = True
@@ -612,6 +625,7 @@ def main():
             privatekey_size=dict(type='int', required=False),
             privatekey_curve=dict(type='str', required=False),
             privatekey_passphrase=dict(type='str', no_log=True),
+            privatekey_reuse=dict(type='bool', required=False, default=True),
             alt_name=dict(type='list', aliases=['subjectAltName'],
                           elements='str'),
             common_name=dict(aliases=['CN', 'commonName', 'common_name'],

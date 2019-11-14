@@ -46,6 +46,9 @@
     # Modify default before expire hours variable
     certificate_before_expired_hours: 100
 
+    # Set to true if you want forcly renew certificate
+    certificate_force: false
+
   tasks:
     - name: "Include vars of {{ credentials_file }} into the venafi variable."
       include_vars:
