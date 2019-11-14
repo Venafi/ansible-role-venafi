@@ -453,9 +453,8 @@ class VCertificate:
         if cert.not_valid_after - datetime.timedelta(
                 hours=self.before_expired_hours) < datetime.datetime.now():
             self.changed_message.append(
-                'Certificate expiration date %s is less than %s'
-                % (cert.not_valid_after - datetime.timedelta(
-                    hours=self.before_expired_hours), datetime.datetime.now())
+                'Hours before certificate expiration date %s is less than before_expired_hours value %s'
+                % (cert.not_valid_after, self.before_expired_hours)
             )
             return False
         if cert.not_valid_before - datetime.timedelta(
