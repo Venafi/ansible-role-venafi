@@ -464,8 +464,11 @@ class VCertificate:
             elif isinstance(e, x509.general_name.IPAddress):
                 ips.append(e.value.exploded)
         if self.ip_addresses and sorted(self.ip_addresses) != sorted(ips):
+            self.changed_message.append("IP addresses in request and in certificate are different")
             return False
-        if self.san_dns and sorted(self.san_dns) != sorted(dns):
+        expected_dns = self.san_dns.append(cn)
+        if expected_dns and sorted(expected_dns) != sorted(dns):
+            self.changed_message.append("DNS addresses in request and in certificate are different")
             return False
         return True
 
