@@ -533,7 +533,7 @@ class VCertificate:
     def _check_file_permissions(self, path, update=False):
         return True  # todo: write
 
-    def check(self,validate):
+    def check(self, validate):
         """Return true if running will change anything"""
         result = {
             'cert_file_exists': True,
