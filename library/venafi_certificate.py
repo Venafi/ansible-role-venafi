@@ -71,7 +71,7 @@ options:
             taking action if the state is different from what is stated.
 
     renew:
-        default: False
+        default: True
         type: bool
         description:
             - Try to renew certificate if is existing but not valid.
@@ -442,7 +442,7 @@ class VCertificate:
         if self.module.set_fs_attributes_if_different(file_args, False):
             self.changed = True
 
-    def _check_certificate_validity(self, cert):
+    def _check_certificate_validity(self, cert, validate):
         cn = cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
         if cn != self.common_name:
             self.changed_message.append(
@@ -457,7 +457,11 @@ class VCertificate:
                 'is less than before_expired_hours value %s'
                 % (cert.not_valid_after, self.before_expired_hours)
             )
-            return False
+            # Do not return false if we're just validating existing certificate
+            if validate:
+                return True
+            else:
+                return False
         if cert.not_valid_before - datetime.timedelta(
                 hours=24) > datetime.datetime.now():
             self.changed_message.append(
@@ -529,13 +533,15 @@ class VCertificate:
     def _check_file_permissions(self, path, update=False):
         return True  # todo: write
 
-    def check(self):
+    def check(self,validate):
         """Return true if running will change anything"""
         result = {
+            'cert_file_exists': True,
             'changed': False,
         }
         if not os.path.exists(self.certificate_filename):
             result = {
+                'cert_file_exists': False,
                 'changed': True,
                 'changed_msg':
                 self.changed_message.append(STRING_CERT_FILE_NOT_EXISTS),
@@ -558,7 +564,7 @@ class VCertificate:
                 result['changed'] = True
                 self.changed_message.append(STRING_PKEY_NOT_MATCHED)
 
-            if not self._check_certificate_validity(cert):
+            if not self._check_certificate_validity(cert, validate):
                 result['changed'] = True
                 self.changed_message.append(
                     STRING_FAILED_TO_CHECK_CERT_VALIDITY)
@@ -576,7 +582,7 @@ class VCertificate:
 
     def validate(self):
         """Ensure the resource is in its desired state."""
-        result = self.check()
+        result = self.check(validate=True)
         if result['changed']:
             self.module.fail_json(
                 msg=result['changed_msg']
@@ -639,7 +645,8 @@ def main():
             csr_path=dict(type='path', require=False),
 
             # Role config
-            before_expired_hours=dict(type='int', required=False, default=72)
+            before_expired_hours=dict(type='int', required=False, default=72),
+            renew=dict(type='bool', required=False, default=True)
         ),
         supports_check_mode=True,
         add_file_common_args=True,
@@ -649,19 +656,27 @@ def main():
     if not HAS_CRYPTOGRAPHY:
         module.fail_json(msg='"cryptography" python library is required')
     vcert = VCertificate(module)
-    change_dump = vcert.check()
+    change_dump = vcert.check(validate=False)
     if module.check_mode:
         module.exit_json(**change_dump)
 
-    # TODO: make a following choice (make it after completing role @arykalin):
-    """
-    1. If certificate is present and renew is true validate it
-    2. If certificate not present renew it
-    3. If it present and renew is false just keep it.
-    """
     if not vcert.check_dirs_existed():
         module.fail_json(msg="Dirs not existed")
-    if change_dump['changed'] or module.params['force']:
+    if change_dump['changed']:
+        # TODO: Cover it by tests
+        """
+        make a following choice:
+        1. If certificate is present and renew is true validate it
+        2. If certificate not present renew it
+        3. If it present and renew is false just keep it.
+        """
+        if change_dump['cert_file_exists']:
+            if module.params['renew']:
+                vcert.enroll()
+            else:
+                module.exit_json(**change_dump)
+        vcert.enroll()
+    elif module.params['force']:
         vcert.enroll()
     vcert.validate()
     result = vcert.dump()
