@@ -21,7 +21,9 @@
   vars:
     credentials_file: "../credentials.yml"
     # Use Ansible host FQDN for certificate common name
-    certificate_common_name: "{{ ansible_fqdn }}"
+    certificate_common_name: "{{ ansible_fqdn }}-{{ cn }}.venafi.example.com"
+    # Use ansible default IP for DNS
+    certificate_alt_name: "IP:{{ansible_default_ipv4.address}},DNS:{{ ansible_fqdn }}-{{ cn }}-alt.venafi.example.com"
 
     # Directory where to place certificates
     certificate_cert_dir: "/tmp/ansible/etc/ssl/{{ certificate_common_name }}"
@@ -40,6 +42,12 @@
     certificate_remote_privatekey_path: "/etc/ssl/{{ certificate_common_name }}.key"
     # Set to false, if you don't want to copy private key to remote location
     certificate_copy_private_key_to_remote: true
+
+    # Modify default before expire hours variable
+    certificate_before_expired_hours: 100
+
+    # Set to true if you want forcly renew certificate
+    certificate_force: false
 
   tasks:
     - name: "Include vars of {{ credentials_file }} into the venafi variable."

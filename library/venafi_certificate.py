@@ -142,6 +142,19 @@ options:
         description:
             - The passphrase for the privatekey.
 
+    privatekey_reuse:
+        required: false
+        type: bool
+        description:
+            - If set to false new key won't be generated
+
+    before_expired_hours:
+        required: false
+        type: int
+        default: 72
+        description:
+            - | If certificate will expire in less hours than this value
+            module will try to renew it.
 extends_documentation_fragment:
     - files
 
@@ -283,6 +296,7 @@ class VCertificate:
         self.privatekey_curve = module.params['privatekey_curve']
         self.privatekey_size = module.params['privatekey_size']
         self.privatekey_passphrase = module.params['privatekey_passphrase']
+        self.privatekey_reuse = module.params['privatekey_reuse']
         self.chain_filename = module.params['chain_path']
         self.csr_path = module.params['csr_path']
         self.args = ""
@@ -364,7 +378,7 @@ class VCertificate:
         request.update_from_zone_config(zone_config)
 
         use_existed_key = False
-        if self._check_private_key_correct():  # May be None
+        if self._check_private_key_correct() and not self.privatekey_reuse:
             private_key = to_text(open(self.privatekey_filename, "rb").read())
             request.private_key = private_key
             use_existed_key = True
@@ -439,9 +453,9 @@ class VCertificate:
         if cert.not_valid_after - datetime.timedelta(
                 hours=self.before_expired_hours) < datetime.datetime.now():
             self.changed_message.append(
-                'Certificate expiration date %s is less than %s'
-                % (cert.not_valid_after - datetime.timedelta(
-                    hours=self.before_expired_hours), datetime.datetime.now())
+                'Hours before certificate expiration date %s '
+                'is less than before_expired_hours value %s'
+                % (cert.not_valid_after, self.before_expired_hours)
             )
             return False
         if cert.not_valid_before - datetime.timedelta(
@@ -464,8 +478,15 @@ class VCertificate:
             elif isinstance(e, x509.general_name.IPAddress):
                 ips.append(e.value.exploded)
         if self.ip_addresses and sorted(self.ip_addresses) != sorted(ips):
+            self.changed_message.append("IP addresses in request: %s and in "
+                                        "certificate: %s are different"
+                                        % (sorted(self.ip_addresses), ips))
+            self.changed_message.append("CN is %s" % cn)
             return False
-        if self.san_dns and sorted(self.san_dns) != sorted(dns):
+        expected_dns = self.san_dns.append(cn)
+        if expected_dns and sorted(expected_dns) != sorted(dns):
+            self.changed_message.append("DNS addresses in request and in "
+                                        "certificate are different")
             return False
         return True
 
@@ -609,6 +630,7 @@ def main():
             privatekey_size=dict(type='int', required=False),
             privatekey_curve=dict(type='str', required=False),
             privatekey_passphrase=dict(type='str', no_log=True),
+            privatekey_reuse=dict(type='bool', required=False, default=True),
             alt_name=dict(type='list', aliases=['subjectAltName'],
                           elements='str'),
             common_name=dict(aliases=['CN', 'commonName', 'common_name'],

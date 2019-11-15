@@ -11,6 +11,7 @@
   hosts: all
   vars:
     certificate_common_name: "{{ ansible_fqdn }}-{{ cn }}.venafi.example.com"
+    certificate_alt_name: "IP:192.168.0.15,DNS:{{ ansible_fqdn }}-{{ cn }}-alt.venafi.example.com"
     certificate_cert_dir: "/tmp/ansible/etc/ssl/{{ certificate_common_name }}"
     certificate_cert_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.pem"
     certificate_chain_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.chain.pem"
