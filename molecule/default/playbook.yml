@@ -15,6 +15,7 @@
     certificate_cert_dir: "/tmp/ansible/etc/ssl/{{ certificate_common_name }}"
     certificate_cert_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.pem"
     certificate_chain_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.chain.pem"
+    certificate_privatekey_size: "4096"
     certificate_privatekey_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.key"
     certificate_csr_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.csr"
 
