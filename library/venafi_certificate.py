@@ -270,7 +270,8 @@ chain_filename:
 '''
 # Some strings variables
 STRING_FAILED_TO_CHECK_CERT_VALIDITY = "Certificate is not yet valid, " \
-    "has expired, or has CN or SANs that differ from the request"
+                                       "has expired, or has CN or SANs " \
+                                       "that differ from the request"
 STRING_PKEY_NOT_MATCHED = "Private key does not match certificate public key"
 STRING_BAD_PKEY = "Private key file does not contain a valid private key"
 STRING_CERT_FILE_NOT_EXISTS = "Certificate file does not exist"
@@ -450,17 +451,24 @@ class VCertificate:
                 % (cn, self.common_name)
             )
             return False
-        if cert.not_valid_after - datetime.timedelta(
-                hours=self.before_expired_hours) < datetime.datetime.now():
+        # Check if certificate not already expired
+        if cert.not_valid_after < datetime.datetime.now():
             self.changed_message.append(
-                'Hours before certificate expiration date %s '
-                'is less than before_expired_hours value %s'
+                'Certificate expiration date %s '
+                'is less than current time %s (certificate expired)'
                 % (cert.not_valid_after, self.before_expired_hours)
             )
-            # Do not return false if we're just validating existing certificate
-            if validate:
-                return True
-            else:
+            return False
+        # Check if certificate expiring time is greater than
+        # before_expired_hours (only for creating new certificate)
+        if not validate:
+            if cert.not_valid_after - datetime.timedelta(
+                    hours=self.before_expired_hours) < datetime.datetime.now():
+                self.changed_message.append(
+                    'Hours before certificate expiration date %s '
+                    'is less than before_expired_hours value %s'
+                    % (cert.not_valid_after, self.before_expired_hours)
+                )
                 return False
         if cert.not_valid_before - datetime.timedelta(
                 hours=24) > datetime.datetime.now():
@@ -468,8 +476,8 @@ class VCertificate:
                 "Certificate expiration date %s "
                 "is set to future from server time %s."
                 % (cert.not_valid_before -
-                    datetime.timedelta(hours=24),
-                    (datetime.datetime.now()))
+                   datetime.timedelta(hours=24),
+                   (datetime.datetime.now()))
             )
             return False
         ips = []
@@ -482,7 +490,7 @@ class VCertificate:
             elif isinstance(e, x509.general_name.IPAddress):
                 ips.append(e.value.exploded)
         if self.ip_addresses and sorted(self.ip_addresses) != sorted(ips):
-            self.changed_message.append("IP addresses in request: %s and in "
+            self.changed_message.append("IP address in request: %s and in"
                                         "certificate: %s are different"
                                         % (sorted(self.ip_addresses), ips))
             self.changed_message.append("CN is %s" % cn)
@@ -533,7 +541,7 @@ class VCertificate:
     def _check_file_permissions(self, path, update=False):
         return True  # todo: write
 
-    def check(self,validate):
+    def check(self, validate):
         """Return true if running will change anything"""
         result = {
             'cert_file_exists': True,
@@ -544,7 +552,7 @@ class VCertificate:
                 'cert_file_exists': False,
                 'changed': True,
                 'changed_msg':
-                self.changed_message.append(STRING_CERT_FILE_NOT_EXISTS),
+                    self.changed_message.append(STRING_CERT_FILE_NOT_EXISTS),
             }
         else:
             try:
