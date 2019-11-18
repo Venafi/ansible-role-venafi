@@ -492,7 +492,7 @@ class VCertificate:
                 elif isinstance(e, x509.general_name.IPAddress):
                     ips.append(e.value.exploded)
             if self.ip_addresses and sorted(self.ip_addresses) != sorted(ips):
-                self.changed_message.append("IP addresses in request: %s and in "
+                self.changed_message.append("IP address in request: %s and in"
                                             "certificate: %s are different"
                                             % (sorted(self.ip_addresses), ips))
                 self.changed_message.append("CN is %s" % cn)
