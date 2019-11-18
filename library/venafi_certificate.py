@@ -480,26 +480,28 @@ class VCertificate:
                    (datetime.datetime.now()))
             )
             return False
-        ips = []
-        dns = []
-        alternative_names = cert.extensions.get_extension_for_oid(
-            ExtensionOID.SUBJECT_ALTERNATIVE_NAME).value
-        for e in alternative_names:
-            if isinstance(e, x509.general_name.DNSName):
-                dns.append(e.value)
-            elif isinstance(e, x509.general_name.IPAddress):
-                ips.append(e.value.exploded)
-        if self.ip_addresses and sorted(self.ip_addresses) != sorted(ips):
-            self.changed_message.append("IP addresses in request: %s and in "
-                                        "certificate: %s are different"
-                                        % (sorted(self.ip_addresses), ips))
-            self.changed_message.append("CN is %s" % cn)
-            return False
-        expected_dns = self.san_dns.append(cn)
-        if expected_dns and sorted(expected_dns) != sorted(dns):
-            self.changed_message.append("DNS addresses in request and in "
-                                        "certificate are different")
-            return False
+        # Python vcert test mode don't support alt names
+        if not self.module.params['test_mode']:
+            ips = []
+            dns = []
+            alternative_names = cert.extensions.get_extension_for_oid(
+                ExtensionOID.SUBJECT_ALTERNATIVE_NAME).value
+            for e in alternative_names:
+                if isinstance(e, x509.general_name.DNSName):
+                    dns.append(e.value)
+                elif isinstance(e, x509.general_name.IPAddress):
+                    ips.append(e.value.exploded)
+            if self.ip_addresses and sorted(self.ip_addresses) != sorted(ips):
+                self.changed_message.append("IP addresses in request: %s and in "
+                                            "certificate: %s are different"
+                                            % (sorted(self.ip_addresses), ips))
+                self.changed_message.append("CN is %s" % cn)
+                return False
+            expected_dns = self.san_dns.append(cn)
+            if expected_dns and sorted(expected_dns) != sorted(dns):
+                self.changed_message.append("DNS addresses in request and in "
+                                            "certificate are different")
+                return False
         return True
 
     def _check_public_key_matched_to_private_key(self, cert):
