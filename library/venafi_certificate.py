@@ -270,7 +270,8 @@ chain_filename:
 '''
 # Some strings variables
 STRING_FAILED_TO_CHECK_CERT_VALIDITY = "Certificate is not yet valid, " \
-                                       "has expired, or has CN or SANs that differ from the request"
+                                       "has expired, or has CN or SANs " \
+                                       "that differ from the request"
 STRING_PKEY_NOT_MATCHED = "Private key does not match certificate public key"
 STRING_BAD_PKEY = "Private key file does not contain a valid private key"
 STRING_CERT_FILE_NOT_EXISTS = "Certificate file does not exist"
@@ -387,8 +388,8 @@ class VCertificate:
                 get(self.privatekey_type)
             if not key_type:
                 self.module.fail_json(msg=(
-                        "Failed to determine key type: %s."
-                        "Must be RSA or ECDSA" % self.privatekey_type))
+                    "Failed to determine key type: %s."
+                    "Must be RSA or ECDSA" % self.privatekey_type))
             request.key_type = key_type
             request.key_curve = self.privatekey_curve
             request.key_length = self.privatekey_size
@@ -458,7 +459,8 @@ class VCertificate:
                 % (cert.not_valid_after, self.before_expired_hours)
             )
             return False
-        # Check if certificate expiring time is greater than before_expired_hours (only for creating new certificate)
+        # Check if certificate expiring time is greater than
+        # before_expired_hours (only for creating new certificate)
         if not validate:
             if cert.not_valid_after - datetime.timedelta(
                     hours=self.before_expired_hours) < datetime.datetime.now():
