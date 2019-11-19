@@ -691,7 +691,8 @@ def main():
                 vcert.enroll()
             else:
                 module.exit_json(**change_dump)
-        vcert.enroll()
+        else:
+            vcert.enroll()
     elif module.params['force']:
         vcert.enroll()
     vcert.validate()
