@@ -294,7 +294,15 @@ class VCertificate:
         self.privatekey_filename = module.params['privatekey_path']
         self.certificate_filename = module.params['cert_path']
         self.privatekey_type = module.params['privatekey_type']
+        if module.params['privatekey_curve']:
+            if not module.params['privatekey_type']:
+                module.fail_json(
+                    msg="privatekey_type should be set if privatekey_curve configured")
         self.privatekey_curve = module.params['privatekey_curve']
+        if module.params['privatekey_size']:
+            if not module.params['privatekey_type']:
+                module.fail_json(
+                    msg="privatekey_type should be set if privatekey_size configured")
         self.privatekey_size = module.params['privatekey_size']
         self.privatekey_passphrase = module.params['privatekey_passphrase']
         self.privatekey_reuse = module.params['privatekey_reuse']
