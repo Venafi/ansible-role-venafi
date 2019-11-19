@@ -24,6 +24,7 @@
     privatekey_path: "{{ certificate_privatekey_path | default(omit) }}"
     privatekey_type: "{{ certificate_privatekey_type | default(omit) }}"
     privatekey_size: "{{ certificate_privatekey_size | default(omit) }}"
+    privatekey_curve: "{{ certificate_privatekey_curve | default(omit) }}"
     common_name: "{{ certificate_common_name }}"
     alt_name: "{{ certificate_alt_name | default([]) }}"
     before_expired_hours: "{{ certificate_before_expired_hours if certificate_before_expired_hours is defined else 72 }}"
