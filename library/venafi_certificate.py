@@ -26,7 +26,7 @@ from ansible.module_utils._text import to_bytes, to_text
 
 HAS_VCERT = HAS_CRYPTOGRAPHY = True
 try:
-    from vcert import CertificateRequest, Connection
+    from vcert import CertificateRequest, Connection, KeyType
 except ImportError:
     HAS_VCERT = False
 try:
@@ -370,13 +370,13 @@ class VCertificate:
                                key_password=self.privatekey_passphrase)
         key_type = {"RSA": "rsa", "ECDSA": "ec", "EC": "ec"}. \
             get(self.privatekey_type)
-        if key_type and key_type != r.key_type:
+        if key_type and key_type != r.key_type.key_type:
             return False
         if key_type == "rsa" and self.privatekey_size:
-            if self.privatekey_size != r.key_length:
+            if self.privatekey_size != r.key_type.option:
                 return False
         if key_type == "ec" and self.privatekey_curve:
-            if self.privatekey_curve != r.key_curve:
+            if self.privatekey_curve != r.key_type.option:
                 return False
         return True
 
@@ -400,9 +400,16 @@ class VCertificate:
                 self.module.fail_json(msg=(
                     "Failed to determine key type: %s."
                     "Must be RSA or ECDSA" % self.privatekey_type))
-            request.key_type = key_type
-            request.key_curve = self.privatekey_curve
-            request.key_length = self.privatekey_size
+            if key_type == "rsa":
+                request.key_type = KeyType(KeyType.RSA,
+                                           self.privatekey_size)
+            elif key_type == "ecdsa" or "ec":
+                request.key_type = KeyType(KeyType.ECDSA,
+                                           self.privatekey_curve)
+            else:
+                self.module.fail_json(msg=(
+                    "Failed to determine key type: %s."
+                    "Must be RSA or ECDSA" % self.privatekey_type))
 
         request.ip_addresses = self.ip_addresses
         request.san_dns = self.san_dns
