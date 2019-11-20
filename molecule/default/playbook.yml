@@ -41,7 +41,7 @@
     - name: "Install vcert for verification"
       pip:
         name:
-          - git+https://github.com/Venafi/vcert-python.git@fix-tpp-zone-configuration-parser
+          - vcert==0.7.0
 
     - name: "Verify Venafi certificate on remote host"
       venafi_certificate:
