@@ -6,7 +6,7 @@
     - name: "Set CN fact"
       set_fact:
         cn: "{{ 10000|random }}"
-
+#TODO: make test cases of ECDSA, minimum variables, maximum variables
 - name: Converge
   hosts: all
   vars:
@@ -18,6 +18,8 @@
     certificate_cert_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.pem"
     certificate_chain_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.chain.pem"
     certificate_privatekey_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.key"
+    certificate_privatekey_type: "RSA"
+    certificate_privatekey_size: 4096
     certificate_csr_path: "{{ certificate_cert_dir }}/{{ certificate_common_name }}.csr"
 
     # Where to execute venafi_certificate module. If set to false certificate will be
