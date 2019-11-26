@@ -518,7 +518,7 @@ class VCertificate:
         self.san_dns.append(cn)
         if self.san_dns and sorted(self.san_dns) != sorted(dns):
             if cn not in dns:
-                self.changed_message.append("CN should be included into SAN (%s)"
+                self.changed_message.append("CN should be in SAN (%s)"
                                             % sorted(dns))
             self.changed_message.append("DNS addresses in request: %s and in "
                                         "certificate: %s are different"
