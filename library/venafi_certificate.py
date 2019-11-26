@@ -413,9 +413,6 @@ class VCertificate:
 
         request.ip_addresses = self.ip_addresses
         request.san_dns = self.san_dns
-        # Include CN into SAN DNS
-        if request.common_name not in request.san_dns:
-            request.san_dns.append(request.common_name)
         request.email_addresses = self.email_addresses
 
         request.chain_option = self.module.params['chain_option']
