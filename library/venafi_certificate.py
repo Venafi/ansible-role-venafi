@@ -512,8 +512,8 @@ class VCertificate:
                                         % (sorted(self.ip_addresses), ips))
             self.changed_message.append("CN is %s" % cn)
             return False
-        expected_dns = self.san_dns.append(cn)
-        if expected_dns and sorted(expected_dns) != sorted(dns):
+        self.san_dns.append(cn)
+        if self.san_dns and sorted(self.san_dns) != sorted(dns):
             self.changed_message.append("DNS addresses in request and in "
                                         "certificate are different")
             return False
