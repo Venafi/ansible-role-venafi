@@ -512,7 +512,8 @@ class VCertificate:
                                         % (sorted(self.ip_addresses), ips))
             self.changed_message.append("CN is %s" % cn)
             return False
-        self.san_dns.append(cn)
+        if cn not in self.san_dns:
+            self.san_dns.append(cn)
         if self.san_dns and sorted(self.san_dns) != sorted(dns):
             if cn not in dns:
                 self.changed_message.append("CN should be in SAN (%s)"
