@@ -384,6 +384,7 @@ class VCertificate:
         request = CertificateRequest(
             common_name=self.common_name,
             key_password=self.privatekey_passphrase,
+            origin="Red Hat Ansible"
         )
         zone_config = self.conn.read_zone_conf(self.zone)
         request.update_from_zone_config(zone_config)
