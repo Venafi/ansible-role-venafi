@@ -41,6 +41,7 @@ https://galaxy.ansible.com/docs/using/installing.html
     trust_bundle: "/path-to/tpp-trust-bundle.pem"
     EOF
     ```
+    _Note: trust bundle file must be in PEM (text) format; errors will occur if it is a binary format._
 
 1. Encrypt it using ansible-vault: This is not mandatory but it is highly recommended to encrypt the credentials file
     `ansible-vault encrypt credentials.yml`
@@ -118,7 +119,7 @@ venafi:
   password: 'myTPPpassword'
   url: 'https://tpp.venafi.example/vedsdk'
   zone: "devops\\vcert"
-  # Path to the trust bundle for Venafi Platform server
+  # Path to PEM bundle (text format) that includes the trust anchor (root CA) certificate for the Venafi Platform API server
   trust_bundle: "/opt/venafi/bundle.pem"
   # Venafi Cloud connection parameters
   #token: 'enter-cloud-api-token-here'
@@ -197,6 +198,7 @@ url: 'https://tpp.venafi.instance.com/vedsdk/'
 zone: "Your\\policy\\folder"
 trust_bundle: "/path-to/tpp-trust-bundle.pem"
 ```
+_Note: trust bundle file must be in PEM (text) format; errors will occur if it is a binary format._
 
 For Venafi Cloud:  
 
