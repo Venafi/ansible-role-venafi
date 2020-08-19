@@ -461,6 +461,24 @@ class VCertificate:
         if self.module.set_fs_attributes_if_different(file_args, False):
             self.changed = True
 
+    def _check_dns_sans_correct(actual, required, optional):
+        if len(optional) == 0 and len(actual) != len(required):
+            return False
+        for i in required:
+            found = False
+            for j in actual:
+                found = found or (i == j)
+            if not found:
+                return False
+            combined = required + optional
+            for i in actual:
+                found = False
+                for j in combined:
+                    found = found or (i == j)
+            if not found:
+                return False
+        return True
+
     def _check_certificate_validity(self, cert, validate):
         cn = cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
         if cn != self.common_name:
@@ -518,24 +536,6 @@ class VCertificate:
                                         "certificate: %s are different"
                                         % (sorted(self.san_dns), sorted(dns)))
             return False
-        return True
-
-    def _check_dns_sans_correct(actual, required, optional):
-        if len(optional) == 0 and len(actual) != len(required):
-            return False
-        for i in required:
-            found = False
-            for j in actual:
-                found = found or (i == j)
-            if not found:
-                return False
-            combined = required + optional
-            for i in actual:
-                found = False
-                for j in combined:
-                    found = found or (i == j)
-            if not found:
-                return False
         return True
 
     def _check_public_key_matched_to_private_key(self, cert):
