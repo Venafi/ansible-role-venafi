@@ -461,7 +461,7 @@ class VCertificate:
         if self.module.set_fs_attributes_if_different(file_args, False):
             self.changed = True
 
-    def _check_dns_sans_correct(actual, required, optional):
+    def _check_dns_sans_correct(self, actual, required, optional):
         if len(optional) == 0 and len(actual) != len(required):
             return False
         for i in required:
