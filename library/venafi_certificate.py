@@ -520,23 +520,23 @@ class VCertificate:
             return False
         return True
 
-	def _check_dns_sans_correct(actual, required, optional):
-		if len(optional) == 0 and len(actual) != len(required):
-			return False
-		for i in required:
-			found = False
-			for j in actual:
-				found = found or (i == j)
-			if not found:
-				return False
-		combined = required + optional
-		for i in actual:
-			found = False
-			for j in combined:
-				found = found or (i == j)
-			if not found:
-				return False
-		return True
+    def _check_dns_sans_correct(actual, required, optional):
+        if len(optional) == 0 and len(actual) != len(required):
+            return False
+        for i in required:
+            found = False
+            for j in actual:
+                found = found or (i == j)
+            if not found:
+                return False
+            combined = required + optional
+            for i in actual:
+                found = False
+                for j in combined:
+                    found = found or (i == j)
+            if not found:
+                return False
+        return True
 
     def _check_public_key_matched_to_private_key(self, cert):
         if not self.privatekey_filename:
