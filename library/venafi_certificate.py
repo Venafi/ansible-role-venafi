@@ -513,17 +513,30 @@ class VCertificate:
                                         % (sorted(self.ip_addresses), ips))
             self.changed_message.append("CN is %s" % cn)
             return False
-        if cn not in self.san_dns:
-            self.san_dns.append(cn)
-        if self.san_dns and sorted(self.san_dns) != sorted(dns):
-            if cn not in dns:
-                self.changed_message.append("CN should be in SAN (%s)"
-                                            % sorted(dns))
+        if not _check_dns_sans_correct(self.san_dns, dns, [cn]):
             self.changed_message.append("DNS addresses in request: %s and in "
                                         "certificate: %s are different"
                                         % (sorted(self.san_dns), sorted(dns)))
             return False
         return True
+
+	def _check_dns_sans_correct(actual, required, optional):
+		if len(optional) == 0 and len(actual) != len(required):
+			return False
+		for i in required:
+			found = False
+			for j in actual:
+				found = found or (i == j)
+			if not found:
+				return False
+		combined = required + optional
+		for i in actual:
+			found = False
+			for j in combined:
+				found = found or (i == j)
+			if not found:
+				return False
+		return True
 
     def _check_public_key_matched_to_private_key(self, cert):
         if not self.privatekey_filename:
