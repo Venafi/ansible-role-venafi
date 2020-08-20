@@ -467,14 +467,18 @@ class VCertificate:
         for i in required:
             found = False
             for j in actual:
-                found = found or (i == j)
+                if i == j:
+                    found = True
+                    break
             if not found:
                 return False
-            combined = required + optional
-            for i in actual:
-                found = False
-                for j in combined:
-                    found = found or (i == j)
+        combined = required + optional
+        for i in actual:
+            found = False
+            for j in combined:
+                if i == j:
+                    found = True
+                    break
             if not found:
                 return False
         return True
