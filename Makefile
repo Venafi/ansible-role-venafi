@@ -5,9 +5,9 @@ yamllint:
 		yamllint `git ls-files | grep .yml`
 
 lint: yamllint pep8
-	ansible-lint -x 204 -x 504 ./tasks/*
-	ansible-lint -x 204 -x 504 ./meta/*
-	ansible-lint -x 204 -x 504 ./defaults/*
+	ansible-lint -x 106,204,504 ./tasks/*
+	ansible-lint ./meta/*
+	ansible-lint ./defaults/*
 
 ansible-molecule:
 	docker build ./tests --tag local-ansible-test
