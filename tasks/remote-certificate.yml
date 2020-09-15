@@ -8,6 +8,7 @@
     test_mode: "{{ venafi.test_mode if venafi.test_mode is defined else 'false' }}"
     user: "{{ venafi.user | default(omit) }}"
     password: "{{ venafi.password | default(omit) }}"
+    access_token: "{{ venafi.access_token | default(omit) }}"
     trust_bundle: "{{ venafi.trust_bundle | default(omit) }}"
     cert_path: "{{ certificate_cert_path }}"
     chain_path: "{{ certificate_chain_path | default(omit) }}"
