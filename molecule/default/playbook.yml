@@ -38,10 +38,14 @@
 
   #  This tasks needed only for certificate verification
   tasks:
+    - name: "Install future library"
+      pip:
+        name:
+          - future
     - name: "Install vcert for verification"
       pip:
         name:
-          - vcert==0.7.0
+          - vcert==0.9.0
 
     - name: "Verify Venafi certificate on remote host"
       venafi_certificate:

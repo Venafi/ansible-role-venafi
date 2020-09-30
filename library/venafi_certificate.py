@@ -26,7 +26,7 @@ from ansible.module_utils._text import to_bytes, to_text
 
 HAS_VCERT = HAS_CRYPTOGRAPHY = True
 try:
-    from vcert import CertificateRequest, Connection, KeyType, token_connection
+    from vcert import CertificateRequest, Connection, KeyType, venafi_connection
 except ImportError:
     HAS_VCERT = False
 try:
@@ -341,8 +341,8 @@ class VCertificate:
         trust_bundle = module.params['trust_bundle']
         if trust_bundle:
             if self.access_token != "":
-                self.conn = token_connection(url=self.url, user=None, password=None, access_token=self.access_token,
-                                             refresh_token=None, http_request_kwargs={"verify": trust_bundle})
+                self.conn = venafi_connection(url=self.url, user=None, password=None, access_token=self.access_token,
+                                             refresh_token=None, http_request_kwargs={"verify": trust_bundle}, api_key = None, fake = False)
             else:
                 self.conn = Connection(
                 url=self.url, token=self.token, password=self.password,
@@ -350,8 +350,8 @@ class VCertificate:
                 http_request_kwargs={"verify": trust_bundle})
         else:
             if self.access_token != "":
-                self.conn = token_connection(url=self.url, access_token=self.access_token,
-                user=None, password=None)
+                self.conn = venafi_connection(url=self.url, access_token=self.access_token,
+                user=None, password=None, api_key = None, fake = False)
             else:
                 self.conn = Connection(
                 url=self.url, token=self.token, fake=self.test_mode,
