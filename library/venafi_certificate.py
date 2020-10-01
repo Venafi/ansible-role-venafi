@@ -347,7 +347,7 @@ class VCertificate:
                     access_token=self.access_token,
                     refresh_token=None,
                     http_request_kwargs={"verify": trust_bundle},
-                    api_key=None, fake=False)
+                    api_key=None, fake=self.test_mode)
             else:
                 self.conn = Connection(
                  url=self.url, token=self.token, password=self.password,
@@ -357,7 +357,7 @@ class VCertificate:
             if self.access_token and self.access_token != "":
                 self.conn = venafi_connection(
                    url=self.url, access_token=self.access_token,
-                   user=None, password=None, api_key=None, fake=False)
+                   user=None, password=None, api_key=None, fake=self.test_mode)
             else:
                 self.conn = Connection(
                   url=self.url, token=self.token, fake=self.test_mode,
