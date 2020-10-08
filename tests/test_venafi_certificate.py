@@ -20,6 +20,7 @@ class FakeModule(object):
     def __init__(self, asset):
         self.fail_code = None
         self.exit_code = None
+        self.warn =  str
         self.params = defaultdict(lambda: None)
         self.params["cert_path"] = CERT_PATH
         self.params["chain_path"] = CHAIN_PATH

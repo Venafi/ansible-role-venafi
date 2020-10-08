@@ -26,7 +26,8 @@ from ansible.module_utils._text import to_bytes, to_text
 
 HAS_VCERT = HAS_CRYPTOGRAPHY = True
 try:
-    from vcert import CertificateRequest, Connection, KeyType
+    from vcert import CertificateRequest, Connection, KeyType,\
+        venafi_connection
 except ImportError:
     HAS_VCERT = False
 try:
@@ -288,12 +289,19 @@ class VCertificate:
         self.test_mode = module.params['test_mode']
         self.url = module.params['url']
         self.password = module.params['password']
+        self.access_token = module.params['access_token']
         self.token = module.params['token']
         self.user = module.params['user']
         self.zone = module.params['zone']
         self.privatekey_filename = module.params['privatekey_path']
         self.certificate_filename = module.params['cert_path']
         self.privatekey_type = module.params['privatekey_type']
+
+        if self.user != "":
+            module.warn("User is deprecated use access token instead")
+        if self.password != "":
+            module.warn("Password is deprecated use access token instead")
+
         if module.params['privatekey_curve']:
             if not module.params['privatekey_type']:
                 module.fail_json(
@@ -333,14 +341,27 @@ class VCertificate:
                         msg="Failed to determine extension type: %s" % n)
         trust_bundle = module.params['trust_bundle']
         if trust_bundle:
-            self.conn = Connection(
-                url=self.url, token=self.token, password=self.password,
-                user=self.user, fake=self.test_mode,
-                http_request_kwargs={"verify": trust_bundle})
+            if self.access_token and self.access_token != "":
+                self.conn = venafi_connection(
+                    url=self.url, user=None, password=None,
+                    access_token=self.access_token,
+                    refresh_token=None,
+                    http_request_kwargs={"verify": trust_bundle},
+                    api_key=None, fake=self.test_mode)
+            else:
+                self.conn = Connection(
+                 url=self.url, token=self.token, password=self.password,
+                 user=self.user, fake=self.test_mode,
+                 http_request_kwargs={"verify": trust_bundle})
         else:
-            self.conn = Connection(
-                url=self.url, token=self.token, fake=self.test_mode,
-                user=self.user, password=self.password)
+            if self.access_token and self.access_token != "":
+                self.conn = venafi_connection(
+                   url=self.url, access_token=self.access_token,
+                   user=None, password=None, api_key=None, fake=self.test_mode)
+            else:
+                self.conn = Connection(
+                  url=self.url, token=self.token, fake=self.test_mode,
+                  user=self.user, password=self.password)
         self.before_expired_hours = module.params['before_expired_hours']
 
     def check_dirs_existed(self):
@@ -670,6 +691,8 @@ def main():
             url=dict(type='str', required=False, default=''),
             password=dict(type='str', required=False, default='', no_log=True),
             token=dict(type='str', required=False, default='', no_log=True),
+            access_token=dict(type='str', required=False,
+                              default='', no_log=True),
             user=dict(type='str', required=False, default='', no_log=True),
             zone=dict(type='str', required=False, default=''),
             log_verbose=dict(type='str', required=False, default=''),
