@@ -116,8 +116,9 @@ For more information about Ansible Galaxy, go to https://galaxy.ansible.com/docs
    | `certificate_remote_chain_path`          | Directory on remote host where certificate chain files will be stored<br/>Default: `"{{ certificate_cert_dir }}/{{ certificate_common_name }}.chain.pem"` |
    | `certificate_remote_privatekey_path`     | Directory on remote host where private key files will be stored<br/>Default: `"{{ certificate_cert_dir }}/{{ certificate_common_name }}.key"` |
    | `certificate_copy_private_key_to_remote` | Specifies whether to copy the private key file to the remote host<br/>Default: `true` |
-   | `certificate_renew`                      | Specifies whether to renew a certificate if it already exists but is not valid<br/>Default: `true` |
-   | `certificate_before_expired_hours`       | Number of hours the certificate must be from expiration before it will be renewed<br/>Default: `72` |
+   | `certificate_before_expired_hours`       | Number of hours prior to the expiration of the certificate before it can be renewed<br/>Default: `72` |
+   | `certificate_renew`                      | Specifies whether to renew a certificate if it is within the `certificate_before_expired_hours` window when the playbook runs<br/>Default: `true` |
+   | `certificate_force`                      | Specifies whether to request a new certificate every time the playbook runs<br/>Default: `false` |
 
    Defaults are defined in the [defaults/main.yml](defaults/main.yml) file.
 
