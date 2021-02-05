@@ -45,7 +45,7 @@
     - name: "Install vcert for verification"
       pip:
         name:
-          - vcert==0.9.0
+          - vcert==0.10.0
 
     - name: "Verify Venafi certificate on remote host"
       venafi_certificate:
