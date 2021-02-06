@@ -18,7 +18,7 @@ security policy and provides visibility into certificate issuance enterprise wid
 ## Requirements
 
 Review the [Venafi](https://github.com/Venafi/vcert-python#prerequisites-for-using-with-trust-protection-platform)
-prerequisites, then install Ansible and [VCert-Python](https://github.com/Venafi/vcert-python) (v0.9.0 or higher) using `pip`:
+prerequisites, then install Ansible and [VCert-Python](https://github.com/Venafi/vcert-python) (v0.10.0 or higher) using `pip`:
 ```sh
 pip install ansible vcert --upgrade
 ```
@@ -51,7 +51,7 @@ For more information about Ansible Galaxy, go to https://galaxy.ansible.com/docs
    ```sh
    cat <<EOF >>credentials.yml
    token: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
-   zone: 'zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz'
+   zone: 'Business App\\Enterprise CIT'
    EOF
    ```
    
@@ -66,7 +66,7 @@ For more information about Ansible Galaxy, go to https://galaxy.ansible.com/docs
    | `trust_bundle` | Text file containing trust anchor certificates in PEM (text) format, generally required for Trust Protection Platform |
    | `url`          | Venafi service URL (e.g. "https://tpp.venafi.example"), generally only applicable to Trust Protection Platform |
    | `user`         | **[DEPRECATED]** Trust Protection Platform WebSDK username, use `access_token` if possible |
-   | `zone`         | Trust Protection Platform policy folder or Venafi Cloud zone ID (shown in Venafi Cloud UI) |
+   | `zone`         | Trust Protection Platform policy folder or Venafi Cloud Application Name and Issuing Template API Alias (e.g. "Business App\Enterprise CIT") |
 
 1. Use `ansible-vault` to encrypt the `credentials.yml` file using a password.  This is optional but highly recommended.
    As long as you know the password you can always decrypt the file to make changes and then re-encrypt it.
