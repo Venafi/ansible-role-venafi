@@ -20,8 +20,8 @@ Use Ansible to automate the process of requesting and retrieving a certificate, 
 2. Copy the certificate files retrieved to the F5 BIG-IP.
 3. Create Client SSL Profile on F5 BIG-IP.
 4. Create Pool on F5 BIG-IP.
-  - Add Pool members on F5 BIG-IP.
-5. Create Virtual Server on F5 BIG-IP.
+5. Add Pool members on F5 BIG-IP.
+6. Create Virtual Server on F5 BIG-IP.
 
 ## Prerequisites
 
@@ -39,7 +39,7 @@ To perform the tasks described in this example, you'll need:
 
 In this example you are going to generate a certificate for the `demo-f5.venafi.example` domain using the Venafi ansible role to request it and retrieve it from either **Venafi Trust Protection Platform** or **Venafi Cloud** services. Then you are going to copy the certificate files (certificate, private key, chain Bundle) to the F5 BIG-IP. Finally you are going to configure F5 BIG-IP to distribute the traffic between 3 NGINX servers using the round-robin load balancing method. Here below you can find a diagram of what we are trying to accomplish.
 
-> *Note: The steps provided in this example suggest the use of the round-robin blancing method, bear in mind there are [other methods](https://www.f5.com/services/resources/glossary/load-balancer) that may be more suitable for your use case scenario.*
+> *Note: The steps provided in this example suggest the use of the round-robin balancing method, bear in mind there are [other methods](https://www.f5.com/services/resources/glossary/load-balancer) that may be more suitable for your use case scenario.*
 
 ![AnsibleVenafi](venafi_ansible_role.png)
 
@@ -50,15 +50,15 @@ In this example you are going to generate a certificate for the `demo-f5.venafi.
 The first thing needed is to create the `variables.yml` file, in this file are defined the variables used during the execution of the playbook such as:
 
 - The F5 BIG-IP management IP address.
-- The credentials used to manage the F5 BIG-IP
+- The credentials used to manage the F5 BIG-IP.
 - The CN needed to generate the certificate.
-- The partition in which all the information will be stored
+- The partition in which all the information will be stored.
 - The Virtual IP and port on which all the HTTPS traffic will be handled.
-- The pool members (the NGINX servers running the application)
+- The pool members (the NGINX servers running the application).
 - The name for the certificate files which will be copied to the F5 BIG-IP. 
-- To facilitate the connection with the device, the connection parameters can be also provided in this file
+- To facilitate the connection with the device, the connection parameters can be also provided in this file.
   - The pattern used for this is called a **provider**, the provider is a dictionary which includes sub-keys such as *password*, *server*, etc.
-  - In the following steps this dictionary will be passed as a parameter to the tasks so they can connect to the BIG-IP
+  - In the following steps this dictionary will be passed as a parameter to the tasks so they can connect to the BIG-IP.
 
 ```yaml
 f5_address: "192.168.20.50"
@@ -114,7 +114,7 @@ In the following block of instructions the Venafi Ansible role is being specifie
 - Create a RSA private key of a size of 2048 bits.
 - Generate a chain bundle file where the CA certificate will be place at the end of the file.
 - Create a `tmp` directory on the current working directory which will store the retrieved certificate files.
-  - 3 files will be retrieved and stored using the names on the variables file (*demonstration.{crt,key,-ca-bundle.crt}*)
+  - 3 files will be retrieved and stored using the names on the variables file (*demonstration.{crt,key,-ca-bundle.crt}*).
 - Simulate the copy of the retrieved files to the remote host by generating a duplicate of them adding the `.remote` extension (the certificate files retrieved are going to be copied to F5 BIG-IP using the F5 Ansible modules that's the reason why the options `certificate_copy_private_key_to_remote` and `certificate_remote_execution` are set to `false`).
 
 
@@ -269,4 +269,4 @@ ansible-playbook f5_create_playbook.yaml --ask-vault-pass
 
 ## Reversing the changes performed
 
-In this example we are including a playbook that allows to revert the changes performed, you can take a look at it [here](f5_delete_playbook.yaml)
+In this example we are including a playbook that allows to revert the changes performed, you can take a look at it [here](f5_delete_playbook.yaml).
