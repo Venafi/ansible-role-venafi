@@ -1,6 +1,6 @@
 # Load balancing a set of servers using F5
 
-This example describes the configuration steps required in order to generate a certificate using the venafi ansible role and its installation on a F5 BIG-IP instance in order to load balance a set of http servers and provide [SSL termination](https://www.f5.com/services/resources/glossary/ssl-termination).
+This example describes the configuration steps required in order to generate a certificate using the Venafi Ansible Role and its installation on a F5 BIG-IP instance in order to load balance a set of http servers and provide [SSL termination](https://www.f5.com/services/resources/glossary/ssl-termination).
 
 ## Personas
 
@@ -16,7 +16,7 @@ In this example the load balancer used is a F5 BIG-IP, which once configured sho
 
 Use Ansible to automate the process of requesting and retrieving a certificate, installing it and configuring F5 BIG-IP to use it to provide SSL termination and load balancing capabilities to a cluster composed of 3 HTTP servers.
 
-1. Retrieve a certificate using the Venafi ansible role.
+1. Retrieve a certificate using the Venafi Ansible Role.
 2. Copy the certificate files retrieved to the F5 BIG-IP.
 3. Create Client SSL Profile on F5 BIG-IP.
 4. Create Pool on F5 BIG-IP.
@@ -30,20 +30,20 @@ Use Ansible to automate the process of requesting and retrieving a certificate, 
 
 To perform the tasks described in this example, you'll need:
 
-- The Venafi ansible role installed on your machine, you can install it using ansible-galaxy [as described here](https://github.com/Venafi/ansible-role-venafi#using-with-ansible-galaxy)
+- The Venafi Ansible Role installed on your machine, you can install it using ansible-galaxy [as described here](https://github.com/Venafi/ansible-role-venafi#using-with-ansible-galaxy)
 - Access to either **Venafi Trust Protection Platform** or **Venafi Cloud** services (the `credentials.yml` [file](https://github.com/Venafi/ansible-role-venafi#using-with-ansible-galaxy) is used in this example).
 - Administration access to the f5 BIG-IP instance. 
 - A set of 3 NGINX servers running your application.
 
 ## Scenario Introduction
 
-In this example you are going to generate a certificate for the `demo-f5.venafi.example` domain using the Venafi ansible role to request it and retrieve it from either **Venafi Trust Protection Platform** or **Venafi Cloud** services. Then you are going to copy the certificate files (certificate, private key, chain Bundle) to the F5 BIG-IP. Finally you are going to configure F5 BIG-IP to distribute the traffic between 3 NGINX servers using the round-robin load balancing method. Here below you can find a diagram of what we are trying to accomplish.
+In this example you are going to generate a certificate for the `demo-f5.venafi.example` domain using the Venafi Ansible Role to request it and retrieve it from either **Venafi Trust Protection Platform** or **Venafi Cloud** services. Then you are going to copy the certificate files (certificate, private key, chain Bundle) to the F5 BIG-IP. Finally you are going to configure F5 BIG-IP to distribute the traffic between 3 NGINX servers using the round-robin load balancing method. Here below you can find a diagram of what we are trying to accomplish.
 
 > *Note: The steps provided in this example suggest the use of the round-robin balancing method, bear in mind there are [other methods](https://www.f5.com/services/resources/glossary/load-balancer) that may be more suitable for your use case scenario.*
 
 ![AnsibleVenafi](venafi_ansible_role.png)
 
-## Retrieving certificate using Venafi role
+## Retrieving certificate using Venafi Ansible Role
 
 ### Creating variables file
 
@@ -108,7 +108,7 @@ Start by creating a YAML file named `f5_create_playbook.yaml`, inside, define a 
 
 ### Requesting an retrieving the certificate using Venafi Role
 
-In the following block of instructions the Venafi Ansible role is being specified along with the variables it needs to request and retrieve the certificate from the Venafi services, by adding these instructions the ansible will:
+In the following block of instructions the Venafi Ansible Role is being specified along with the variables it needs to request and retrieve the certificate from the Venafi services, by adding these instructions the ansible will:
 
 - Request and retrieve a certificate which common and alternate names are `demo-f5.venafi.example`.
 - Create a RSA private key of a size of 2048 bits.
