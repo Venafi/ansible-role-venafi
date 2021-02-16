@@ -7,7 +7,7 @@
   file:
     path: "{{ certificate_cert_dir }}"
     state: directory
-    mode: 0644
+    mode: 0755
   delegate_to: localhost
 
 - name: "Enroll Venafi certificate on local host"
@@ -40,18 +40,18 @@
   copy:
     src: "{{ certificate_cert_path }}"
     dest: "{{ certificate_remote_cert_path if certificate_remote_cert_path  is defined else certificate_cert_path }}"
-    mode: 0400
+    mode: 0644
 
 - name: "Copy Venafi private key file to remote location {{ certificate_remote_privatekey_path if certificate_remote_privatekey_path else certificate_privatekey_path }}"
   copy:
     src: "{{ certificate_privatekey_path }}"
     dest: "{{ certificate_remote_privatekey_path if certificate_remote_privatekey_path else certificate_privatekey_path }}"
-    mode: 0400
+    mode: 0600
   when: certificate_copy_private_key_to_remote
 
 - name: "Copy Venafi certificate chain file to remote location {{ certificate_remote_chain_path if certificate_remote_chain_path else certificate_chain_path }}"
   copy:
     src: "{{ certificate_chain_path }}"
     dest: "{{ certificate_remote_chain_path if certificate_remote_chain_path else certificate_chain_path }}"
-    mode: 0400
+    mode: 0644
   when: certificate_chain_path is defined
