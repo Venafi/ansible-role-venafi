@@ -119,5 +119,5 @@
         privatekey_path: "{{ cert.dir }}/private/{{ cert.key_file }}"
         issuer:
           CN: ca
-        has_expired: no
+        has_expired: false
         provider: assertonly
