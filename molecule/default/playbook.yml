@@ -6,7 +6,7 @@
     - name: "Set CN fact"
       set_fact:
         cn: "{{ 10000|random }}"
-#TODO: make test cases of ECDSA, minimum variables, maximum variables
+# TODO: make test cases of ECDSA, minimum variables, maximum variables
 - name: Converge
   hosts: all
   vars:
@@ -62,7 +62,7 @@
         privatekey_path: "{{ certificate_remote_privatekey_path if certificate_remote_privatekey_path else certificate_privatekey_path }}"
         common_name: "{{ certificate_common_name }}"
         alt_name: "{{ certificate_alt_name }}"
-      check_mode: yes
+      check_mode: true
       register: cert_validation
 
     - debug:
@@ -84,7 +84,7 @@
         privatekey_path: "{{ certificate_remote_privatekey_path if certificate_remote_privatekey_path else certificate_privatekey_path }}"
         common_name: "{{ certificate_common_name }}-fail-check"
         alt_name: "{{ certificate_alt_name }}"
-      check_mode: yes
+      check_mode: true
       register: cert_validation_failed
 
     - debug:

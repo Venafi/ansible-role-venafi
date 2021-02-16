@@ -2,7 +2,7 @@ pep8:
 	pycodestyle --first ./library/venafi_certificate.py
 
 yamllint:
-		yamllint `git ls-files | grep .yml`
+	yamllint `git ls-files | grep .yml`
 
 lint: yamllint pep8
 	ansible-lint -x 106,204,504 ./tasks/*

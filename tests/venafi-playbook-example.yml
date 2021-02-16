@@ -117,7 +117,7 @@
         chain_path: "{{ certificate_remote_chain_path if certificate_remote_chain_path else certificate_chain_path }}"
         privatekey_path: "{{ certificate_remote_privatekey_path if certificate_remote_privatekey_path else certificate_privatekey_path }}"
         common_name: "{{ certificate_common_name }}"
-      check_mode: yes
+      check_mode: true
       register: cert_validation
 
     - debug:
@@ -137,7 +137,7 @@
         chain_path: "{{ certificate_remote_chain_path if certificate_remote_chain_path else certificate_chain_path }}"
         privatekey_path: "{{ certificate_remote_privatekey_path if certificate_remote_privatekey_path else certificate_privatekey_path }}"
         common_name: "{{ certificate_common_name }}-fail-check"
-      check_mode: yes
+      check_mode: true
       register: cert_validation_failed
 
     - debug:
