@@ -32,6 +32,7 @@ To perform the tasks described in this example, you'll need:
 
 - The Venafi Ansible Role installed on your machine, you can install it using ansible-galaxy [as described here](https://github.com/Venafi/ansible-role-venafi#using-with-ansible-galaxy)
 - Access to either **Venafi Trust Protection Platform** or **Venafi Cloud** services (the `credentials.yml` [file](https://github.com/Venafi/ansible-role-venafi#using-with-ansible-galaxy) is used in this example).
+  - If you are working with **Venafi Trust Protection Platform** obtain the `access_token` and `refresh_token` using the [VCert CLI](https://github.com/Venafi/vcert/blob/master/README-CLI-PLATFORM.md#obtaining-an-authorization-token).
 - Administration access to the f5 BIG-IP instance. 
 - A set of 3 NGINX servers running your application.
 
