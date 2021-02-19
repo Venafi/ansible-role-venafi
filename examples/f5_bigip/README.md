@@ -107,7 +107,7 @@ Start by creating a YAML file named `f5_create_playbook.yaml`, inside, define a 
 ```
 
 
-### Requesting an retrieving the certificate using Venafi Role
+### Requesting and retrieving the certificate using Venafi Role
 
 In the following block of instructions the Venafi Ansible Role is being specified along with the variables it needs to request and retrieve the certificate from the Venafi services, by adding these instructions the Ansible will:
 
