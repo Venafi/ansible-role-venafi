@@ -1,4 +1,4 @@
-# Load balancing a set of servers using F5
+# Configuring SSL termination with Venafi Ansible Role on a set of HTTP servers that are load balanced by F5-BIG-IP
 
 This example describes the configuration steps required in order to generate a certificate using the Venafi Ansible Role and its installation on a [F5 BIG-IP](https://www.f5.com/products/big-ip-services) instance in order to load balance a set of http servers and provide [SSL termination](https://www.f5.com/services/resources/glossary/ssl-termination).
 
