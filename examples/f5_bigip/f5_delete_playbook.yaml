@@ -1,5 +1,5 @@
 - name: Remove F5 Application
-  hosts: all
+  hosts: localhost
   connection: local
 
   vars_files:

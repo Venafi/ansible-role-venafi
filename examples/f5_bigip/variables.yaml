@@ -1,4 +1,4 @@
-f5_address: "192.168.20.50"
+f5_address: "yourf5bigip"
 f5_username: "youruser"
 f5_password: "yourpassword"
 

@@ -1,6 +1,6 @@
 # Load balancing a set of servers using F5
 
-This example describes the configuration steps required in order to generate a certificate using the Venafi Ansible Role and its installation on a F5 BIG-IP instance in order to load balance a set of http servers and provide [SSL termination](https://www.f5.com/services/resources/glossary/ssl-termination).
+This example describes the configuration steps required in order to generate a certificate using the Venafi Ansible Role and its installation on a [F5 BIG-IP](https://www.f5.com/products/big-ip-services) instance in order to load balance a set of http servers and provide [SSL termination](https://www.f5.com/services/resources/glossary/ssl-termination).
 
 ## Personas
 
@@ -8,13 +8,13 @@ The steps described in this document are typically performed by a **DevOps Engin
 
 ## Scenario
 
-A load balancer Application Delivery Controlled (ADC) )is used to increase capacity and reliability of applications, it improves the performance of applications by decreasing the load on the servers associated while managing and maintaining application and network sessions, however its configuration can become a long process, a configuration management tool can be used in order to automate this process.
+An Application Delivery Controller (ADC) is used to increase capacity and reliability of applications, it improves the performance of applications by decreasing the load on the servers associated while managing and maintaining application and network sessions, however its configuration can become a long process, a configuration management tool can be used in order to automate this process.
 
-In this example the load balancer used is a F5 BIG-IP, which once configured should load balance traffic in a cluster of 3 HTTP servers as well as providing SSL termination to it.
+In this example the ADC used is a F5 BIG-IP, which once configured should load balance traffic in a cluster of 3 HTTP servers as well as providing SSL termination to it.
 
 ## Solution
 
-Use Ansible to automate the process of requesting and retrieving a certificate, installing it and configuring F5 BIG-IP to use it to provide SSL termination and load balancing capabilities to a cluster composed of 3 HTTP servers.
+Use [RedHat Ansible](https://www.ansible.com/) to automate the process of requesting and retrieving a certificate, installing it and configuring F5 BIG-IP to use it to provide SSL termination and load balancing capabilities to a cluster composed of 3 HTTP servers.
 
 1. Retrieve a certificate using the Venafi Ansible Role.
 2. Copy the certificate files retrieved to the F5 BIG-IP.
@@ -30,7 +30,7 @@ Use Ansible to automate the process of requesting and retrieving a certificate, 
 
 To perform the tasks described in this example, you'll need:
 
-- The Venafi Ansible Role installed on your machine, you can install it using ansible-galaxy [as described here](https://github.com/Venafi/ansible-role-venafi#using-with-ansible-galaxy)
+- The Venafi Ansible Role installed on your machine, you can install it using `ansible-galaxy` [as described here](https://github.com/Venafi/ansible-role-venafi#using-with-ansible-galaxy)
 - Access to either **Venafi Trust Protection Platform** or **Venafi Cloud** services (the `credentials.yml` [file](https://github.com/Venafi/ansible-role-venafi#using-with-ansible-galaxy) is used in this example).
   - If you are working with **Venafi Trust Protection Platform** obtain the `access_token` and `refresh_token` using the [VCert CLI](https://github.com/Venafi/vcert/blob/master/README-CLI-PLATFORM.md#obtaining-an-authorization-token).
 - Administration access to the f5 BIG-IP instance. 
@@ -62,7 +62,7 @@ The first thing needed is to create the `variables.yml` file, in this file are d
   - In the following steps this dictionary will be passed as a parameter to the tasks so they can connect to the BIG-IP.
 
 ```yaml
-f5_address: "192.168.20.50"
+f5_address: "yourf5bigip"
 f5_username: "youruser"
 f5_password: "yourpassword"
 
@@ -109,7 +109,7 @@ Start by creating a YAML file named `f5_create_playbook.yaml`, inside, define a 
 
 ### Requesting an retrieving the certificate using Venafi Role
 
-In the following block of instructions the Venafi Ansible Role is being specified along with the variables it needs to request and retrieve the certificate from the Venafi services, by adding these instructions the ansible will:
+In the following block of instructions the Venafi Ansible Role is being specified along with the variables it needs to request and retrieve the certificate from the Venafi services, by adding these instructions the Ansible will:
 
 - Request and retrieve a certificate which common and alternate names are `demo-f5.venafi.example`.
 - Create a RSA private key of a size of 2048 bits.
@@ -158,7 +158,7 @@ By adding the instructions below to the playbook, we indicate the actions the  p
         provider: "{{ f5_provider }}"
         name: "{{ key_name }}"
         partition: "{{ f5_partition }}"
-        content: "{{ lookup('file', './tmp/' + key_name + '.remote') }}"
+        content: "{{ lookup('file', './tmp/' + key_name) }}"
       delegate_to: localhost
 
     - name: Create Certificate on F5 BIG-IP {{ f5_address }}
@@ -220,7 +220,7 @@ The next step is to add a pool, which is a collection of resources to which F5 w
 
 ### Adding Pool members on F5 BIG-IP
 
-Once the pool is created, ansible needs to create the pool member in the F5 BIG-IP instance, the members are the ones that will actually serve the requests (NGINX servers hosting the application), ansible will use the host and port variables defined in the variables file for each one of the pool members defined in the `f5_pool_members` dictionary. 
+Once the pool is created, Ansible needs to create the pool member in the F5 BIG-IP instance, the members are the ones that will actually serve the requests (NGINX servers hosting the application), Ansible will use the host and port variables defined in the variables file for each one of the pool members defined in the `f5_pool_members` dictionary. 
 
 ```yaml
 ---
@@ -239,7 +239,7 @@ Once the pool is created, ansible needs to create the pool member in the F5 BIG-
 
 ### Creating Virtual server on F5 BIG-IP
 
-Now that the pool and the nodes are member of the pool, ansible has to create a virtual IP address in order to send the external requests to the pool members. The following task creates the virtual server and assigns it the virtual IP defined in the variables files, as well as the port and Client SSL profile previously created.
+Now that the pool and the nodes are member of the pool, Ansible has to create a virtual IP address in order to send the external requests to the pool members. The following task creates the virtual server and assigns it the virtual IP defined in the variables files, as well as the port and Client SSL profile previously created.
 
 ```yaml
 ---
@@ -268,6 +268,14 @@ Once the [playbook completed](f5_create_playbook.yaml), it can be executed by ru
 ansible-playbook f5_create_playbook.yaml --ask-vault-pass
 ```
 
+If you followed the above steps correctly, you should see output similar to what is shown below.
+
+[![asciicast](https://asciinema.org/a/ff3Ulbvvr6XdP8XTn4gbCFLyy.svg)](https://asciinema.org/a/ff3Ulbvvr6XdP8XTn4gbCFLyy)
+
 ## Reversing the changes performed
 
-In this example we are including a playbook that allows to revert the changes performed, you can take a look at it [here](f5_delete_playbook.yaml).
+In this example we are including a playbook that allows to revert the changes performed, you can take a look at it [here](f5_delete_playbook.yaml), it can be executed by running:
+
+```bash
+ansible-playbook f5_delete_playbook.yaml
+```

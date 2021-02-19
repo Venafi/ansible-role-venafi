@@ -21,9 +21,9 @@
       certificate_copy_private_key_to_remote: false
 
       certificate_remote_execution: false
-      certificate_remote_privatekey_path: "/tmp/{{ key_name }}.remote"
-      certificate_remote_cert_path: "/tmp/{{ cert_name }}.remote"
-      certificate_remote_chain_path: "/tmp/{{ chan_name }}.remote"
+      certificate_remote_privatekey_path: "./tmp/{{ key_name }}.remote"
+      certificate_remote_cert_path: "./tmp/{{ cert_name }}.remote"
+      certificate_remote_chain_path: "./tmp/{{ chain_name }}.remote"
 
   tasks:
     - name: Create Private Key on F5 BIG-IP {{ f5_address }}
@@ -32,7 +32,7 @@
         provider: "{{ f5_provider }}"
         name: "{{ key_name }}"
         partition: "{{ f5_partition }}"
-        content: "{{ lookup('file', './tmp/' + key_name + '.remote') }}"
+        content: "{{ lookup('file', './tmp/' + key_name) }}"
       delegate_to: localhost
 
     - name: Create Certificate on F5 BIG-IP {{ f5_address }}
