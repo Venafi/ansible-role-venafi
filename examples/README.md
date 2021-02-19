@@ -1,6 +1,6 @@
-# Venafi role examples
+# Venafi Ansible Role examples
 
-In this section you'll find some use case scenarios that implement Venafi ansible role to automate SSL certificate generation and installation on your infrastructure.
+In this section you'll find some use case scenarios that implement Venafi Ansible Role to automate SSL certificate generation and installation on your infrastructure.
 
 **Examples**:
 
