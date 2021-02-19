@@ -48,7 +48,7 @@ In this example you are going to generate a certificate for the `demo-f5.venafi.
 
 ### Creating variables file
 
-The first thing needed is to create the `variables.yml` file, in this file are defined the variables used during the execution of the playbook such as:
+The first step is to create the `variables.yaml` file, in this file are defined the variables used during the execution of the playbook such as:
 
 - The F5 BIG-IP management IP address.
 - The credentials used to manage the F5 BIG-IP.
