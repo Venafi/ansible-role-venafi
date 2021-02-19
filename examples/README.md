@@ -4,4 +4,4 @@ In this section you'll find some use case scenarios that implement Venafi ansibl
 
 **Examples**:
 
-[SSL Termination with F5 BIG-IP](f5_example)
+[SSL Termination with F5 BIG-IP](f5_bigip)
