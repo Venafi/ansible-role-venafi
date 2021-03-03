@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  author: Venafi
+  author: venafi
   description: Streamline machine identity (certificate and key) acquisition using Venafi vcert.
   company: Venafi, Inc.
 
