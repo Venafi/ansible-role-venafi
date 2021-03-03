@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  author: Alexander Rykalin
+  author: Venafi
   description: Streamline machine identity (certificate and key) acquisition using Venafi vcert.
   company: Venafi, Inc.
 
