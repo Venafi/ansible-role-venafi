@@ -1,6 +1,7 @@
 ---
 galaxy_info:
-  author: Venafi
+  role_name: ansible_role_venafi
+  author: venafi
   description: Streamline machine identity (certificate and key) acquisition using Venafi vcert.
   company: Venafi, Inc.
 
