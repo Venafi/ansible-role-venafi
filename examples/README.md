@@ -5,3 +5,4 @@ In this section you'll find some use case scenarios that implement Venafi Ansibl
 **Examples**:
 
 [SSL Termination with F5 BIG-IP](f5_bigip)
+[SSL Termination with Citrix ADC](citrix_adc)
