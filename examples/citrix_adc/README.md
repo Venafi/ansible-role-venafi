@@ -279,7 +279,7 @@ ansible-playbook citrix_create_playbook.yaml --ask-vault-pass
 
 If you followed the above steps correctly, you should see output similar to what is shown below.
 
-[![asciicast](https://asciinema.org/a/6jMwQmGo3ZOJZhDrd0gYb2Aje.svg)](https://asciinema.org/a/6jMwQmGo3ZOJZhDrd0gYb2Aje)]
+[![asciicast](https://asciinema.org/a/d9BlbbXWGNFcSzQUkIAeJ0Qcr.svg)](https://asciinema.org/a/d9BlbbXWGNFcSzQUkIAeJ0Qcr)
 
 ## Reversing the changes performed
 
