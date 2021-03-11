@@ -8,13 +8,13 @@ The steps described in this document are typically performed by a **DevOps Engin
 
 ## Scenario
 
-An Application Delivery Controller (ADC) is used to increase capacity and reliability of applications, it improves the performance of applications by decreasing the load on the servers associated while managing and maintaining application and network sessions, however its configuration can become a long process, a configuration management tool can be used in order to automate this process.
+An Application Delivery Controller (ADC) is used to increase capacity and reliability of applications. It improves the performance of applications by decreasing the load on the servers associated while managing and maintaining application and network sessions, however its configuration can become a long process, so a configuration management tool can be used in order to automate this process.
 
 In this example the ADC used is a Citrix ADC, which once configured should load balance traffic in a cluster of 3 HTTP servers as well as providing SSL termination to it.
 
 ## Solution
 
-Use [RedHat Ansible](https://www.ansible.com/) to automate the process of requesting and retrieving a certificate, installing it and configuring Citrix ADC to use it to provide SSL termination and load balancing capabilities to a cluster composed of 3 HTTP servers.
+Use [RedHat Ansible](https://www.ansible.com/) to automate the process of requesting and retrieving a certificate, installing it and configuring Citrix ADC to use it to provide SSL termination and load balancing capabilities to a cluster composed of 3 HTTP servers. The steps rerequired to accomplish this solution are to:
 
 1. Retrieve a certificate using the Venafi Ansible Role.
 2. Copy the certificate files retrieved to the Citrix ADC.
@@ -29,7 +29,7 @@ Use [RedHat Ansible](https://www.ansible.com/) to automate the process of reques
 
 To perform the tasks described in this example, you'll need:
 
-- The Venafi Ansible Role installed on your machine, you can install it using `ansible-galaxy` [as described here](https://github.com/Venafi/ansible-role-venafi#using-with-ansible-galaxy)
+- The Venafi Ansible Role installed on your machine, you can install it using `ansible-galaxy` [as described here](https://github.com/Venafi/ansible-role-venafi#using-with-ansible-galaxy).
 - Access to either **Venafi Trust Protection Platform** or **Venafi Cloud** services (the `credentials.yml` [file](https://github.com/Venafi/ansible-role-venafi#using-with-ansible-galaxy) is used in this example).
   - If you are working with **Venafi Trust Protection Platform** obtain the `access_token` and `refresh_token` using the [VCert CLI](https://github.com/Venafi/vcert/blob/master/README-CLI-PLATFORM.md#obtaining-an-authorization-token).
 - Administration access to the Citrix ADC instance. 
