@@ -4,7 +4,8 @@
     file: "{{ credentials_file }}"
     name: venafi
 
-- debug:
+- name: "show execution mode"
+  debug:
     msg: "certificate_remote_execution is {{ certificate_remote_execution }}"
 
 - import_tasks: local-certificate.yml
