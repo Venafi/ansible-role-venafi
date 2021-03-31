@@ -10,3 +10,4 @@ vault-password.txt
 tests/library
 tests/roles/
 *.retry
+.cache
