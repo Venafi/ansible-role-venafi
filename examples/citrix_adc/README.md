@@ -1,26 +1,23 @@
-# Configuring SSL termination with Venafi Ansible Role on a set of HTTP servers that are load balanced by Citrix ADC
+# Configuring secure application delivery using F5 BIG-IP and the Venafi Ansible Role
 
-This example describes the configuration steps required in order to generate a certificate using the Venafi Ansible Role and its installation on a [Citrix ADC](https://www.citrix.com/products/citrix-adc/) instance in order to load balance a set of http servers and provide [SSL Termination](https://en.wikipedia.org/wiki/TLS_termination_proxy).
+In this example, we'll show you how to better secure application delivery using the Venafi Ansible Role with your [Citrix ADC](https://www.citrix.com/products/citrix-adc/) instance.
+Adding Venafi enables you to manage certificates more securely as part of the [TLS Termination](https://en.wikipedia.org/wiki/TLS_termination_proxy) process on your load balancer.
 
-## Personas
+## Who should use this example?
 
-The steps described in this document are typically performed by a **DevOps Engineer** or a **Systems Administrator**.
+The steps described in this document are typically performed by a **DevOps Engineer** or a **Systems Administrator**. Generally, you'll need a basic undestanding of Citrix ADC, Venafi Trust Protection Platform or Venafi Cloud, and the required permissions for completing the tastks described in the example.
 
-## Scenario
+## About this example
 
 An Application Delivery Controller (ADC) is used to increase capacity and reliability of applications. It improves the performance of applications by decreasing the load on the servers associated while managing and maintaining application and network sessions, however its configuration can become a long process, so a configuration management tool can be used in order to automate this process.
 
-In this example the ADC used is a Citrix ADC, which once configured should load balance traffic in a cluster of 3 HTTP servers as well as providing SSL termination to it.
+In this example we use [RedHat Ansible](https://www.ansible.com/) with the Venafi Ansible Role to automate the process of requesting and retrieving a certificate, installing it and configuring Citrix ADC to use it and provide TLS termination and load balancing to a cluster of three HTTP servers.
 
-## Solution
+Later in this example you are going to generate a certificate for the `demo-citrix.venafi.example` domain using the Venafi Ansible Role to request it and retrieve it from either **Venafi Trust Protection Platform** or **Venafi Cloud** services. Then you are going to copy the certificate files (certificate, private key, chain Bundle) to the Citrix ADC. Finally you are going to configure Citrix ADC to distribute the traffic between 3 NGINX servers using the round-robin load balancing method. Here below you can find a diagram of what we are trying to accomplish.
 
-Use [RedHat Ansible](https://www.ansible.com/) to automate the process of requesting and retrieving a certificate, installing it and configuring Citrix ADC to use it to provide SSL termination and load balancing capabilities to a cluster composed of 3 HTTP servers. The steps rerequired to accomplish this solution are to:
+> *Note: The steps provided in this example suggest the use of the round-robin balancing method, bear in mind there are [other methods](https://docs.citrix.com/en-us/citrix-adc/current-release/load-balancing/load-balancing-customizing-algorithms.html) that may be more suitable for your use case scenario.*
 
-1. Retrieve a certificate using the Venafi Ansible Role.
-2. Copy the certificate files retrieved to the Citrix ADC.
-3. Create certificate-key pair on Citrix ADC.
-4. Create HTTP back end services on Citrix ADC.
-5. Create a Virtual Server on Citrix ADC.
+![AnsibleVenafi](venafi_ansible_role.png)
 
 ## Prerequisites
 
@@ -37,13 +34,16 @@ To perform the tasks described in this example, you'll need:
 - Citrix ADC modules for Ansible installed from `ansible-galaxy` (installation can be performed following this [guide](https://github.com/citrix/citrix-adc-ansible-modules#installation)).
 - A set of 3 NGINX servers running your application.
 
-## Scenario Introduction
+## Getting started
 
-In this example you are going to generate a certificate for the `demo-citrix.venafi.example` domain using the Venafi Ansible Role to request it and retrieve it from either **Venafi Trust Protection Platform** or **Venafi Cloud** services. Then you are going to copy the certificate files (certificate, private key, chain Bundle) to the Citrix ADC. Finally you are going to configure Citrix ADC to distribute the traffic between 3 NGINX servers using the round-robin load balancing method. Here below you can find a diagram of what we are trying to accomplish.
+Here are the steps we'll take as we go trough this example:
 
-> *Note: The steps provided in this example suggest the use of the round-robin balancing method, bear in mind there are [other methods](https://docs.citrix.com/en-us/citrix-adc/current-release/load-balancing/load-balancing-customizing-algorithms.html) that may be more suitable for your use case scenario.*
+1. Retrieve a certificate using the Venafi Ansible Role.
+2. Copy the certificate files retrieved to the Citrix ADC.
+3. Create certificate-key pair on Citrix ADC.
+4. Create HTTP back end services on Citrix ADC.
+5. Create a Virtual Server on Citrix ADC.
 
-![AnsibleVenafi](venafi_ansible_role.png)
 
 ## Retrieving certificate using Venafi Ansible Role
 

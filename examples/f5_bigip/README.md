@@ -1,27 +1,23 @@
-# Configuring SSL termination with Venafi Ansible Role on a set of HTTP servers that are load balanced by F5-BIG-IP
+# Configuring secure application delivery using F5 BIG-IP and the Venafi Ansible Role
 
-This example describes the configuration steps required in order to generate a certificate using the Venafi Ansible Role and its installation on a [F5 BIG-IP](https://www.f5.com/products/big-ip-services) instance in order to load balance a set of http servers and provide [SSL termination](https://www.f5.com/services/resources/glossary/ssl-termination).
+In this example, we'll show you how to better secure application delivery using the Venafi Ansible Role with your [F5 BIG-IP](https://www.f5.com/products/big-ip-services) instance.
+Adding Venafi enables you to manage certificates more securely as part of the [TLS termination](https://www.f5.com/services/resources/glossary/ssl-termination) process on your load balancer.
 
-## Personas
+## Who should use this example?
 
-The steps described in this document are typically performed by a **DevOps Engineer** or a **Systems Administrator**.
+The steps described in this document are typically performed by a **DevOps Engineer** or a **Systems Administrator**. Generally, you'll need a basic undestanding of F5 BIG-IP, Venafi Trust Protection Platform or Venafi Cloud, and the required permissions for completing the tastks described in the example.
 
-## Scenario
+## About this example
 
 An Application Delivery Controller (ADC) is used to increase capacity and reliability of applications, it improves the performance of applications by decreasing the load on the servers associated while managing and maintaining application and network sessions, however its configuration can become a long process, a configuration management tool can be used in order to automate this process.
 
-In this example the ADC used is a F5 BIG-IP, which once configured should load balance traffic in a cluster of 3 HTTP servers as well as providing SSL termination to it.
+In this example we use [RedHat Ansible](https://www.ansible.com/) with the Venafi Ansible Role to automate the process of requesting and retrieving a certificate, installing it and configuring F5 BIG-IP to use it and provide TLS termination and load balancing to a cluster of three HTTP servers.
 
-## Solution
+Later in this example you are going to generate a certificate for the `demo-f5.venafi.example` domain using the Venafi Ansible Role to request it and retrieve it from either **Venafi Trust Protection Platform** or **Venafi Cloud** services. Then you are going to copy the certificate files (certificate, private key, chain Bundle) to the F5 BIG-IP. Finally you are going to configure F5 BIG-IP to distribute the traffic between 3 HTTP servers using the round-robin load balancing method. Here below you can find a diagram of what we are trying to accomplish.
 
-Use [RedHat Ansible](https://www.ansible.com/) to automate the process of requesting and retrieving a certificate, installing it and configuring F5 BIG-IP to use it to provide SSL termination and load balancing capabilities to a cluster composed of 3 HTTP servers.
+> *Note: The steps provided in this example suggest the use of the round-robin balancing method, bear in mind there are [other methods](https://www.f5.com/services/resources/glossary/load-balancer) that may be more suitable for your use case scenario.*
 
-1. Retrieve a certificate using the Venafi Ansible Role.
-2. Copy the certificate files retrieved to the F5 BIG-IP.
-3. Create Client SSL Profile on F5 BIG-IP.
-4. Create Pool on F5 BIG-IP.
-5. Add Pool members on F5 BIG-IP.
-6. Create Virtual Server on F5 BIG-IP.
+![AnsibleVenafi](venafi_ansible_role.png)
 
 ## Prerequisites
 
@@ -34,15 +30,18 @@ To perform the tasks described in this example, you'll need:
 - Access to either **Venafi Trust Protection Platform** or **Venafi Cloud** services (the `credentials.yml` [file](https://github.com/Venafi/ansible-role-venafi#using-with-ansible-galaxy) is used in this example).
   - If you are working with **Venafi Trust Protection Platform** obtain the `access_token` and `refresh_token` using the [VCert CLI](https://github.com/Venafi/vcert/blob/master/README-CLI-PLATFORM.md#obtaining-an-authorization-token).
 - Administration access to the f5 BIG-IP instance. 
-- A set of 3 NGINX servers running your application.
+- A set of 3 HTTP servers running your application.
 
-## Scenario Introduction
+## Getting started
 
-In this example you are going to generate a certificate for the `demo-f5.venafi.example` domain using the Venafi Ansible Role to request it and retrieve it from either **Venafi Trust Protection Platform** or **Venafi Cloud** services. Then you are going to copy the certificate files (certificate, private key, chain Bundle) to the F5 BIG-IP. Finally you are going to configure F5 BIG-IP to distribute the traffic between 3 NGINX servers using the round-robin load balancing method. Here below you can find a diagram of what we are trying to accomplish.
+Here are the steps we'll take as we go trough this example:
 
-> *Note: The steps provided in this example suggest the use of the round-robin balancing method, bear in mind there are [other methods](https://www.f5.com/services/resources/glossary/load-balancer) that may be more suitable for your use case scenario.*
-
-![AnsibleVenafi](venafi_ansible_role.png)
+1. Retrieve a certificate using the Venafi Ansible Role.
+2. Copy the certificate files retrieved to the F5 BIG-IP.
+3. Create Client SSL Profile on F5 BIG-IP.
+4. Create Pool on F5 BIG-IP.
+5. Add Pool members on F5 BIG-IP.
+6. Create Virtual Server on F5 BIG-IP.
 
 ## Retrieving certificate using Venafi Ansible Role
 
