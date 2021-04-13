@@ -5,47 +5,45 @@ Adding Venafi enables you to manage certificates more securely as part of the [T
 
 ## Who should use this example?
 
-The steps described in this document are typically performed by a **DevOps Engineer** or a **Systems Administrator**. Generally, you'll need a basic undestanding of Citrix ADC, Venafi Trust Protection Platform or Venafi Cloud, and the required permissions for completing the tastks described in the example.
+The steps described in this document are typically performed by _DevOps engineers_ or _system administrators_. Generally, you'll need a basic undestanding of Citrix ADC, Venafi Trust Protection Platform or Venafi Cloud, and the required permissions for completing the tastks described in the example.
 
 ## About this example
 
-An Application Delivery Controller (ADC) is used to increase capacity and reliability of applications. It improves the performance of applications by decreasing the load on the servers associated while managing and maintaining application and network sessions, however its configuration can become a long process, so a configuration management tool can be used in order to automate this process.
+An _application delivery controller_ (ADC) is used to increase the capacity and reliability of applications. ADC improves the performance of applications by decreasing the load on associated servers while managing and maintaining application and network sessions. But ADC configuration can become a long process. However, you can actually automate the process by using a configuration management tool.
 
-In this example we use [RedHat Ansible](https://www.ansible.com/) with the Venafi Ansible Role to automate the process of requesting and retrieving a certificate, installing it and configuring Citrix ADC to use it and provide TLS termination and load balancing to a cluster of three HTTP servers.
+In this example, we use [RedHat Ansible](https://www.ansible.com/) with the _Venafi Ansible Role_ to automate the process of requesting, retrieving and installing a certificate as part of SSL termination on an ADC (specifically, Citrix ADC) for load balancing web traffic. We'll also utilize three HTTP servers contained in a cluster as the endpoints that are sending and receiving web traffic and being managed by Citrix ADC.
 
-Later in this example you are going to generate a certificate for the `demo-citrix.venafi.example` domain using the Venafi Ansible Role to request it and retrieve it from either **Venafi Trust Protection Platform** or **Venafi Cloud** services. Then you are going to copy the certificate files (certificate, private key, chain Bundle) to the Citrix ADC. Finally you are going to configure Citrix ADC to distribute the traffic between 3 NGINX servers using the round-robin load balancing method. Here below you can find a diagram of what we are trying to accomplish.
+Later in this example, you'll generate a certificate for the `demo-citrix.venafi.example` domain using the Venafi Ansible Role to request and retrieve it from either _Venafi Trust Protection Platform_ or _Venafi Cloud_ services. Then you'll copy the certificate files (certificate, private key, chain Bundle) to the Citrix ADC. Finally, you'll configure Citrix ADC to distribute the traffic between three NGINX servers using the round-robin load balancing method. Here below you can find a diagram of what we are trying to accomplish.
 
-> *Note: The steps provided in this example suggest the use of the round-robin balancing method, bear in mind there are [other methods](https://docs.citrix.com/en-us/citrix-adc/current-release/load-balancing/load-balancing-customizing-algorithms.html) that may be more suitable for your use case scenario.*
+> **NOTE** In our example, we suggest that you use the round-robin balancing method. But keep in mind that there are [other methods](https://docs.citrix.com/en-us/citrix-adc/current-release/load-balancing/load-balancing-customizing-algorithms.html) that might be more suitable for your specific use case.
 
 ![AnsibleVenafi](venafi_ansible_role.png)
 
 ## Prerequisites
 
-> *Note: The sole purpose of the credentials used in this example is illustrative, in a real life scenario they must be considered as weak and insecure.*
-
+> **BEST PRACTICES** In general, be careful when using self-signed certificates because of the inherent risks of no identity verification or trust control. The public and private keys are both held by the same entity. Also, self-signed certificates cannot be revoked; they can only be replaced. If an attacker has already gained access to a system, the attacker can spoof the identity of the subject. Of course, CAs can revoke a certificate only when they discover the compromise.
 
 To perform the tasks described in this example, you'll need:
 
-- The Venafi Ansible Role installed on your machine, you can install it using `ansible-galaxy` [as described here](https://github.com/Venafi/ansible-role-venafi#using-with-ansible-galaxy).
-- Access to either **Venafi Trust Protection Platform** or **Venafi Cloud** services (the `credentials.yml` [file](https://github.com/Venafi/ansible-role-venafi#using-with-ansible-galaxy) is used in this example).
-  - If you are working with **Venafi Trust Protection Platform** obtain the `access_token` and `refresh_token` using the [VCert CLI](https://github.com/Venafi/vcert/blob/master/README-CLI-PLATFORM.md#obtaining-an-authorization-token).
-- Administration access to the Citrix ADC instance. 
-- Nitro Python SDK (available from https://www.citrix.com/downloads/netscaler-adc or from the "Downloads" tab of the Citrix ADC GUI).
-- Citrix ADC modules for Ansible installed from `ansible-galaxy` (installation can be performed following this [guide](https://github.com/citrix/citrix-adc-ansible-modules#installation)).
-- A set of 3 NGINX servers running your application.
+- The Venafi Ansible Role installed on your machine; you can install it using `ansible-galaxy` [as described here](https://github.com/Venafi/ansible-role-venafi#using-with-ansible-galaxy)
+- Access to either Venafi Trust Protection Platform or Venafi Cloud services (the `credentials.yml` [file](https://github.com/Venafi/ansible-role-venafi#using-with-ansible-galaxy) is used in this example)
+  - If you are working with Trust Protection Platform, obtain the `access_token` and `refresh_token` using the [VCert CLI](https://github.com/Venafi/vcert/blob/master/README-CLI-PLATFORM.md#obtaining-an-authorization-token).
+- Administration access to a Citrix ADC instance
+- Nitro Python SDK (available from https://www.citrix.com/downloads/netscaler-adc or from the _Downloads_ tab of the Citrix ADC GUI)
+- Citrix ADC modules for Ansible installed from `ansible-galaxy` (for installation instructions, see [this guide](https://github.com/citrix/citrix-adc-ansible-modules#installation))
+- A set of three (3) NGINX servers running your application
 
 ## Getting started
 
-Here are the steps we'll take as we go trough this example:
+Here are the steps we'll complete as we go through this example:
 
-1. Retrieve a certificate using the Venafi Ansible Role.
-2. Copy the certificate files retrieved to the Citrix ADC.
-3. Create certificate-key pair on Citrix ADC.
-4. Create HTTP back end services on Citrix ADC.
-5. Create a Virtual Server on Citrix ADC.
+1. Retrieve a certificate using the Venafi Ansible Role
+2. Copy the retrieved certificate files to Citrix ADC
+3. Create a certificate-key pair on Citrix ADC 
+4. Create HTTP back-end services on Citrix ADC
+5. Create a virtual server on Citrix ADC
 
-
-## Retrieving certificate using Venafi Ansible Role
+## Step 1: Retrieve a certificate using the Venafi Ansible Role
 
 ### Creating variables file
 
@@ -132,10 +130,9 @@ In the following block of instructions the Venafi Ansible Role is being specifie
       certificate_remote_chain_path: "./tmp/{{ chain_name }}.remote"
 ```
 
-## Copying certificate files to Citrix ADC
+## Step 2: Copy the retrieved certificate files to Citrix ADC
 
-By adding the instructions below to the playbook, we indicate the actions the  playbook will execute. Ansible will connect to the Citrix ADC (using the credentials specified in the variables file) and then it will create the key, CA bundle and certificate using the local files retrieved in the previous step.
-
+By adding the following instructions to the playbook, we specify the actions the playbook will execute. Ansible will connect to the Citrix ADC (using the credentials specified in the variables file) and then it will create the key, CA bundle and certificate using the local files retrieved in the previous step.
 
 ```yaml
 ---
@@ -182,9 +179,13 @@ By adding the instructions below to the playbook, we indicate the actions the  p
 
 ```
 
-### Creating http services on Citrix ADC
+## Create a certificate-key pair on Citrix ADC
 
-Once the files copied to the Citrix ADC, Ansible needs to create the http services in the Citric ADC instance, those services are the ones that will actually serve the requests (NGINX servers hosting the application), Ansible will use the host and port variables defined in the variables file for each one of them. 
+**DW: this step is missing; if it's done as part of another step, remove it from the list of steps under Getting Started.**
+
+## Create HTTP back-end services on Citrix ADC
+
+After you copy the files to Citrix ADC, Ansible needs to create the HTTP services on the Citric ADC instance. These services are the ones that will actually serve the requests (NGINX servers hosting the application). Ansible will use the host and port variables defined in the variables file for each service. 
 
 ```yaml
 ---
@@ -235,9 +236,9 @@ Once the files copied to the Citrix ADC, Ansible needs to create the http servic
       delegate_to: localhost
 ```
 
-### Creating Virtual server on Citrix ADC
+## Create a virtual server on Citrix ADC
 
-Now that the http services have been create, Ansible has to create a virtual IP address in order to send the external requests to the pool members. The following task creates the virtual server and assigns it the virtual IP defined in the variables file, the port, the certificate-key pair and the http services previously created, as well as the round-robin load balancing [method](https://docs.citrix.com/en-us/citrix-adc/current-release/load-balancing/load-balancing-customizing-algorithms.html) which will allow the virtual server to distribute the load between the NGINX servers hosting the application.
+Now that HTTP services have been created, Ansible must create a virtual IP address in order to send the external requests to the pool members. The following task creates the virtual server and assigns it the virtual IP defined in the variables file, the port, the certificate-key pair and the HTTP services previously created, as well as the round-robin load balancing [method](https://docs.citrix.com/en-us/citrix-adc/current-release/load-balancing/load-balancing-customizing-algorithms.html) which will allow the virtual server to distribute the load between the NGINX servers hosting the application.
 
 ```yaml
 ---
@@ -271,19 +272,19 @@ Now that the http services have been create, Ansible has to create a virtual IP 
 
 ## Executing the playbook
 
-Once the [playbook completed](citrix_create_playbook.yaml), it can be executed by running the command below:
+After you finish the [playbook](citrix_create_playbook.yaml), use the following command to run it:
 
 ```bash
 ansible-playbook citrix_create_playbook.yaml --ask-vault-pass
 ```
 
-If you followed the above steps correctly, you should see output similar to what is shown below.
+If done correctly, you should see output similar to the following: 
 
 [![asciicast](https://asciinema.org/a/d9BlbbXWGNFcSzQUkIAeJ0Qcr.svg)](https://asciinema.org/a/d9BlbbXWGNFcSzQUkIAeJ0Qcr)
 
 ## Reversing the changes performed
 
-In this example we are including a playbook that allows to revert the changes performed, you can take a look at it [here](citrix_delete_playbook.yaml), it can be executed by running:
+In this example, we include a [playbook that lets you revert the changes made by running citrix_create_playbook.yaml](citrix_delete_playbook.yaml). Use the following command to run it:
 
 ```bash
 ansible-playbook citrix_delete_playbook.yaml
