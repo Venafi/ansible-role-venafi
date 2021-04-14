@@ -42,6 +42,7 @@ Here are the steps we'll complete as we go through this example:
 3. Create a certificate-key pair on Citrix ADC 
 4. Create HTTP back-end services on Citrix ADC
 5. Create a virtual server on Citrix ADC
+6. Execute the playbook
 
 ## Step 1: Retrieve a certificate using the Venafi Ansible Role
 
