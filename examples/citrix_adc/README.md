@@ -45,7 +45,7 @@ Here are the steps we'll complete as we go through this example:
 
 ## Step 1: Retrieve a certificate using the Venafi Ansible Role
 
-### Creating variables file
+### Step 1a: Creating variables file
 
 The first step is to create the `variables.yaml` file, in this file are defined the variables used during the execution of the playbook such as:
 
@@ -79,7 +79,7 @@ key_name: "{{ test_site.name }}.key"
 chain_name: "{{ test_site.name }}-ca-bundle.crt"
 ```
 
-### Creating the playbook
+### Step 1b: Creating the playbook
 
 Start by creating a YAML file named `citrix_create_playbook.yaml`, inside, define a name for the playbook, the hosts in which the tasks will be executed, the type of connection to use, the Citrix ADC collection and specify the variables file created in the previous step :
 
@@ -94,7 +94,7 @@ Start by creating a YAML file named `citrix_create_playbook.yaml`, inside, defin
 ```
 
 
-### Requesting and retrieving the certificate using Venafi Role
+### Step 1c: Requesting and retrieving the certificate using Venafi Role
 
 In the following block of instructions the Venafi Ansible Role is being specified along with the variables it needs to request and retrieve the certificate from the Venafi services, by adding these instructions the Ansible Role will:
 
@@ -179,11 +179,11 @@ By adding the following instructions to the playbook, we specify the actions the
 
 ```
 
-## Create a certificate-key pair on Citrix ADC
+## Step 3: Create a certificate-key pair on Citrix ADC
 
-**DW: this step is missing; if it's done as part of another step, remove it from the list of steps under Getting Started.**
+**DW: Must fill in this step...**
 
-## Create HTTP back-end services on Citrix ADC
+## Step 4: Create HTTP back-end services on Citrix ADC
 
 After you copy the files to Citrix ADC, Ansible needs to create the HTTP services on the Citric ADC instance. These services are the ones that will actually serve the requests (NGINX servers hosting the application). Ansible will use the host and port variables defined in the variables file for each service. 
 
@@ -236,7 +236,7 @@ After you copy the files to Citrix ADC, Ansible needs to create the HTTP service
       delegate_to: localhost
 ```
 
-## Create a virtual server on Citrix ADC
+## Step 5: Create a virtual server on Citrix ADC
 
 Now that HTTP services have been created, Ansible must create a virtual IP address in order to send the external requests to the pool members. The following task creates the virtual server and assigns it the virtual IP defined in the variables file, the port, the certificate-key pair and the HTTP services previously created, as well as the round-robin load balancing [method](https://docs.citrix.com/en-us/citrix-adc/current-release/load-balancing/load-balancing-customizing-algorithms.html) which will allow the virtual server to distribute the load between the NGINX servers hosting the application.
 
@@ -270,7 +270,7 @@ Now that HTTP services have been created, Ansible must create a virtual IP addre
 
 ```
 
-## Executing the playbook
+## Step 6: Executing the playbook
 
 After you finish the [playbook](citrix_create_playbook.yaml), use the following command to run it:
 
