@@ -182,11 +182,26 @@ By adding the following instructions to the playbook, we specify the actions the
 
 ## Step 3: Create a certificate-key pair on Citrix ADC
 
-**DW: Must fill in this step...**
+To be able to handle the HTTPS requests, Ansible needs to create a cert-key pair on the Citrix ADC using the files you copied in the previous step. 
+```yaml
+---
+
+    - name: Create Certkey on Citrix ADC {{ adc_address }}
+      citrix_adc_ssl_certkey:
+        nsip: "{{ adc_address }}"
+        nitro_user: "{{ adc_username }}"
+        nitro_pass: "{{ adc_password }}"
+        nitro_protocol: http
+        validate_certs: false
+        state: present
+        certkey: "{{ test_site.name }}.{{ test_site.domain }}_certkey"
+        cert: "/nsconfig/ssl/{{ cert_name }}"
+        key: "/nsconfig/ssl/{{ key_name }}"
+```
 
 ## Step 4: Create HTTP back-end services on Citrix ADC
 
-After you copy the files to Citrix ADC, Ansible needs to create the HTTP services on the Citric ADC instance. These services are the ones that will actually serve the requests (NGINX servers hosting the application). Ansible will use the host and port variables defined in the variables file for each service. 
+After you create the cert-key pair on the Citrix ADC, Ansible needs to create the HTTP services on the Citric ADC instance. These services are the ones that will actually serve the requests (NGINX servers hosting the application). Ansible will use the host and port variables defined in the variables file for each service. 
 
 ```yaml
 ---
@@ -239,7 +254,7 @@ After you copy the files to Citrix ADC, Ansible needs to create the HTTP service
 
 ## Step 5: Create a virtual server on Citrix ADC
 
-Now that HTTP services have been created, Ansible must create a virtual IP address in order to send the external requests to the pool members. The following task creates the virtual server and assigns it the virtual IP defined in the variables file, the port, the certificate-key pair and the HTTP services previously created, as well as the round-robin load balancing [method](https://docs.citrix.com/en-us/citrix-adc/current-release/load-balancing/load-balancing-customizing-algorithms.html) which will allow the virtual server to distribute the load between the NGINX servers hosting the application.
+Now that HTTP services have been created, Ansible must create a virtual IP address in order to send the external requests to the HTTP back-end services. The following task creates the virtual server and assigns it the virtual IP defined in the variables file, the port, the certificate-key pair and the HTTP services previously created, as well as the round-robin load balancing [method](https://docs.citrix.com/en-us/citrix-adc/current-release/load-balancing/load-balancing-customizing-algorithms.html) which will allow the virtual server to distribute the load between the NGINX servers hosting the application.
 
 ```yaml
 ---
