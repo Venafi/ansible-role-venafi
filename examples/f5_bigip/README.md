@@ -39,8 +39,10 @@ Here are the steps we'll take as we go trough this example:
 4. Create Pool on F5 BIG-IP
 5. Add pool members on F5 BIG-IP
 6. Create a virtual server on F5 BIG-IP
+7. Execute the playbook
 
 > **NOTE** Credentials used in this example are for demonstration purposes only. You should use stronger credentials. 
+
 > **BEST PRACTICES** In general, be careful when using self-signed certificates because of the inherent risks of no identity verification or trust control. The public and private keys are both held by the same entity. Also, self-signed certificates cannot be revoked; they can only be replaced. If an attacker has already gained access to a system, the attacker can spoof the identity of the subject. Of course, CAs can revoke a certificate only when they discover the compromise.
 
 ## Step 1: Retrieve a certificate using Venafi Ansible Role
@@ -258,7 +260,7 @@ Now that the pool and the nodes are members of the pool, Ansible has to create a
       delegate_to: localhost
 ```
 
-## Executing the playbook
+## Step 7: Execute the playbook
 
 After you finish the [playbook](f5_create_playbook.yaml), use the following command to run it:
 
