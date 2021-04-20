@@ -15,6 +15,12 @@ integrating with the [Venafi Trust Protection Platform](https://www.venafi.com/p
 or [Venafi Cloud](https://www.venafi.com/platform/cloud/devops) in a manner that ensures compliance with corporate
 security policy and provides visibility into certificate issuance enterprise wide.
 
+## Detailed Integration Examples
+
+Let us guide you through certificate automation for the following products using Red Hat Ansible and this solution:
+
+[<img src="examples/logo_tile_f5.png?raw=true" alt="F5 BIG-IP" width="80" height="80" />](examples/f5_bigip/README.md) [<img src="examples/logo_tile_citrix.png?raw=true" alt="Citrix ADC" width="80" height="80" />](examples/citrix_adc/README.md)
+
 ## Requirements
 
 Review the [Venafi](https://github.com/Venafi/vcert-python#prerequisites-for-using-with-trust-protection-platform)
