@@ -17,7 +17,7 @@ security policy and provides visibility into certificate issuance enterprise wid
 
 ## Detailed Integration Examples
 
-Have one of the following products?  Let us guide you through adding certificates to your _Infrastucture as Code_ automation with this solution for Ansible.
+Have one of the following products?  Let us guide you through adding certificates to your _Infrastucture as Code_ automation with Ansible.
 
 [<img src="examples/logo_tile_f5.png?raw=true" alt="F5 BIG-IP" width="80" height="80" />](examples/f5_bigip/README.md) [<img src="examples/logo_tile_citrix.png?raw=true" alt="Citrix ADC" width="80" height="80" />](examples/citrix_adc/README.md)
 
