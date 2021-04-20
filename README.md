@@ -17,7 +17,7 @@ security policy and provides visibility into certificate issuance enterprise wid
 
 ## Detailed Integration Examples
 
-Let us guide you through certificate automation for the following products using Red Hat Ansible and this solution:
+Have one of the following products?  Let us guide you through certificate automation using Red Hat Ansible and this solution.
 
 [<img src="examples/logo_tile_f5.png?raw=true" alt="F5 BIG-IP" width="80" height="80" />](examples/f5_bigip/README.md) [<img src="examples/logo_tile_citrix.png?raw=true" alt="Citrix ADC" width="80" height="80" />](examples/citrix_adc/README.md)
 
