@@ -1,4 +1,4 @@
-# Configuring secure application delivery using F5 BIG-IP and the Venafi Ansible Role
+# Configuring secure application delivery using Citrix ADC and the Venafi Ansible Role
 
 In this example, we'll show you how to better secure application delivery using the Venafi Ansible Role with your [Citrix ADC](https://www.citrix.com/products/citrix-adc/) instance.
 Adding Venafi enables you to manage certificates more securely as part of the [TLS Termination](https://en.wikipedia.org/wiki/TLS_termination_proxy) process on your load balancer.
