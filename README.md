@@ -15,6 +15,17 @@ integrating with the [Venafi Trust Protection Platform](https://www.venafi.com/p
 or [Venafi Cloud](https://www.venafi.com/platform/cloud/devops) in a manner that ensures compliance with corporate
 security policy and provides visibility into certificate issuance enterprise wide.
 
+>:red_car: **Test drive our integration examples today**
+>
+>Let us show you _step-by-step_ how to add certificates to your _Infrastucture as Code_ automation with Ansible.
+>
+>Products | Available integration examples...
+>:------: | --------
+>[<img src="examples/logo_tile_f5.png?raw=true" alt="F5 BIG-IP" width="40" height="40" />](examples/f5_bigip/README.md) | [How to configure secure application delivery using F5 BIG-IP and the Venafi Ansible role](examples/f5_bigip/README.md)
+>[<img src="examples/logo_tile_citrix.png?raw=true" alt="Citrix ADC" width="40" height="40" />](examples/citrix_adc/README.md)  | [How to configure secure application delivery using Citrix ADC and the Venafi Ansible role](examples/citrix_adc/README.md)
+>
+>**NOTE** If you don't see an example for a product you use, check back later. We're working hard to add more integration examples.
+
 ## Requirements
 
 Review the [Venafi](https://github.com/Venafi/vcert-python#prerequisites-for-using-with-trust-protection-platform)
