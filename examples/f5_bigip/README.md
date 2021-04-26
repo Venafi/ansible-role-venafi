@@ -5,7 +5,7 @@ Adding Venafi enables you to manage certificates more securely as part of the [T
 
 ## Who should use this example?
 
-The steps described in this document are typically performed by a _DevOps engineers_ or a _system administrators_. Generally, you'll need a basic undestanding of F5 BIG-IP, Venafi Trust Protection Platform or Venafi Cloud, and the required permissions for completing the tastks described in the example.
+The steps described in this document are typically performed by a _DevOps engineers_ or a _system administrators_. Generally, you'll need a basic undestanding of F5 BIG-IP, Venafi Trust Protection Platform or Venafi Cloud, and the required permissions for completing the tasks described in the example.
 
 ## About this example
 
@@ -26,7 +26,7 @@ To perform the tasks described in this example, you'll need:
 - The Venafi Ansible Role installed on your machine, you can install it using `ansible-galaxy` [as described here](https://github.com/Venafi/ansible-role-venafi#using-with-ansible-galaxy)
 - Access to either **Venafi Trust Protection Platform** or **Venafi Cloud** services (the `credentials.yml` [file](https://github.com/Venafi/ansible-role-venafi#using-with-ansible-galaxy) is used in this example).
   - If you are working with **Venafi Trust Protection Platform** obtain the `access_token` and `refresh_token` using the [VCert CLI](https://github.com/Venafi/vcert/blob/master/README-CLI-PLATFORM.md#obtaining-an-authorization-token).
-- Administration access to the f5 BIG-IP instance. 
+- Administration access to the F5 BIG-IP instance. 
 - A set of 3 HTTP servers running your application.
 
 ## Getting started
