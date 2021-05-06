@@ -1,7 +1,7 @@
 ![Venafi](Venafi_logo.png)
 [![Apache 2.0 License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 ![Community Supported](https://img.shields.io/badge/Support%20Level-Community-brightgreen)
-![Compatible with TPP 17.3+ & Cloud](https://img.shields.io/badge/Compatibility-TPP%2017.3+%20%26%20Cloud-f9a90c)  
+![Compatible with TPP 17.3+ & VaaS](https://img.shields.io/badge/Compatibility-TPP%2017.3+%20%26%20VaaS-f9a90c)  
 _**This open source project is community-supported.** To report a problem or share an idea, use
 **[Issues](../../issues)**; and if you have a suggestion for fixing the issue, please include those details, too.
 In addition, use **[Pull Requests](../../pulls)** to contribute actual bug fixes or proposed enhancements.
@@ -12,7 +12,7 @@ We welcome and appreciate all contributions. Got questions or want to discuss so
 
 This solution adds certificate enrollment capabilities to [Red Hat Ansible](https://www.ansible.com/) by seamlessly
 integrating with the [Venafi Trust Protection Platform](https://www.venafi.com/platform/trust-protection-platform)
-or [Venafi Cloud](https://www.venafi.com/platform/cloud/devops) in a manner that ensures compliance with corporate
+or [Venafi as a Service](https://www.venafi.com/venaficloud) in a manner that ensures compliance with corporate
 security policy and provides visibility into certificate issuance enterprise wide.
 
 >:red_car: **Test drive our integration examples today**
@@ -57,7 +57,7 @@ For more information about Ansible Galaxy, go to https://galaxy.ansible.com/docs
    EOF
    ```
 
-   **Venafi Cloud**:
+   **Venafi as a Service**:
    
    ```sh
    cat <<EOF >>credentials.yml
@@ -72,12 +72,12 @@ For more information about Ansible Galaxy, go to https://galaxy.ansible.com/docs
    | -------------- | ------------------------------------------------------------ |
    | `access_token` | Trust Protection Platform access token for the "ansible-by-venafi" API Application |
    | `password`     | **[DEPRECATED]** Trust Protection Platform WebSDK password, use `access_token` if possible |
-   | `test_mode`    | When "true", the role operates without connecting to Trust Protection Platform or Venafi Cloud |
-   | `token`        | Venafi Cloud API key                                         |
+   | `test_mode`    | When "true", the role operates without connecting to Trust Protection Platform or Venafi as a Service |
+   | `token`        | Venafi as a Service API key                                         |
    | `trust_bundle` | Text file containing trust anchor certificates in PEM (text) format, generally required for Trust Protection Platform |
    | `url`          | Venafi service URL (e.g. "https://tpp.venafi.example"), generally only applicable to Trust Protection Platform |
    | `user`         | **[DEPRECATED]** Trust Protection Platform WebSDK username, use `access_token` if possible |
-   | `zone`         | Trust Protection Platform policy folder or Venafi Cloud Application Name and Issuing Template API Alias (e.g. "Business App\Enterprise CIT") |
+   | `zone`         | Policy folder for TPP or Application name and Issuing Template API Alias for VaaS (e.g. "Business App\Enterprise CIT") |
 
 1. Use `ansible-vault` to encrypt the `credentials.yml` file using a password.  This is optional but highly recommended.
    As long as you know the password you can always decrypt the file to make changes and then re-encrypt it.
@@ -153,11 +153,11 @@ For more information about Ansible Galaxy, go to https://galaxy.ansible.com/docs
     Demo certificates will be placed in the `/tmp/ansible/etc/ssl` directory on the Ansible host.
     From there they will be distributed to the `/etc/ssl/` directory of remote hosts.
     
-1. Generate a credentials file for either Trust Protection Platform or Venafi Cloud as described in the above section.  
+1. Generate a credentials file for either Trust Protection Platform or Venafi as a Service as described in the above section.  
     
 1. Run the Ansible playbook (remove `docker_demo=true` if you want to use your own inventory).
-   The contents of `credentials.yml` will be used to decide whether Trust Protection Platform or Venafi Cloud is used. 
-   If you set the `token` parameter, the playbook assumes you are using Venafi Cloud.  If you set the `access_token` or
+   The contents of `credentials.yml` will be used to decide whether Trust Protection Platform or Venafi as a Service is used. 
+   If you set the `token` parameter, the playbook assumes you are using Venafi as a Service.  If you set the `access_token` or
    `password` parameters, the playbook assumes you are using Trust Protection Platform.
    
    ```sh
