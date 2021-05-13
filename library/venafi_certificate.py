@@ -24,6 +24,8 @@ import random
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils._text import to_bytes, to_text
 
+from venafi_connection import Venafi
+
 HAS_VCERT = HAS_CRYPTOGRAPHY = True
 try:
     from vcert import CertificateRequest, Connection, KeyType,\
@@ -284,23 +286,24 @@ class VCertificate:
         """
         :param AnsibleModule module:
         """
+        self.venafi = Venafi(module)
         self.common_name = module.params['common_name']
+        # self.test_mode = module.params['test_mode']
+        # self.url = module.params['url']
+        # self.password = module.params['password']
+        # self.access_token = module.params['access_token']
+        # self.token = module.params['token']
+        # self.user = module.params['user']
 
-        self.test_mode = module.params['test_mode']
-        self.url = module.params['url']
-        self.password = module.params['password']
-        self.access_token = module.params['access_token']
-        self.token = module.params['token']
-        self.user = module.params['user']
         self.zone = module.params['zone']
         self.privatekey_filename = module.params['privatekey_path']
         self.certificate_filename = module.params['cert_path']
         self.privatekey_type = module.params['privatekey_type']
 
-        if self.user != "":
-            module.warn("User is deprecated use access token instead")
-        if self.password != "":
-            module.warn("Password is deprecated use access token instead")
+        # if self.user != "":
+        #     module.warn("User is deprecated use access token instead")
+        # if self.password != "":
+        #     module.warn("Password is deprecated use access token instead")
 
         if module.params['privatekey_curve']:
             if not module.params['privatekey_type']:
@@ -339,29 +342,30 @@ class VCertificate:
                 else:
                     self.module.fail_json(
                         msg="Failed to determine extension type: %s" % n)
-        trust_bundle = module.params['trust_bundle']
-        if trust_bundle:
-            if self.access_token and self.access_token != "":
-                self.conn = venafi_connection(
-                    url=self.url, user=None, password=None,
-                    access_token=self.access_token,
-                    refresh_token=None,
-                    http_request_kwargs={"verify": trust_bundle},
-                    api_key=None, fake=self.test_mode)
-            else:
-                self.conn = Connection(
-                 url=self.url, token=self.token, password=self.password,
-                 user=self.user, fake=self.test_mode,
-                 http_request_kwargs={"verify": trust_bundle})
-        else:
-            if self.access_token and self.access_token != "":
-                self.conn = venafi_connection(
-                   url=self.url, access_token=self.access_token,
-                   user=None, password=None, api_key=None, fake=self.test_mode)
-            else:
-                self.conn = Connection(
-                  url=self.url, token=self.token, fake=self.test_mode,
-                  user=self.user, password=self.password)
+
+        # trust_bundle = module.params['trust_bundle']
+        # if trust_bundle:
+        #     if self.access_token and self.access_token != "":
+        #         self.conn = venafi_connection(
+        #             url=self.url, user=None, password=None,
+        #             access_token=self.access_token,
+        #             refresh_token=None,
+        #             http_request_kwargs={"verify": trust_bundle},
+        #             api_key=None, fake=self.test_mode)
+        #     else:
+        #         self.conn = Connection(
+        #          url=self.url, token=self.token, password=self.password,
+        #          user=self.user, fake=self.test_mode,
+        #          http_request_kwargs={"verify": trust_bundle})
+        # else:
+        #     if self.access_token and self.access_token != "":
+        #         self.conn = venafi_connection(
+        #            url=self.url, access_token=self.access_token,
+        #            user=None, password=None, api_key=None, fake=self.test_mode)
+        #     else:
+        #         self.conn = Connection(
+        #           url=self.url, token=self.token, fake=self.test_mode,
+        #           user=self.user, password=self.password)
         self.before_expired_hours = module.params['before_expired_hours']
 
     def check_dirs_existed(self):
@@ -369,7 +373,7 @@ class VCertificate:
         key_dir = os.path.dirname(self.privatekey_filename or "/a")
         chain_dir = os.path.dirname(self.chain_filename or "/a")
         ok = True
-        for p in set((cert_dir, key_dir, chain_dir)):
+        for p in {cert_dir, key_dir, chain_dir}:
             if os.path.isdir(p):
                 continue
             elif os.path.exists(p):
@@ -407,7 +411,7 @@ class VCertificate:
             key_password=self.privatekey_passphrase,
             origin="Red Hat Ansible"
         )
-        zone_config = self.conn.read_zone_conf(self.zone)
+        zone_config = self.venafi.connection.read_zone_conf(self.zone)
         request.update_from_zone_config(zone_config)
 
         use_existed_key = False
@@ -445,10 +449,10 @@ class VCertificate:
             self.module.log(msg=str(e))
             pass
 
-        self.conn.request_cert(request, self.zone)
+        self.venafi.connection.request_cert(request, self.zone)
         print(request.csr)
         while True:
-            cert = self.conn.retrieve_cert(request)  # vcert.Certificate
+            cert = self.venafi.connection.retrieve_cert(request)  # vcert.Certificate
             if cert:
                 break
             else:
@@ -482,7 +486,8 @@ class VCertificate:
         if self.module.set_fs_attributes_if_different(file_args, False):
             self.changed = True
 
-    def _check_dns_sans_correct(self, actual, required, optional):
+    @staticmethod
+    def _check_dns_sans_correct(actual, required, optional):
         if len(optional) == 0 and len(actual) != len(required):
             return False
         for i in required:

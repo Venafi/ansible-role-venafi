@@ -1,3 +1,3 @@
-vcert~=0.10.0
-ansible
+vcert>=0.11
+ansible>=3.0
 cryptography
