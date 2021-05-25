@@ -205,8 +205,8 @@ class VPolicyManagement:
         self.changed = False
         self.venafi = Venafi(module)
         self.zone = module.params['zone']
-        self.ps_source = module.params['policy_specification_src_path']
-        self.ps_output = module.params['policy_specification_output_path']
+        self.ps_source = module.params['policy_spec_src_path']
+        self.ps_output = module.params['policy_spec_output_path']
 
     def validate(self):
         """
@@ -559,8 +559,8 @@ class VPolicyManagement:
         """
         result = {
             'changed': self.changed,
-            'policy_specification_src_filename': self.ps_source,
-            'policy_specification_output_filename': self.ps_output,
+            'policy_spec_src_filename': self.ps_source,
+            'policy_spec_output_filename': self.ps_output,
             'zone': self.zone
         }
         return result
@@ -583,8 +583,8 @@ def main():
             trust_bundle=dict(type='str', required=False),
             # Policy Management
             zone=dict(type='str', required=True, default=''),
-            policy_specification_src_path=dict(type='path', required=False),
-            policy_specification_output_path=dict(type='path', required=False),
+            policy_spec_src_path=dict(type='path', required=False),
+            policy_spec_output_path=dict(type='path', required=False),
             # policy_specification_read=dict(type='bool', required=False, default=False),
         ),
         supports_check_mode=True,

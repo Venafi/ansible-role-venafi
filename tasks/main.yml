@@ -9,7 +9,13 @@
     msg: "certificate_remote_execution is {{ certificate_remote_execution }}"
 
 - import_tasks: local-certificate.yml
-  when: not certificate_remote_execution
+  when: not certificate_remote_execution and not is_policy_spec_task
 
 - import_tasks: remote-certificate.yml
-  when: certificate_remote_execution
+  when: certificate_remote_execution and not is_policy_spec_task
+
+- import_tasks: get-policy.yml
+  when: is_policy_spec_task and policy_spec_action == 'get'
+
+- import_tasks: set-policy.yml
+  when: is_policy_spec_task and policy_spec_action == 'set'

@@ -1,0 +1,18 @@
+# Get Policy from Venafi platform
+---
+- name: "Create Policy in Venafi platform"
+  venafi_policy_management:
+    url: "{{ venafi.url | default(omit) }}"
+    token: "{{ venafi.token | default(omit) }}"
+    zone: "{{ venafi.zone | default(omit) }}"
+    test_mode: "{{ venafi.test_mode if venafi.test_mode is defined else 'false' }}"
+    user: "{{ venafi.user | default(omit) }}"
+    password: "{{ venafi.password | default(omit) }}"
+    access_token: "{{ venafi.access_token | default(omit) }}"
+    trust_bundle: "{{ venafi.trust_bundle | default(omit) }}"
+    policy_specification_src_path: "{{ policy_spec_source_path | default(omit) }}"
+    policy_specification_output_path: "{{ policy_spec_output_path | default(omit) }}"
+  register: policy_spec
+- name: "dump newly created policy specification"
+  debug:
+    msg: "{{ policy_spec }}"
