@@ -1,0 +1,11 @@
+---
+- name: "Include vars of {{ credentials_file }} into the venafi variable."
+  include_vars:
+    file: "{{ credentials_file }}"
+    name: venafi
+
+- import_tasks: get-policy.yml
+  when: policy_spec_source_path == ''
+
+- import_tasks: set-policy.yml
+  when: policy_spec_source_path != ''

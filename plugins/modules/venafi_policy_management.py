@@ -18,7 +18,7 @@ import os
 import random
 
 from ansible.module_utils.basic import AnsibleModule
-from venafi_connection import Venafi
+from ansible_collections.venafi.machine_identity.plugins.module_utils.venafi_connection import Venafi
 
 HAS_VCERT = True
 try:

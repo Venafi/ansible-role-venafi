@@ -1,0 +1,5 @@
+---
+credentials_file: credentials.yml
+
+# Directory where the policy specification will be stored after retrieval
+policy_spec_output_path: "etc/ssl/{{ ansible_fqdn }}"

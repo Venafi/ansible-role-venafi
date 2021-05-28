@@ -24,7 +24,7 @@ import random
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils._text import to_bytes, to_text
 
-from venafi_connection import Venafi
+from ansible_collections.venafi.machine_identity.plugins.module_utils.venafi_connection import Venafi
 
 HAS_VCERT = HAS_CRYPTOGRAPHY = True
 try:
