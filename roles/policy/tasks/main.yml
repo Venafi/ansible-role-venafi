@@ -5,7 +5,7 @@
     name: venafi
 
 - import_tasks: get-policy.yml
-  when: policy_spec_source_path == ''
+  when: policy_spec_source_path is not defined
 
 - import_tasks: set-policy.yml
-  when: policy_spec_source_path != ''
+  when: policy_spec_source_path is defined
