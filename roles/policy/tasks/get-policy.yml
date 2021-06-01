@@ -10,7 +10,7 @@
     password: "{{ venafi.password | default(omit) }}"
     access_token: "{{ venafi.access_token | default(omit) }}"
     trust_bundle: "{{ venafi.trust_bundle | default(omit) }}"
-    policy_specification_output_path: "{{ policy_spec_output_path | default(omit) }}"
+    policy_spec_output_path: "{{ policy_spec_output_path | default(omit) }}"
   register: policy_spec
 - name: "dump policy specification"
   debug:
