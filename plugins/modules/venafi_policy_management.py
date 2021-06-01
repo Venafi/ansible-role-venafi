@@ -581,11 +581,10 @@ def main():
             token=dict(type='str', required=False, default='', no_log=True),
             access_token=dict(type='str', required=False, default='', no_log=True),
             trust_bundle=dict(type='str', required=False),
+            zone=dict(type='str', required=True),
             # Policy Management
-            zone=dict(type='str', required=True, default=''),
             policy_spec_src_path=dict(type='path', required=False),
-            policy_spec_output_path=dict(type='path', required=False),
-            # policy_specification_read=dict(type='bool', required=False, default=False),
+            policy_spec_output_path=dict(type='path', required=True),
         ),
         supports_check_mode=True,
         add_file_common_args=True,
