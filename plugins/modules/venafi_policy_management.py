@@ -18,7 +18,10 @@ import os
 import random
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.venafi.machine_identity.plugins.module_utils.venafi_connection import Venafi
+try:
+    from ansible_collections.venafi.machine_identity.plugins.module_utils.venafi_connection import Venafi
+except ImportError:
+    from plugins.module_utils.venafi_connection import Venafi
 
 HAS_VCERT = True
 try:
@@ -196,7 +199,6 @@ V_OPERATION_READ = 'read'
 
 
 class VPolicyManagement:
-
     def __init__(self, module):
         """
         :param AnsibleModule module: The module containing the necessary parameters to perform the operations
@@ -205,7 +207,7 @@ class VPolicyManagement:
         self.changed = False
         self.venafi = Venafi(module)
         self.zone = module.params['zone']
-        self.ps_source = module.params['policy_spec_src_path']
+        self.ps_source = module.params['policy_spec_source_path']
         self.ps_output = module.params['policy_spec_output_path']
 
     def validate(self):
@@ -234,173 +236,191 @@ class VPolicyManagement:
             F_OPERATION: V_OPERATION_CREATE
         }
         msgs = []
-        src_exists = False
-        if os.path.exists(self.ps_source):
-            src_exists = True
 
-        if not os.path.exists(self.ps_output):
+        src_exists = False
+        if self.ps_source:
+            if os.path.exists(self.ps_source):
+                src_exists = True
+            else:
+                # Fails when there is a source specified bu the file doesn't exist.
+                self.module.fail_json(msg="Source Policy Specification defined at [%s] but doesn't exist."
+                                          % self.ps_source)
+
+        if os.path.exists(self.ps_output):
+            if src_exists:
+                # Source PS exists, output PS is the result of a create operation.
+                # Validate all fields in the source PS are the same in the output PS
+                is_changed, changed_msgs = self._check_policy_specification()
+                result[F_CHANGED] = is_changed
+                msgs.extend(changed_msgs)
+            else:
+                # Source PS does not exist. output PS is the result of a read operation.
+                src_ps = self.venafi.connection.get_policy(self.zone)
+                if not src_ps:
+                    self.module.fail_json(msg='Policy %s not found in Venafi platform. Check failed.' % self.zone)
+                out_ps = self._read_policy_spec_file(self.ps_output)
+                is_changed, changed_msgs = self._check_policy_specification(src_ps, out_ps)
+                result[F_CHANGED] = is_changed
+                result[F_OPERATION] = V_OPERATION_READ
+                msgs.extend(changed_msgs)
+        else:
             result = {
                 F_CHANGED: True,
                 F_OUTPUT_FILE_EXISTS: False,
                 F_OPERATION: (V_OPERATION_CREATE if src_exists else V_OPERATION_READ)
             }
             msgs.append('Policy Specification output file does not exist'),
-        else:
-            if src_exists:
-                # Source PS exists, output PS is the result of a create operation.
-                # Validate all fields in the source PS are the same in the output PS
-                is_changed, changed_msgs = self._check_policy_specification()
-                result[F_CHANGED] = is_changed
-                msgs.append(changed_msgs)
-            else:
-                # Source PS does not exist. output PS is the result of a read operation.
-                result[F_OPERATION] = V_OPERATION_READ
 
         result[F_CHANGED_MSG] = ' | '.join(msgs)
         return result
 
-    def _check_policy_specification(self):
+    def _check_policy_specification(self, src_ps=None, out_ps=None):
         """
         Validates that all values present in the source PolicySpecification match with
         the current output PolicySpecification
 
         :rtype: tuple[bool, list[str]]
         """
-        out_ps = self._read_policy_spec_file(self.ps_output)
-        src_ps = self._read_policy_spec_file(self.ps_source)
+        if not src_ps:
+            src_ps = self._read_policy_spec_file(self.ps_source)
+        if not out_ps:
+            out_ps = self._read_policy_spec_file(self.ps_output)
+
         is_changed = False
         msgs = []
         if not self._check_list(out_ps.owners, src_ps.owners):
             is_changed = True
-            msgs.append('')
+            msgs.append('AAA')
         if not self._check_list(out_ps.users, src_ps.users):
             is_changed = True
-            msgs.append('')
+            msgs.append('BBB')
         if not self._check_list(out_ps.approvers, src_ps.approvers):
             is_changed = True
-            msgs.append('')
+            msgs.append('CCC')
         if not self._check_value(out_ps.user_access, src_ps.user_access):
             is_changed = True
-            msgs.append('')
+            msgs.append('DDD')
 
         # Validate all Policy values match
-        if (src_ps.policy is None and out_ps.policy is not None) \
-                or (src_ps.policy is not None and out_ps.policy is None):
+        if (is_empty_object(src_ps.policy) and not is_empty_object(out_ps.policy)) \
+                or (not is_empty_object(src_ps.policy) and is_empty_object(out_ps.policy)):
             is_changed = True
-            msgs.append('')
-        else:
+            msgs.append('EEE')
+        # Only validates when both structures exist
+        elif src_ps.policy is not None and out_ps.policy is not None:
             src_p = src_ps.policy
             out_p = out_ps.policy
             if not self._check_list(out_p.domains, src_p.domains):
                 is_changed = True
-                msgs.append('')
+                msgs.append('FFF')
             for src, out in {(src_p.wildcard_allowed, out_p.wildcard_allowed),
                              (src_p.max_valid_days, out_p.max_valid_days),
                              (src_p.certificate_authority, out_p.certificate_authority),
                              (src_p.auto_installed, out_p.auto_installed)}:
                 if not self._check_value(out, src):
                     is_changed = True
-                    msgs.append('')
+                    msgs.append('GGG')
 
-            if (src_p.subject is None and out_p.subject is not None) \
-                    or (src_p.subject is not None and out_p.subject is None):
+            if (is_empty_object(src_p.subject) and not is_empty_object(out_p.subject)) \
+                    or (not is_empty_object(src_p.subject) and is_empty_object(out_p.subject)):
                 is_changed = True
-                msgs.append('')
-            else:
+                msgs.append('HHH')
+            elif src_p.subject is not None and out_p.subject is not None:
                 src_subject = src_p.subject
                 out_subject = out_p.subject
-                for src, out in {(src_subject.orgs, out_subject.orgs),
+                for src, out in [(src_subject.orgs, out_subject.orgs),
                                  (src_subject.org_units, out_subject.org_units),
                                  (src_subject.localities, out_subject.localities),
                                  (src_subject.states, out_subject.states),
-                                 (src_subject.countries, out_subject.countries)}:
+                                 (src_subject.countries, out_subject.countries)]:
                     if not self._check_list(out, src):
                         is_changed = True
-                        msgs.append('')
+                        msgs.append('III')
 
-            if (src_p.key_pair is None and out_p.key_pair is not None) \
-                    or (src_p.key_pair is not None and out_p.key_pair is None):
+            if (is_empty_object(src_p.key_pair) and not is_empty_object(out_p.key_pair)) \
+                    or (not is_empty_object(src_p.key_pair) and is_empty_object(out_p.key_pair)):
                 is_changed = True
-                msgs.append('')
-            else:
+                msgs.append('KKK')
+            elif src_p.key_pair is not None and out_p.key_pair is not None:
                 src_kp = src_p.key_pair
                 out_kp = out_p.key_pair
-                for src, out in {(src_kp.service_generated, out_kp.service_generated),
-                                 (src_kp.reuse_allowed, out_kp.reuse_allowed)}:
+                for src, out in [(src_kp.service_generated, out_kp.service_generated),
+                                 (src_kp.reuse_allowed, out_kp.reuse_allowed)]:
                     if not self._check_value(out, src):
                         is_changed = True
-                        msgs.append('')
-                for src, out in {(src_kp.key_types, out_kp.key_types),
+                        msgs.append('LLL')
+                for src, out in [(src_kp.key_types, out_kp.key_types),
                                  (src_kp.rsa_key_sizes, out_kp.rsa_key_sizes),
-                                 (src_kp.elliptic_curves, out_kp.elliptic_curves)}:
+                                 (src_kp.elliptic_curves, out_kp.elliptic_curves)]:
                     if not self._check_list(out, src):
                         is_changed = True
-                        msgs.append('')
+                        msgs.append('MMM')
 
-            if (src_p.subject_alt_names is None and out_p.subject_alt_names is not None) \
-                    or (src_p.subject_alt_names is not None and out_p.subject_alt_names is None):
+            if (is_empty_object(src_p.subject_alt_names) and not is_empty_object(out_p.subject_alt_names)) \
+                    or (not is_empty_object(src_p.subject_alt_names) and is_empty_object(out_p.subject_alt_names)):
                 is_changed = True
-                msgs.append('')
-            else:
+                msgs.append('NNN')
+            elif src_p.subject_alt_names is not None and out_p.subject_alt_names is not None:
                 src_sans = src_p.subject_alt_names
                 out_sans = out_p.subject_alt_names
-                for src, out in {(src_sans.dns_allowed, out_sans.dns_allowed),
+                for src, out in [(src_sans.dns_allowed, out_sans.dns_allowed),
                                  (src_sans.email_allowed, out_sans.email_allowed),
                                  (src_sans.ip_allowed, out_sans.ip_allowed),
                                  (src_sans.upn_allowed, out_sans.upn_allowed),
-                                 (src_sans.uri_allowed, out_sans.uri_allowed)}:
+                                 (src_sans.uri_allowed, out_sans.uri_allowed)]:
                     if not self._check_value(out, src):
                         is_changed = True
-                        msgs.append('')
+                        msgs.append('OOO')
 
         # Validate all Default values match
-        if (src_ps.defaults is None and out_ps.defaults is not None)\
-                or (src_ps.defaults is not None and out_ps.defaults is None):
+        if (is_empty_object(src_ps.defaults) and not is_empty_object(out_ps.defaults))\
+                or (not is_empty_object(src_ps.defaults) and is_empty_object(out_ps.defaults)):
             is_changed = True
-            msgs.append('')
-        else:
+            msgs.append('PPP')
+        # Only validates when both structures exist
+        elif src_ps.defaults is not None and out_ps.defaults is not None:
             src_d = src_ps.defaults
             out_d = out_ps.defaults
-            for src, out in {(src_d.domain, out_d.domain),
-                             (src_d.auto_installed, out_d.auto_installed)}:
+            for src, out in [(src_d.domain, out_d.domain),
+                             (src_d.auto_installed, out_d.auto_installed)]:
                 if not self._check_value(out, src):
                     is_changed = True
-                    msgs.append('')
+                    msgs.append('RRR')
 
             # Validate all default subject values match
-            if (src_d.subject is None and out_d.subject is not None) \
-                    or (out_d.subject is not None and out_d.subject is None):
+            if (is_empty_object(src_d.subject) and not is_empty_object(out_d.subject)) \
+                    or (not is_empty_object(out_d.subject) and is_empty_object(out_d.subject)):
                 is_changed = True
-                msgs.append('')
-            else:
+                msgs.append('SSS')
+            elif src_d.subject is not None and out_d.subject is not None:
                 src_ds = src_d.subject
                 out_ds = out_d.subject
                 if not self._check_list(out_ds.org_units, src_ds.org_units):
                     is_changed = True
-                    msgs.append('')
-                for src, out in {(src_ds.org, out_ds.org),
+                    msgs.append('TTT')
+                for src, out in [(src_ds.org, out_ds.org),
                                  (src_ds.locality, out_ds.locality),
                                  (src_ds.state, out_ds.state),
-                                 (src_ds.country, out_ds.country)}:
+                                 (src_ds.country, out_ds.country)]:
                     if not self._check_value(out, src):
                         is_changed = True
-                        msgs.append('')
+                        msgs.append('UUU')
 
             # Validate all default Key Pair values match
-            if (src_d.key_pair is None and out_d.key_pair is not None) \
-                    or (src_d.key_pair is not None and out_d.key_pair is None):
+            if (is_empty_object(src_d.key_pair) and not is_empty_object(out_d.key_pair)) \
+                    or (not is_empty_object(src_d.key_pair) and is_empty_object(out_d.key_pair)):
                 is_changed = True
-                msgs.append('')
-            else:
+                msgs.append('VVV')
+            elif src_d.key_pair is not None and out_d.key_pair is not None:
                 src_dkp = src_d.key_pair
                 out_dkp = out_d.key_pair
-                for src, out in {(src_dkp.elliptic_curve, out_dkp.elliptic_curve),
+                for src, out in [(src_dkp.elliptic_curve, out_dkp.elliptic_curve),
                                  (src_dkp.key_type, out_dkp.key_type),
                                  (src_dkp.rsa_key_size, out_dkp.rsa_key_size),
-                                 (src_dkp.service_generated, out_dkp.service_generated)}:
+                                 (src_dkp.service_generated, out_dkp.service_generated)]:
                     if not self._check_value(out, src):
                         is_changed = True
-                        msgs.append('')
+                        msgs.append('XXX')
 
         return is_changed, msgs
 
@@ -444,7 +464,7 @@ class VPolicyManagement:
         :rtype: PolicySpecification
         """
         parser = self._get_policy_spec_parser(ps_filename)
-        ps = parser.parse(ps_filename) if parser else None
+        ps = parser.parse_file(ps_filename) if parser else None
         if not ps:
             self.module.fail_json(msg='Unknown file. Could not read data from %s' % ps_filename)
 
@@ -461,9 +481,9 @@ class VPolicyManagement:
         :rtype: json_parser or yaml_parser
         """
         path_tuple = os.path.splitext(ps_filename)
-        if path_tuple[1] == 'json':
+        if path_tuple[1] == '.json':
             return json_parser
-        elif path_tuple[1] in ['yaml', 'yml']:
+        elif path_tuple[1] in ('.yaml', '.yml'):
             return yaml_parser
 
         return None
@@ -566,6 +586,38 @@ class VPolicyManagement:
         return result
 
 
+def is_empty_object(obj):
+    """
+
+    :param object obj:  The object to check
+    :return: True if and only if all the object's fields' values are None, empty or equivalent. False otherwise
+    :rtype: bool
+    """
+    if obj is None:
+        return True
+    for k, v in obj.__dict__.items():
+        if v is None:
+            continue
+        if isinstance(v, int):
+            return False
+        elif isinstance(v, str):
+            if v != '':
+                return False
+            else:
+                continue
+        elif isinstance(v, bool):
+            return False
+        elif isinstance(v, list):
+            if len(v) > 0:
+                return False
+            else:
+                continue
+        else:
+            if not is_empty_object(v):
+                return False
+    return True
+
+
 def main():
     module = AnsibleModule(
         # define the available arguments/parameters that a user can pass to
@@ -583,8 +635,8 @@ def main():
             trust_bundle=dict(type='str', required=False),
             zone=dict(type='str', required=True),
             # Policy Management
-            policy_spec_src_path=dict(type='path', required=False),
-            policy_spec_output_path=dict(type='path', required=True),
+            policy_spec_source_path=dict(type='path', required=False, default=''),
+            path=dict(type='path', aliases=['policy_spec_output_path'], required=True)
         ),
         supports_check_mode=True,
         add_file_common_args=True,

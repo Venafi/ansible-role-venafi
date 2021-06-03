@@ -13,8 +13,10 @@ CERT_PATH = "/tmp/cert.pem"
 CHAIN_PATH = "/tmp/chain.pem"
 PRIV_PATH = "/tmp/priv.pem"
 
+
 class Fail(Exception):
     pass
+
 
 class FakeModule(object):
     def __init__(self, asset):
