@@ -1,7 +1,7 @@
 ---
 galaxy_info:
   role_name: certificate_management
-  author: venafi
+  author: Alexander Rykalin (@arykalin)
   description: Certificate management using Venafi platforms.
   company: Venafi, Inc.
 

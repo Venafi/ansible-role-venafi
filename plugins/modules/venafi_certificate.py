@@ -14,33 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-
 from __future__ import absolute_import, print_function, unicode_literals
-import time
-import datetime
-import os.path
-import random
-from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils._text import to_bytes, to_text
 
-try:
-    from ansible_collections.venafi.machine_identity.plugins.module_utils.venafi_connection import Venafi
-except ImportError:
-    from plugins.module_utils.venafi_connection import Venafi
-
-HAS_VCERT = HAS_CRYPTOGRAPHY = True
-try:
-    from vcert import CertificateRequest, Connection, KeyType, venafi_connection
-except ImportError:
-    HAS_VCERT = False
-try:
-    from cryptography import x509
-    from cryptography.hazmat.backends import default_backend
-    from cryptography.x509.oid import NameOID, ExtensionOID
-    from cryptography.hazmat.primitives import serialization, hashes
-except ImportError:
-    HAS_CRYPTOGRAPHY = False
 
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
@@ -50,31 +25,14 @@ ANSIBLE_METADATA = {
 
 DOCUMENTATION = '''
 ---
-module: venafi_certificate_module
-
-short_description: This is Venafi certificate module for working with
-Venafi Cloud or Venafi Trusted Platform
-
+module: venafi_certificate
+short_description: This is the Venafi certificate module for working with 
+Venafi as a Service (VaaS) or Venafi Trusted Protection Platform (TPP)
 version_added: "2.7"
-
 description:
     - This is Venafi certificate module for working with Venafi Cloud or
      Venafi Trust Platform"
-
 options:
-    force:
-        default: False
-        type: bool
-        description:
-            - Generate the certificate, even if it already exists.
-
-    state:
-        default: "present"
-        choices: [ present, absent ]
-        description:
-            - > Whether the certificate should exist or not,
-            taking action if the state is different from what is stated.
-
     renew:
         default: True
         type: bool
@@ -161,10 +119,10 @@ options:
             - | If certificate will expire in less hours than this value
             module will try to renew it.
 extends_documentation_fragment:
-    - files
-
+    - files    
+    - venafi.machine_identity.common_options
 author:
-    - Alexander Rykalin (@arykalin)
+    - Alexander Rykalin (@arykalin) on behalf of Venafi Inc.
 '''
 
 EXAMPLES = '''
@@ -273,6 +231,34 @@ chain_filename:
     type: string
     sample: /etc/ssl/www.venafi.example_chain.pem
 '''
+
+import time
+import datetime
+import os.path
+import random
+from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils._text import to_bytes, to_text
+
+try:
+    from ansible_collections.venafi.machine_identity.plugins.module_utils.common_utils \
+        import get_venafi_connection, venafi_common_argument_spec
+except ImportError:
+    from module_utils.common_utils \
+        import get_venafi_connection, module_common_argument_spec, venafi_common_argument_spec
+
+HAS_VCERT = HAS_CRYPTOGRAPHY = True
+try:
+    from vcert import CertificateRequest, KeyType
+except ImportError:
+    HAS_VCERT = False
+try:
+    from cryptography import x509
+    from cryptography.hazmat.backends import default_backend
+    from cryptography.x509.oid import NameOID, ExtensionOID
+    from cryptography.hazmat.primitives import serialization, hashes
+except ImportError:
+    HAS_CRYPTOGRAPHY = False
+
 # Some strings variables
 STRING_FAILED_TO_CHECK_CERT_VALIDITY = "Certificate is not yet valid, " \
                                        "has expired, or has CN or SANs " \
@@ -288,7 +274,7 @@ class VCertificate:
         """
         :param AnsibleModule module:
         """
-        self.venafi = Venafi(module)
+        self.connection = get_venafi_connection(module)
         self.common_name = module.params['common_name']
 
         self.zone = module.params['zone']
@@ -379,7 +365,7 @@ class VCertificate:
             key_password=self.privatekey_passphrase,
             origin="Red Hat Ansible"
         )
-        zone_config = self.venafi.connection.read_zone_conf(self.zone)
+        zone_config = self.connection.read_zone_conf(self.zone)
         request.update_from_zone_config(zone_config)
 
         use_existed_key = False
@@ -417,10 +403,10 @@ class VCertificate:
             self.module.log(msg=str(e))
             pass
 
-        self.venafi.connection.request_cert(request, self.zone)
+        self.connection.request_cert(request, self.zone)
         print(request.csr)
         while True:
-            cert = self.venafi.connection.retrieve_cert(request)  # vcert.Certificate
+            cert = self.connection.retrieve_cert(request)  # vcert.Certificate
             if cert:
                 break
             else:
@@ -651,48 +637,37 @@ def main():
     # this includes instantiation, a couple of common attr would be the
     # args/params passed to the execution, as well as if the module
     # supports check mode
+    args = module_common_argument_spec()
+    args.update(venafi_common_argument_spec())
+    args.update(
+        # state=dict(type='str', choices=['present', 'absent'], default='present'),
+        # force=dict(type='bool', default=False, ),
+        # Endpoint
+        zone=dict(type='str', required=False, default=''),
+        # log_verbose=dict(type='str', required=False, default=''),
+        # config_file=dict(type='str', required=False, default=''),
+        # config_section=dict(type='str', required=False, default=''),
+        # General properties of a certificate
+        path=dict(type='path', aliases=['cert_path'], require=True),
+        chain_path=dict(type='path', require=False),
+        privatekey_path=dict(type='path', required=False),
+        privatekey_type=dict(type='str', required=False),
+        privatekey_size=dict(type='int', required=False),
+        privatekey_curve=dict(type='str', required=False),
+        privatekey_passphrase=dict(type='str', no_log=True),
+        privatekey_reuse=dict(type='bool', required=False, default=True),
+        alt_name=dict(type='list', aliases=['subjectAltName'], elements='str'),
+        common_name=dict(aliases=['CN', 'commonName', 'common_name'], type='str', required=True),
+        chain_option=dict(type='str', required=False, default='last'),
+        csr_path=dict(type='path', require=False),
+        # Role config
+        before_expired_hours=dict(type='int', required=False, default=72),
+        renew=dict(type='bool', required=False, default=True)
+    )
     module = AnsibleModule(
         # define the available arguments/parameters that a user can pass to
         # the module
-        argument_spec=dict(
-            state=dict(type='str', choices=['present', 'absent'],
-                       default='present'),
-            force=dict(type='bool', default=False, ),
-
-            # Endpoint
-            test_mode=dict(type='bool', required=False, default=False),
-            url=dict(type='str', required=False, default=''),
-            password=dict(type='str', required=False, default='', no_log=True),
-            token=dict(type='str', required=False, default='', no_log=True),
-            access_token=dict(type='str', required=False,
-                              default='', no_log=True),
-            user=dict(type='str', required=False, default='', no_log=True),
-            zone=dict(type='str', required=False, default=''),
-            log_verbose=dict(type='str', required=False, default=''),
-            config_file=dict(type='str', required=False, default=''),
-            config_section=dict(type='str', required=False, default=''),
-            trust_bundle=dict(type='str', required=False),
-
-            # General properties of a certificate
-            path=dict(type='path', aliases=['cert_path'], require=True),
-            chain_path=dict(type='path', require=False),
-            privatekey_path=dict(type='path', required=False),
-            privatekey_type=dict(type='str', required=False),
-            privatekey_size=dict(type='int', required=False),
-            privatekey_curve=dict(type='str', required=False),
-            privatekey_passphrase=dict(type='str', no_log=True),
-            privatekey_reuse=dict(type='bool', required=False, default=True),
-            alt_name=dict(type='list', aliases=['subjectAltName'],
-                          elements='str'),
-            common_name=dict(aliases=['CN', 'commonName', 'common_name'],
-                             type='str', required=True),
-            chain_option=dict(type='str', required=False, default='last'),
-            csr_path=dict(type='path', require=False),
-
-            # Role config
-            before_expired_hours=dict(type='int', required=False, default=72),
-            renew=dict(type='bool', required=False, default=True)
-        ),
+        argument_spec=args,
         supports_check_mode=True,
         add_file_common_args=True,
     )

@@ -20,7 +20,7 @@ from pprint import pprint
 
 from vcert.parser import json_parser
 
-from plugins.modules.venafi_policy_management import VPolicyManagement
+from plugins.modules.venafi_policy import VPolicyManagement
 from test_utils import FakeModule, FAKE, TPP_ACCESS_TOKEN, TPP_TOKEN_URL, CLOUD_URL, CLOUD_APIKEY, CLOUD_ZONE
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
