@@ -241,7 +241,7 @@ from ansible.module_utils._text import to_bytes, to_text
 
 try:
     from ansible_collections.venafi.machine_identity.plugins.module_utils.common_utils \
-        import get_venafi_connection, venafi_common_argument_spec
+        import get_venafi_connection, module_common_argument_spec, venafi_common_argument_spec
 except ImportError:
     from module_utils.common_utils \
         import get_venafi_connection, module_common_argument_spec, venafi_common_argument_spec
@@ -640,13 +640,8 @@ def main():
     args = module_common_argument_spec()
     args.update(venafi_common_argument_spec())
     args.update(
-        # state=dict(type='str', choices=['present', 'absent'], default='present'),
-        # force=dict(type='bool', default=False, ),
         # Endpoint
         zone=dict(type='str', required=False, default=''),
-        # log_verbose=dict(type='str', required=False, default=''),
-        # config_file=dict(type='str', required=False, default=''),
-        # config_section=dict(type='str', required=False, default=''),
         # General properties of a certificate
         path=dict(type='path', aliases=['cert_path'], require=True),
         chain_path=dict(type='path', require=False),
@@ -665,8 +660,7 @@ def main():
         renew=dict(type='bool', required=False, default=True)
     )
     module = AnsibleModule(
-        # define the available arguments/parameters that a user can pass to
-        # the module
+        # define the available arguments/parameters that a user can pass to the module
         argument_spec=args,
         supports_check_mode=True,
         add_file_common_args=True,
