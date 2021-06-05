@@ -6,6 +6,8 @@
 
 - name: "Create Policy on Venafi platform"
   venafi_policy:
+    state: "{{ state | default(omit) }}"
+    force: "{{ force | default(omit) }}"
     url: "{{ venafi.url | default(omit) }}"
     token: "{{ venafi.token | default(omit) }}"
     test_mode: "{{ venafi.test_mode if venafi.test_mode is defined else 'false' }}"

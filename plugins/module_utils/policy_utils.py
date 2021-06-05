@@ -14,19 +14,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from vcert.parser import FIELD_OWNERS, FIELD_APPROVERS, FIELD_USER_ACCESS, FIELD_DOMAINS, FIELD_POLICY, \
+    FIELD_WILDCARD_ALLOWED, FIELD_MAX_VALID_DAYS, FIELD_CERTIFICATE_AUTHORITY, FIELD_AUTOINSTALLED, FIELD_SUBJECT, \
+    FIELD_ORGS, FIELD_ORG_UNITS, FIELD_LOCALITIES, FIELD_STATES, FIELD_COUNTRIES, FIELD_KEY_PAIR, \
+    FIELD_SERVICE_GENERATED, FIELD_REUSE_ALLOWED, FIELD_RSA_KEY_SIZES, FIELD_ELLIPTIC_CURVES, FIELD_KEY_TYPES, \
+    FIELD_SUBJECT_ALT_NAMES, FIELD_DNS_ALLOWED, FIELD_EMAIL_ALLOWED, FIELD_IP_ALLOWED, FIELD_UPN_ALLOWED, \
+    FIELD_URI_ALLOWED, FIELD_DEFAULTS, FIELD_DEFAULT_DOMAIN, FIELD_DEFAULT_AUTOINSTALLED, FIELD_DEFAULT_SUBJECT, \
+    FIELD_DEFAULT_ORG, FIELD_DEFAULT_LOCALITY, FIELD_DEFAULT_STATE, FIELD_DEFAULT_COUNTRY, FIELD_DEFAULT_KEY_PAIR, \
+    FIELD_DEFAULT_ELLIPTIC_CURVE, FIELD_DEFAULT_RSA_KEY_SIZE, FIELD_DEFAULT_SERVICE_GENERATED, FIELD_DEFAULT_KEY_TYPE, \
+    FIELD_USERS
 from vcert.policy import PolicySpecification
 
-ERR_MSG = 'Fields do not match. Local: %s. Remote: %s.'
-EMPTY_MSG = '%s structure is empty on %s but exists on %s.'
+ERR_MSG = '%s changed. Local: %s Remote: %s'
+EMPTY_MSG = '%s structure is empty on %s but exists on %s'
 LOCAL = 'Local'
 REMOTE = 'Remote'
 
 
-def _get_err_msg(local, remote):
+def _get_err_msg(name, local, remote):
     if isinstance(local, list):
-        return ERR_MSG % (','.join(local), ','.join(remote))
+        local_str = ''
+        remote_str = ''
+        for x in local:
+            local_str += x.__str__() + ','
+        for y in remote:
+            remote_str += y.__str__() + ','
+        local_str = '[%s]' % local_str[:len(local_str)-1]
+        remote_str = '[%s]' % remote_str[:len(remote_str)-1]
+        return ERR_MSG % (name, local_str, remote_str)
     else:
-        return ERR_MSG % (local, remote)
+        return ERR_MSG % (name, local, remote)
 
 
 def _get_empty_msg(name, empty_type):
@@ -53,157 +70,172 @@ def check_policy_specification(local_ps, remote_ps):
     """
     is_changed = False
     msgs = []
-    if not _check_list(remote_ps.owners, local_ps.owners):
-        is_changed = True
-        msgs.append(_get_err_msg(local_ps.owners, remote_ps.owners))
-    if not _check_list(remote_ps.users, local_ps.users):
-        is_changed = True
-        msgs.append(_get_err_msg(local_ps.users, remote_ps.users))
-    if not _check_list(remote_ps.approvers, local_ps.approvers):
-        is_changed = True
-        msgs.append(_get_err_msg(local_ps.approvers, remote_ps.approvers))
-    if not _check_value(remote_ps.user_access, local_ps.user_access):
-        is_changed = True
-        msgs.append(_get_err_msg(local_ps.user_access, remote_ps.user_access))
+
+    list_fields = []
+    value_fields = []
+
+    list_fields.append((FIELD_OWNERS, remote_ps.owners, local_ps.owners))
+    list_fields.append((FIELD_USERS, remote_ps.users, local_ps.users))
+    list_fields.append((FIELD_APPROVERS, remote_ps.approvers, local_ps.approvers))
+
+    value_fields.append((FIELD_USER_ACCESS, remote_ps.user_access, local_ps.user_access))
 
     # Validating Policy
-    if _is_empty_object(local_ps.policy) and not _is_empty_object(remote_ps.policy):
+    empty_local_p = _is_empty_object(local_ps.policy)
+    empty_remote_p = _is_empty_object(remote_ps.policy)
+    if empty_local_p and not empty_remote_p:
         is_changed = True
         msgs.append(_get_empty_msg('Policy', LOCAL))
-    elif not _is_empty_object(local_ps.policy) and _is_empty_object(remote_ps.policy):
+    elif not empty_local_p and empty_remote_p:
         is_changed = True
         msgs.append(_get_empty_msg('Policy', REMOTE))
-    else:
+    elif not empty_local_p and not empty_remote_p:
         local_p = local_ps.policy
         remote_p = remote_ps.policy
-        if not _check_list(remote_p.domains, local_p.domains):
-            is_changed = True
-            msgs.append('FFF')
-        for src, out in {(local_p.wildcard_allowed, remote_p.wildcard_allowed),
-                         (local_p.max_valid_days, remote_p.max_valid_days),
-                         (local_p.certificate_authority, remote_p.certificate_authority),
-                         (local_p.auto_installed, remote_p.auto_installed)}:
-            if not _check_value(out, src):
-                is_changed = True
-                msgs.append('GGG')
+        p = '%s.' % FIELD_POLICY
+
+        list_fields.append((p+FIELD_DOMAINS, remote_p.domains, local_p.domains))
+
+        value_fields.append((p+FIELD_WILDCARD_ALLOWED, local_p.wildcard_allowed, remote_p.wildcard_allowed))
+        value_fields.append((p+FIELD_MAX_VALID_DAYS, local_p.max_valid_days, remote_p.max_valid_days))
+        value_fields.append((p+FIELD_CERTIFICATE_AUTHORITY, local_p.certificate_authority,
+                             remote_p.certificate_authority))
+        value_fields.append((p+FIELD_AUTOINSTALLED, local_p.auto_installed, remote_p.auto_installed))
 
         # Validating Policy.Subject
-        if _is_empty_object(local_p.subject) and not _is_empty_object(remote_p.subject):
+        empty_local_subject = _is_empty_object(local_p.subject)
+        empty_remote_subject = _is_empty_object(remote_p.subject)
+        if empty_local_subject and not empty_remote_subject:
             is_changed = True
             msgs.append(_get_empty_msg('Policy.Subject', LOCAL))
-        elif not _is_empty_object(local_p.subject) and _is_empty_object(remote_p.subject):
+        elif not empty_local_subject and empty_remote_subject:
             is_changed = True
             msgs.append(_get_empty_msg('Policy.Subject', REMOTE))
-        else:
+        elif not empty_local_subject and not empty_remote_subject:
             local_subject = local_p.subject
             remote_subject = remote_p.subject
-            for src, out in [(local_subject.orgs, remote_subject.orgs),
-                             (local_subject.org_units, remote_subject.org_units),
-                             (local_subject.localities, remote_subject.localities),
-                             (local_subject.states, remote_subject.states),
-                             (local_subject.countries, remote_subject.countries)]:
-                if not _check_list(out, src):
-                    is_changed = True
-                    msgs.append('III')
+            p = '%s.%s.' % (FIELD_POLICY, FIELD_SUBJECT)
+
+            list_fields.append((p+FIELD_ORGS, local_subject.orgs, remote_subject.orgs))
+            list_fields.append((p+FIELD_ORG_UNITS, local_subject.org_units, remote_subject.org_units))
+            list_fields.append((p+FIELD_LOCALITIES, local_subject.localities, remote_subject.localities))
+            list_fields.append((p+FIELD_STATES, local_subject.states, remote_subject.states))
+            list_fields.append((p+FIELD_COUNTRIES, local_subject.countries, remote_subject.countries))
 
         # Validating Policy.KeyPair
-        if _is_empty_object(local_p.key_pair) and not _is_empty_object(remote_p.key_pair):
+        empty_local_kp = _is_empty_object(local_p.key_pair)
+        empty_remote_kp = _is_empty_object(remote_p.key_pair)
+        if empty_local_kp and not empty_remote_kp:
             is_changed = True
             msgs.append(_get_empty_msg('Policy.KeyPair', LOCAL))
-        elif not _is_empty_object(local_p.key_pair) and _is_empty_object(remote_p.key_pair):
+        elif not empty_local_kp and empty_remote_kp:
             is_changed = True
             msgs.append(_get_empty_msg('Policy.KeyPair', REMOTE))
-        else:
+        elif not empty_local_kp and not empty_remote_kp:
             local_kp = local_p.key_pair
             remote_kp = remote_p.key_pair
-            for src, out in [(local_kp.service_generated, remote_kp.service_generated),
-                             (local_kp.reuse_allowed, remote_kp.reuse_allowed)]:
-                if not _check_value(out, src):
-                    is_changed = True
-                    msgs.append('LLL')
-            # if not _check_key_types(out_kp.key_types, local_kp.key_types):
-            #     is_changed = True
-            #     msgs.append('M2M2M2')
-            for src, out in [(local_kp.key_types, remote_kp.key_types),
-                             (local_kp.rsa_key_sizes, remote_kp.rsa_key_sizes),
-                             (local_kp.elliptic_curves, remote_kp.elliptic_curves)]:
-                if not _check_list(out, src):
-                    is_changed = True
-                    msgs.append(_get_err_msg(src, out))
+            p = '%s.%s.' % (FIELD_POLICY, FIELD_KEY_PAIR)
+
+            value_fields.append((p+FIELD_SERVICE_GENERATED, local_kp.service_generated, remote_kp.service_generated))
+            value_fields.append((p+FIELD_REUSE_ALLOWED, local_kp.reuse_allowed, remote_kp.reuse_allowed))
+
+            list_fields.append((p+FIELD_RSA_KEY_SIZES, local_kp.rsa_key_sizes, remote_kp.rsa_key_sizes))
+            list_fields.append((p+FIELD_ELLIPTIC_CURVES, local_kp.elliptic_curves, remote_kp.elliptic_curves))
+
+            if not _check_key_types(remote_kp.key_types, local_kp.key_types):
+                is_changed = True
+                msgs.append(_get_err_msg(p+FIELD_KEY_TYPES, local_kp.key_types, remote_kp.key_types))
 
         # Validating Policy.SubjectAltNames
-        if _is_empty_object(local_p.subject_alt_names) and not _is_empty_object(remote_p.subject_alt_names):
+        empty_local_sans = _is_empty_object(local_p.subject_alt_names)
+        empty_remote_sans = _is_empty_object(remote_p.subject_alt_names)
+        if empty_local_sans and not empty_remote_sans:
             is_changed = True
             msgs.append(_get_empty_msg('Policy.SubjectAltNames', LOCAL))
-        elif not _is_empty_object(local_p.subject_alt_names) and _is_empty_object(remote_p.subject_alt_names):
+        elif not empty_local_sans and empty_remote_sans:
             is_changed = True
             msgs.append(_get_empty_msg('Policy.SubjectAltNames', REMOTE))
-        else:
+        elif not empty_local_sans and not empty_remote_sans:
             local_sans = local_p.subject_alt_names
             remote_sans = remote_p.subject_alt_names
-            for src, out in [(local_sans.dns_allowed, remote_sans.dns_allowed),
-                             (local_sans.email_allowed, remote_sans.email_allowed),
-                             (local_sans.ip_allowed, remote_sans.ip_allowed),
-                             (local_sans.upn_allowed, remote_sans.upn_allowed),
-                             (local_sans.uri_allowed, remote_sans.uri_allowed)]:
-                if not _check_value(out, src):
-                    is_changed = True
-                    msgs.append('OOO')
+            p = '%s.%s.' % (FIELD_POLICY, FIELD_SUBJECT_ALT_NAMES)
+
+            value_fields.append((p+FIELD_DNS_ALLOWED, local_sans.dns_allowed, remote_sans.dns_allowed))
+            value_fields.append((p+FIELD_EMAIL_ALLOWED, local_sans.email_allowed, remote_sans.email_allowed))
+            value_fields.append((p+FIELD_IP_ALLOWED, local_sans.ip_allowed, remote_sans.ip_allowed))
+            value_fields.append((p+FIELD_UPN_ALLOWED, local_sans.upn_allowed, remote_sans.upn_allowed))
+            value_fields.append((p+FIELD_URI_ALLOWED, local_sans.uri_allowed, remote_sans.uri_allowed))
 
     # Validating Defaults
-    if _is_empty_object(local_ps.defaults) and not _is_empty_object(remote_ps.defaults):
+    empty_local_d = _is_empty_object(local_ps.defaults)
+    empty_remote_d = _is_empty_object(remote_ps.defaults)
+    if empty_local_d and not empty_remote_d:
         is_changed = True
         msgs.append(_get_empty_msg('Defaults', LOCAL))
-    elif not _is_empty_object(local_ps.defaults) and _is_empty_object(remote_ps.defaults):
+    elif not empty_local_d and empty_remote_d:
         is_changed = True
         msgs.append(_get_empty_msg('Defaults', REMOTE))
-    else:
+    elif not empty_local_d and not empty_remote_d:
         local_d = local_ps.defaults
         remote_d = remote_ps.defaults
-        for src, out in [(local_d.domain, remote_d.domain),
-                         (local_d.auto_installed, remote_d.auto_installed)]:
-            if not _check_value(out, src):
-                is_changed = True
-                msgs.append('RRR')
+        p = '%s.' % FIELD_DEFAULTS
+
+        value_fields.append((p+FIELD_DEFAULT_DOMAIN, local_d.domain, remote_d.domain))
+        value_fields.append((p+FIELD_DEFAULT_AUTOINSTALLED, local_d.auto_installed, remote_d.auto_installed))
 
         # Validating Defaults.DefaultSubject
-        if _is_empty_object(local_d.subject) and not _is_empty_object(remote_d.subject):
+        empty_local_ds = _is_empty_object(local_d.subject)
+        empty_remote_ds = _is_empty_object(remote_d.subject)
+        if empty_local_ds and not empty_remote_ds:
             is_changed = True
             msgs.append(_get_empty_msg('Defaults.DefaultSubject', LOCAL))
-        elif not _is_empty_object(remote_d.subject) and _is_empty_object(remote_d.subject):
+        elif not empty_local_ds and empty_remote_ds:
             is_changed = True
             msgs.append(msgs.append('Defaults.DefaultSubject', REMOTE))
-        else:
+        elif not empty_local_ds and not empty_remote_ds:
             local_ds = local_d.subject
             remote_ds = remote_d.subject
-            if not _check_list(remote_ds.org_units, local_ds.org_units):
-                is_changed = True
-                msgs.append('TTT')
-            for src, out in [(local_ds.org, remote_ds.org),
-                             (local_ds.locality, remote_ds.locality),
-                             (local_ds.state, remote_ds.state),
-                             (local_ds.country, remote_ds.country)]:
-                if not _check_value(out, src):
-                    is_changed = True
-                    msgs.append('UUU')
+            p = '%s.%s.' % (FIELD_DEFAULTS, FIELD_DEFAULT_SUBJECT)
+
+            list_fields.append((remote_ds.org_units, local_ds.org_units))
+
+            value_fields.append((p+FIELD_DEFAULT_ORG, local_ds.org, remote_ds.org))
+            value_fields.append((p+FIELD_DEFAULT_LOCALITY, local_ds.locality, remote_ds.locality))
+            value_fields.append((p+FIELD_DEFAULT_STATE, local_ds.state, remote_ds.state))
+            value_fields.append((p+FIELD_DEFAULT_COUNTRY, local_ds.country, remote_ds.country))
 
         # Validating Defaults.DefaultKeyPair
-        if _is_empty_object(local_d.key_pair) and not _is_empty_object(remote_d.key_pair):
+        empty_local_dkp = _is_empty_object(local_d.key_pair)
+        empty_remote_dkp = _is_empty_object(remote_d.key_pair)
+        if empty_local_dkp and not empty_remote_dkp:
             is_changed = True
             msgs.append(_get_empty_msg('Defaults.DefaultKeyPair', LOCAL))
-        elif not _is_empty_object(local_d.key_pair) and _is_empty_object(remote_d.key_pair):
+        elif not empty_local_dkp and empty_remote_dkp:
             is_changed = True
             msgs.append(_get_empty_msg('Defaults.DefaultKeyPair', REMOTE))
-        else:
-            src_dkp = local_d.key_pair
-            out_dkp = remote_d.key_pair
-            for src, out in [(src_dkp.elliptic_curve, out_dkp.elliptic_curve),
-                             (src_dkp.key_type, out_dkp.key_type),
-                             (src_dkp.rsa_key_size, out_dkp.rsa_key_size),
-                             (src_dkp.service_generated, out_dkp.service_generated)]:
-                if not _check_value(out, src):
-                    is_changed = True
-                    msgs.append('XXX')
+        elif not empty_local_dkp and not empty_remote_dkp:
+            local_dkp = local_d.key_pair
+            remote_dkp = remote_d.key_pair
+            p = '%s.%s.' % (FIELD_DEFAULTS, FIELD_DEFAULT_KEY_PAIR)
+
+            value_fields.append((p+FIELD_DEFAULT_ELLIPTIC_CURVE, local_dkp.elliptic_curve, remote_dkp.elliptic_curve))
+            value_fields.append((p+FIELD_DEFAULT_RSA_KEY_SIZE, local_dkp.rsa_key_size, remote_dkp.rsa_key_size))
+            value_fields.append((p+FIELD_DEFAULT_SERVICE_GENERATED, local_dkp.service_generated,
+                                 remote_dkp.service_generated))
+
+            if local_dkp.key_type.upper() != remote_dkp.key_type.upper():
+                is_changed = True
+                msgs.append(_get_err_msg(p+FIELD_DEFAULT_KEY_TYPE, local_dkp.key_type, remote_dkp.key_type))
+
+    for name, local, remote in list_fields:
+        if not _check_list(remote, local):
+            is_changed = True
+            msgs.append(_get_err_msg(name, local, remote))
+
+    for name, local, remote in value_fields:
+        if not _check_value(remote, local):
+            is_changed = True
+            msgs.append(_get_err_msg(name, local, remote))
 
     return is_changed, msgs
 

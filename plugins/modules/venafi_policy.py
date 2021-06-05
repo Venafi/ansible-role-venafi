@@ -104,8 +104,9 @@ F_STATE = 'state'
 F_FORCE = 'force'
 F_ZONE = 'zone'
 F_PS_PATH = 'policy_spec_path'
-F_POLICY_CREATED = 'policy_created'
-F_POLICY_DELETED = 'policy_deleted'
+F_POLICY_CREATED = 'created'
+F_POLICY_UPDATED = 'updated'
+F_POLICY_DELETED = 'deleted'
 
 
 class VPolicyManagement:
@@ -143,6 +144,7 @@ class VPolicyManagement:
         result = {
             F_CHANGED: False,
             F_POLICY_CREATED: '',
+            F_POLICY_UPDATED: '',
             F_POLICY_DELETED: ''
         }
         msgs = []
@@ -161,17 +163,26 @@ class VPolicyManagement:
                 changed, new_msgs = check_policy_specification(local_ps, remote_ps)
                 if changed:
                     result[F_CHANGED] = True
-                    result[F_POLICY_CREATED] = self.zone
+                    result[F_POLICY_UPDATED] = self.zone
                     msgs.extend(new_msgs)
+                    msgs.append('Changes detected in local file %s. Updating policy %s on Venafi platform'
+                                % (self.local_ps, self.zone))
+                else:
+                    msgs.append('No changes detected in local file %s. No action required' % self.local_ps)
             else:
                 # Policy does not exist in Venafi platform, must be created.
                 result[F_CHANGED] = True
                 result[F_POLICY_CREATED] = self.zone
+                msgs.append('Creating policy %s on Venafi platform' % self.zone)
         elif self.state == 'absent':
             if remote_ps:
                 # Policy already exists in Venafi platform, must be deleted.
                 result[F_CHANGED] = True
                 result[F_POLICY_DELETED] = self.zone
+                msgs.append('Deleting %s policy from Venafi platform' % self.zone)
+            else:
+                # Policy does not exist on Venafi platform, no action required.
+                msgs.append('Policy %s is absent on Venafi platform. No action required' % self.zone)
 
         result[F_CHANGED_MSGS] = ' | '.join(msgs)
         return result
@@ -199,9 +210,9 @@ class VPolicyManagement:
         :rtype: bool
         """
         if not self.local_ps:
-            self.module.fail_json(msg='%s field not defined.' % F_PS_PATH)
+            self.module.fail_json(msg='%s field not defined' % F_PS_PATH)
         if not os.path.exists(self.local_ps):
-            self.module.fail_json(msg="File at %s does not exist." % self.local_ps)
+            self.module.fail_json(msg="File at %s does not exist" % self.local_ps)
         return True
 
     def set_policy(self):
@@ -218,7 +229,14 @@ class VPolicyManagement:
             except Exception as e:
                 self.module.fail_json('Failed to set policy at %s. Error: %s' % (self.zone, to_native(e)))
         else:
-            self.module.fail_json(msg='Could not get a parser for the file %s. Unknown extension.' % self.local_ps)
+            self.module.fail_json(msg='Could not get a parser for the file %s. Unknown extension' % self.local_ps)
+
+    def delete_policy(self):
+        """
+        Deletes the given policy on the Venafi platform
+        :return: Nothing
+        """
+        self.module.fail_json(msg='Delete policy operation not supported by vcert python library')
 
 
 def _get_policy_spec_parser(ps_filename):
@@ -244,8 +262,6 @@ def main():
     args = module_common_argument_spec()
     args.update(venafi_common_argument_spec())
     args.update(
-        # state=dict(type='str', choices=['present', 'absent'], default='present'),
-        # force=dict(type='bool', default=False),
         # Policy Management
         zone=dict(type='str', required=True),
         path=dict(type='path', aliases=['policy_spec_path'])
@@ -270,8 +286,7 @@ def main():
         vcert.set_policy()
     elif vcert.state == 'absent' and (check_result[F_CHANGED] or vcert.force):
         # TODO create delete_policy() method. Not yet available on vcert python library
-        # vcert.delete_policy()
-        pass
+        vcert.delete_policy()
 
     vcert.validate()
     module.exit_json(**check_result)
