@@ -1,7 +1,7 @@
 ---
 galaxy_info:
   author: Russel Vela (@rvelaVenafi)
-  description: Policy management (policies, certificate issuing templates) using Venafi platforms.
+  description: Policy management (policies, certificate issuing templates) using Venafi solutions.
   company: Venafi, Inc.
 
   license: Apache License 2.0

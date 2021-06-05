@@ -5,7 +5,7 @@
     name: venafi
 
 - name: "Create Policy on Venafi platform"
-  venafi_policy:
+  community.venafi.venafi_policy:
     state: "{{ state | default(omit) }}"
     force: "{{ force | default(omit) }}"
     url: "{{ venafi.url | default(omit) }}"

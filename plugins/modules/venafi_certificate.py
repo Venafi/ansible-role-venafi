@@ -120,7 +120,7 @@ options:
             module will try to renew it.
 extends_documentation_fragment:
     - files    
-    - venafi.machine_identity.common_options
+    - community.venafi.common_options
 author:
     - Alexander Rykalin (@arykalin) on behalf of Venafi Inc.
 '''
@@ -236,11 +236,11 @@ import time
 import datetime
 import os.path
 import random
+
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils._text import to_bytes, to_text
-
 try:
-    from ansible_collections.venafi.machine_identity.plugins.module_utils.common_utils \
+    from ansible_collections.community.venafi.plugins.module_utils.common_utils \
         import get_venafi_connection, module_common_argument_spec, venafi_common_argument_spec
 except ImportError:
     from module_utils.common_utils \

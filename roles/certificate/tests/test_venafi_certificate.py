@@ -2,7 +2,7 @@ import unittest
 import shutil
 import os
 from collections import namedtuple, defaultdict
-from library.venafi_certificate import VCertificate
+from modules.venafi_certificate import VCertificate
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -66,35 +66,39 @@ def create_testfiles(asset):
 
 TEST_ASSETS = [
     # TODO check error message, not just valid\invalid
-    #simple valid
+    # simple valid
     testAsset(is_valid=True,  cert="valid_rsa2048_cert.pem", chain="valid_rsa2048_chain.pem",
               private_key="valid_rsa2048_key.pem", password=None, common_name="test111.venafi.example.com",
-              alt_name=None,id=1),
-    #another cn
+              alt_name=None, id=1),
+    # another cn
     testAsset(is_valid=False, cert="valid_rsa2048_cert.pem", chain="valid_rsa2048_chain.pem",
-              private_key="valid_rsa2048_key.pem", password=None, common_name="test1111.venafi.example.com", alt_name=None,id=2),
-    #corrupted file
+              private_key="valid_rsa2048_key.pem", password=None, common_name="test1111.venafi.example.com",
+              alt_name=None, id=2),
+    # corrupted file
     testAsset(is_valid=False, cert="invalid_cert.pem", chain="valid_rsa2048_chain.pem",
-              private_key="valid_rsa2048_key.pem", password=None, common_name="test111.venafi.example.com", alt_name=None,id=3),
-    #unmactched cn
+              private_key="valid_rsa2048_key.pem", password=None, common_name="test111.venafi.example.com",
+              alt_name=None, id=3),
+    # unmatched cn
     testAsset(is_valid=False, cert="invalid_cn_rsa2048_cert.pem", chain="valid_rsa2048_chain.pem",
-              private_key="valid_rsa2048_key.pem", password=None, common_name="test111.venafi.example.com", alt_name=None,id=4),
+              private_key="valid_rsa2048_key.pem", password=None, common_name="test111.venafi.example.com",
+              alt_name=None, id=4),
     # unmatched key type
     testAsset(is_valid=False, cert="valid_rsa2048_cert.pem", chain="valid_rsa2048_chain.pem",
-              private_key="valid_ec_key.pem", password=None, common_name="test1111.venafi.example.com", alt_name=None,id=5),
-    #valid with dns
+              private_key="valid_ec_key.pem", password=None, common_name="test1111.venafi.example.com",
+              alt_name=None, id=5),
+    # valid with dns
     testAsset(is_valid=True, cert="valid_alt_rsa2048_cert.pem", chain="valid_rsa2048_chain.pem",
               private_key="valid_alt_rsa2048_key.pem", password=None, common_name="test123.venafi.example.com",
               alt_name="IP:192.168.1.1,DNS:www.venafi.example.com,DNS:m.venafi.example.com,email:e@venafi.com,"
-                       "email:e2@venafi.com,IP Address:192.168.2.2",id=6),
-    #invalid with dns
+                       "email:e2@venafi.com,IP Address:192.168.2.2", id=6),
+    # invalid with dns
     testAsset(is_valid=False, cert="valid_alt_rsa2048_cert.pem", chain="valid_rsa2048_chain.pem",
               private_key="valid_alt_rsa2048_key.pem", password=None, common_name="test123.venafi.example.com",
               alt_name="IP:192.168.1.1,DNS:www.venafi.example.com,DNS:m.venafi.example.com,email:e@venafi.com,"
-                       "email:e2@venafi.com",id=7),
-    #expired
+                       "email:e2@venafi.com", id=7),
+    # expired
     testAsset(is_valid=False, cert="invalid_date_rsa2048_cert.pem", chain="valid_rsa2048_chain.pem",
               private_key="valid_rsa2048_key.pem", password=None, common_name="test123.venafi.example.com",
-              alt_name=None,id=8)
+              alt_name=None, id=8)
 ]
 
