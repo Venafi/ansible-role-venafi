@@ -1,26 +1,34 @@
 pep8:
-	pycodestyle --first ./library/venafi_certificate.py
+	# Ansible galaxy requires that the doc strings are at the top of the file.
+	# E402 is the error for imports not being at top. Ignoring per ansible requirement.
+	# Max line length set to 120 as it is PyCharm default (current IDE)
+	pycodestyle --first --max-line-length=120 --ignore=E402 ./plugins
 
 yamllint:
-	yamllint `git ls-files *.yml | grep -v ISSUE_TEMPLATE`
+	yamllint `git ls-files '*.yml' | grep -v ISSUE_TEMPLATE`
 
 lint: yamllint pep8
-	ansible-lint -x 106,204,504 ./tasks/*
-	ansible-lint ./meta/*
-	ansible-lint ./defaults/*
+	# Certificate role
+	ansible-lint -x 106,204,504 ./roles/certificate/tasks/*
+	ansible-lint ./roles/certificate/meta/*
+	ansible-lint ./roles/certificate/defaults/*
+	# Policy role
+	ansible-lint -x 106,204,504 ./roles/policy/tasks/*
+	ansible-lint ./roles/policy/meta/*
+	ansible-lint ./roles/policy/defaults/*
 
 ansible-molecule:
-	docker build ./tests --tag local-ansible-test
+	docker build ./certificate/ --tag local-ansible-test
 	ANSIBLE_VAULT_PASSWORD_FILE=${PWD}/vault-password.txt molecule converge
 
-#Testing ansible crypto modules for examples and compability checks
+# Testing ansible crypto modules for examples and compability checks
 test-crypto-playbook:
-	ansible-playbook -i tests/inventory tests/original-ansible-crypto-playbook-example.yml
+	ansible-playbook -i tests/certificate/inventory tests/certificate/original-ansible-crypto-playbook-example.yml
 
-#test Ansible playbook with venafi certificate module
+# Test Ansible playbook with venafi certificate module
 
 test-vcert-playbook-tpp:
-#	#have to copy library to test our module, otherwise test playbook will not
+	# Have to copy library to test our module, otherwise test playbook will not
 	docker build ./tests --tag local-ansible-test
 	rm -rvf tests/library
 	cp -rv library tests/
@@ -28,9 +36,9 @@ test-vcert-playbook-tpp:
 	--vault-password-file vault-password.txt \
 	--extra-vars "credentials_file=../tpp_credentials.yml docker_demo=true"
 
-#test Ansible role with venafi_Certificate module
+# Test Ansible role with venafi_Certificate module
 test-vcert-role-tpp:
-#	#have to copy library to test our module, otherwise test playbook will not
+	# Have to copy library to test our module, otherwise test playbook will not
 	docker build ./tests --tag local-ansible-test
 	rm -rvf tests/library
 	cp -rv library tests/
@@ -39,7 +47,7 @@ test-vcert-role-tpp:
 	--extra-vars "credentials_file=tpp_credentials.yml docker_demo=true"
 
 test-vcert-role-cloud:
-#	#have to copy library to test our module, otherwise test playbook will not
+	# Have to copy library to test our module, otherwise test playbook will not
 	docker build ./tests --tag local-ansible-test
 	rm -rvf tests/library
 	cp -rv library tests/
@@ -48,7 +56,7 @@ test-vcert-role-cloud:
 	--extra-vars "credentials_file=cloud_credentials.yml docker_demo=true"
 
 test-vcert-role-fake:
-#	#have to copy library to test our module, otherwise test playbook will not
+	# Have to copy library to test our module, otherwise test playbook will not
 	docker build ./tests --tag local-ansible-test
 	rm -rvf tests/library
 	cp -rv library tests/
@@ -56,7 +64,7 @@ test-vcert-role-fake:
 	--vault-password-file vault-password.txt \
 	--extra-vars "credentials_file=fake_credentials.yml docker_demo=true"
 
-#test module with python using json for args
+# Test module with python using json for args
 test-python-module: test-python-module-fake test-python-module-tpp test-python-module-cloud
 
 test-python-module-tpp:
@@ -69,6 +77,6 @@ test-python-module-cloud:
 	python3 ./library/venafi_certificate.py venafi_certificate_cloud.json
 
 unit-test:
-	rm -rvf tests/library
-	cp -rv library tests/
+	#rm -rvf tests/library
+	#cp -rv library tests/
 	PYTHONPATH=./:$PYTHONPATH pytest tests/test_venafi_certificate.py
