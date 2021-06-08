@@ -27,18 +27,18 @@ module: venafi_policy
 short_description: Creates or deletes policies on Venafi platforms
 version_added: '1.0.0'
 description:
-    - This is the Venafi policy management module for working with Venafi as a Service (VaaS) 
+    - This is the Venafi policy management module for working with Venafi as a Service (VaaS)
       or Venafi Trusted Protection Platform (TPP).
-    - It allows to create a policy at I(zone) on the Venafi platform 
+    - It allows to create a policy at I(zone) on the Venafi platform
       from a file defined by I(policy_spec_path).
     - As of now, policy's delete operation is not supported.
-options:        
+options:
     zone:
         description:
             - The location where the Policy Specification will be created on the Venafi platform
         required: true
         type: str
-        
+
     policy_spec_path:
         description:
             - The path in the host of the Policy Specification file.
@@ -58,7 +58,7 @@ seealso:
 EXAMPLES = '''
 - name: Create a Policy in VaaS
 
-- name: Create a Policy in Venafi TPP 
+- name: Create a Policy in Venafi TPP
 '''
 
 RETURN = '''
@@ -67,7 +67,7 @@ policy_created:
     returned: always
     type: str
     sample: My_App\\my_policy
-    
+
 policy_deleted:
     description: Name of the policy deleted at the Venafi platform.
     returned: always

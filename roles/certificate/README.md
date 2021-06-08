@@ -196,8 +196,8 @@ For more information about Ansible Galaxy, go to https://galaxy.ansible.com/docs
       certificate_copy_private_key_to_remote: true
 ```
 
-For playbook examples look into [venafi-playbook-example.yml](tests/venafi-playbook-example.yml) file.
-For role examples look into [venafi-role-playbook-example.yml](tests/venafi-role-playbook-example.yml) file
+For playbook examples look into [venafi-playbook-example.yml](../../tests/certificate/venafi-playbook-example.yml) file.
+For role examples look into [venafi-role-playbook-example.yml](../../tests/certificate/venafi-role-playbook-example.yml) file
 
 For more information about using roles go to https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html
 

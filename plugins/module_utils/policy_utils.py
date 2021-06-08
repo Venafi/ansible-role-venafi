@@ -317,4 +317,3 @@ def _check_key_types(remote_values, local_values):
         return all(x.upper() in copy for x in remote_values)
     else:
         return False
-

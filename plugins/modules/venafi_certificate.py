@@ -26,7 +26,7 @@ ANSIBLE_METADATA = {
 DOCUMENTATION = '''
 ---
 module: venafi_certificate
-short_description: This is the Venafi certificate module for working with 
+short_description: This is the Venafi certificate module for working with
 Venafi as a Service (VaaS) or Venafi Trusted Protection Platform (TPP)
 version_added: "2.7"
 description:
@@ -119,7 +119,7 @@ options:
             - | If certificate will expire in less hours than this value
             module will try to renew it.
 extends_documentation_fragment:
-    - files    
+    - files
     - community.venafi.common_options
 author:
     - Alexander Rykalin (@arykalin) on behalf of Venafi Inc.

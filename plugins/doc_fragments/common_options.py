@@ -21,11 +21,11 @@ options:
     state:
         description:
             - Whether the Policy should be created or deleted,
-              taking action if the state is different from what is stated.
+            taking action if the state is different from what is stated.
         choices: [present, absent]
         default: present
         type: str
-    
+
     force:
         description:
             - Execute the task regardless of changes

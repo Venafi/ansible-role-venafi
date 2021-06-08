@@ -20,26 +20,28 @@ class ModuleDocFragment(object):
 options:
     test_mode:
         description:
-            - If C(true) a Fake connection will be created. Use only for testing purposes.
+            - If C(true) a Fake connection will be created.
+            - Use only for testing purposes.
         default: false
         type: bool
-    
-    url:        
+
+    url:
         description:
-            - The url of the Venafi platform to connect to. 
+            - The url of the Venafi platform to connect to.
             - Required for Venafi TPP.
-            - Optional for VaaS. Only set the url when trying to reach a custom VaaS platform (like development)
+            - Optional for VaaS. Only set the url when trying to reach
+            a custom VaaS platform (like development)
         default: ''
         type: str
-        
-    user:        
+
+    user:
         description:
             - The username to authenticate at Venafi TPP.
             - This option is deprecated. Use I(access_token) instead.
             - Ignored for VaaS.
         default: ''
         type: str
-    
+
     password:
         description:
             - The password to authenticate at Venafi TPP.
@@ -47,26 +49,27 @@ options:
             - Ignored for VaaS.
         default: ''
         type: str
-    
-    token:        
+
+    token:
         description:
             - The api key to authenticate at VaaS platform
             - Required for VaaS
             - Ignored for Venafi TPP
         default: ''
         type: str
-    
-    access_token:        
+
+    access_token:
         description:
             - The oauth token to authenticate at Venafi TPP.
             - Use it instead of user/password combination.
             - Ignored for VaaS.
         default: ''
         type: str
-    
-    trust_bundle:        
+
+    trust_bundle:
         description:
-            - the path to a PEM file to be used as trust anchor when communicating with Venafi TPP.
+            - the path to a PEM file to be used as trust anchor when
+            communicating with Venafi TPP.
             - Ignored for VaaS
         default: ''
         type: str
