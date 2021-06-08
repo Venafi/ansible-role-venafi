@@ -39,8 +39,8 @@ def _get_err_msg(name, local, remote):
             local_str += x.__str__() + ','
         for y in remote:
             remote_str += y.__str__() + ','
-        local_str = '[%s]' % local_str[:len(local_str)-1]
-        remote_str = '[%s]' % remote_str[:len(remote_str)-1]
+        local_str = '[%s]' % local_str[:len(local_str) - 1]
+        remote_str = '[%s]' % remote_str[:len(remote_str) - 1]
         return ERR_MSG % (name, local_str, remote_str)
     else:
         return ERR_MSG % (name, local, remote)
@@ -94,13 +94,13 @@ def check_policy_specification(local_ps, remote_ps):
         remote_p = remote_ps.policy
         p = '%s.' % FIELD_POLICY
 
-        list_fields.append((p+FIELD_DOMAINS, remote_p.domains, local_p.domains))
+        list_fields.append((p + FIELD_DOMAINS, remote_p.domains, local_p.domains))
 
-        value_fields.append((p+FIELD_WILDCARD_ALLOWED, local_p.wildcard_allowed, remote_p.wildcard_allowed))
-        value_fields.append((p+FIELD_MAX_VALID_DAYS, local_p.max_valid_days, remote_p.max_valid_days))
-        value_fields.append((p+FIELD_CERTIFICATE_AUTHORITY, local_p.certificate_authority,
+        value_fields.append((p + FIELD_WILDCARD_ALLOWED, local_p.wildcard_allowed, remote_p.wildcard_allowed))
+        value_fields.append((p + FIELD_MAX_VALID_DAYS, local_p.max_valid_days, remote_p.max_valid_days))
+        value_fields.append((p + FIELD_CERTIFICATE_AUTHORITY, local_p.certificate_authority,
                              remote_p.certificate_authority))
-        value_fields.append((p+FIELD_AUTOINSTALLED, local_p.auto_installed, remote_p.auto_installed))
+        value_fields.append((p + FIELD_AUTOINSTALLED, local_p.auto_installed, remote_p.auto_installed))
 
         # Validating Policy.Subject
         empty_local_subject = _is_empty_object(local_p.subject)
@@ -116,11 +116,11 @@ def check_policy_specification(local_ps, remote_ps):
             remote_subject = remote_p.subject
             p = '%s.%s.' % (FIELD_POLICY, FIELD_SUBJECT)
 
-            list_fields.append((p+FIELD_ORGS, local_subject.orgs, remote_subject.orgs))
-            list_fields.append((p+FIELD_ORG_UNITS, local_subject.org_units, remote_subject.org_units))
-            list_fields.append((p+FIELD_LOCALITIES, local_subject.localities, remote_subject.localities))
-            list_fields.append((p+FIELD_STATES, local_subject.states, remote_subject.states))
-            list_fields.append((p+FIELD_COUNTRIES, local_subject.countries, remote_subject.countries))
+            list_fields.append((p + FIELD_ORGS, local_subject.orgs, remote_subject.orgs))
+            list_fields.append((p + FIELD_ORG_UNITS, local_subject.org_units, remote_subject.org_units))
+            list_fields.append((p + FIELD_LOCALITIES, local_subject.localities, remote_subject.localities))
+            list_fields.append((p + FIELD_STATES, local_subject.states, remote_subject.states))
+            list_fields.append((p + FIELD_COUNTRIES, local_subject.countries, remote_subject.countries))
 
         # Validating Policy.KeyPair
         empty_local_kp = _is_empty_object(local_p.key_pair)
@@ -136,15 +136,15 @@ def check_policy_specification(local_ps, remote_ps):
             remote_kp = remote_p.key_pair
             p = '%s.%s.' % (FIELD_POLICY, FIELD_KEY_PAIR)
 
-            value_fields.append((p+FIELD_SERVICE_GENERATED, local_kp.service_generated, remote_kp.service_generated))
-            value_fields.append((p+FIELD_REUSE_ALLOWED, local_kp.reuse_allowed, remote_kp.reuse_allowed))
+            value_fields.append((p + FIELD_SERVICE_GENERATED, local_kp.service_generated, remote_kp.service_generated))
+            value_fields.append((p + FIELD_REUSE_ALLOWED, local_kp.reuse_allowed, remote_kp.reuse_allowed))
 
-            list_fields.append((p+FIELD_RSA_KEY_SIZES, local_kp.rsa_key_sizes, remote_kp.rsa_key_sizes))
-            list_fields.append((p+FIELD_ELLIPTIC_CURVES, local_kp.elliptic_curves, remote_kp.elliptic_curves))
+            list_fields.append((p + FIELD_RSA_KEY_SIZES, local_kp.rsa_key_sizes, remote_kp.rsa_key_sizes))
+            list_fields.append((p + FIELD_ELLIPTIC_CURVES, local_kp.elliptic_curves, remote_kp.elliptic_curves))
 
             if not _check_key_types(remote_kp.key_types, local_kp.key_types):
                 is_changed = True
-                msgs.append(_get_err_msg(p+FIELD_KEY_TYPES, local_kp.key_types, remote_kp.key_types))
+                msgs.append(_get_err_msg(p + FIELD_KEY_TYPES, local_kp.key_types, remote_kp.key_types))
 
         # Validating Policy.SubjectAltNames
         empty_local_sans = _is_empty_object(local_p.subject_alt_names)
@@ -160,11 +160,11 @@ def check_policy_specification(local_ps, remote_ps):
             remote_sans = remote_p.subject_alt_names
             p = '%s.%s.' % (FIELD_POLICY, FIELD_SUBJECT_ALT_NAMES)
 
-            value_fields.append((p+FIELD_DNS_ALLOWED, local_sans.dns_allowed, remote_sans.dns_allowed))
-            value_fields.append((p+FIELD_EMAIL_ALLOWED, local_sans.email_allowed, remote_sans.email_allowed))
-            value_fields.append((p+FIELD_IP_ALLOWED, local_sans.ip_allowed, remote_sans.ip_allowed))
-            value_fields.append((p+FIELD_UPN_ALLOWED, local_sans.upn_allowed, remote_sans.upn_allowed))
-            value_fields.append((p+FIELD_URI_ALLOWED, local_sans.uri_allowed, remote_sans.uri_allowed))
+            value_fields.append((p + FIELD_DNS_ALLOWED, local_sans.dns_allowed, remote_sans.dns_allowed))
+            value_fields.append((p + FIELD_EMAIL_ALLOWED, local_sans.email_allowed, remote_sans.email_allowed))
+            value_fields.append((p + FIELD_IP_ALLOWED, local_sans.ip_allowed, remote_sans.ip_allowed))
+            value_fields.append((p + FIELD_UPN_ALLOWED, local_sans.upn_allowed, remote_sans.upn_allowed))
+            value_fields.append((p + FIELD_URI_ALLOWED, local_sans.uri_allowed, remote_sans.uri_allowed))
 
     # Validating Defaults
     empty_local_d = _is_empty_object(local_ps.defaults)
@@ -180,8 +180,8 @@ def check_policy_specification(local_ps, remote_ps):
         remote_d = remote_ps.defaults
         p = '%s.' % FIELD_DEFAULTS
 
-        value_fields.append((p+FIELD_DEFAULT_DOMAIN, local_d.domain, remote_d.domain))
-        value_fields.append((p+FIELD_DEFAULT_AUTOINSTALLED, local_d.auto_installed, remote_d.auto_installed))
+        value_fields.append((p + FIELD_DEFAULT_DOMAIN, local_d.domain, remote_d.domain))
+        value_fields.append((p + FIELD_DEFAULT_AUTOINSTALLED, local_d.auto_installed, remote_d.auto_installed))
 
         # Validating Defaults.DefaultSubject
         empty_local_ds = _is_empty_object(local_d.subject)
@@ -199,10 +199,10 @@ def check_policy_specification(local_ps, remote_ps):
 
             list_fields.append((remote_ds.org_units, local_ds.org_units))
 
-            value_fields.append((p+FIELD_DEFAULT_ORG, local_ds.org, remote_ds.org))
-            value_fields.append((p+FIELD_DEFAULT_LOCALITY, local_ds.locality, remote_ds.locality))
-            value_fields.append((p+FIELD_DEFAULT_STATE, local_ds.state, remote_ds.state))
-            value_fields.append((p+FIELD_DEFAULT_COUNTRY, local_ds.country, remote_ds.country))
+            value_fields.append((p + FIELD_DEFAULT_ORG, local_ds.org, remote_ds.org))
+            value_fields.append((p + FIELD_DEFAULT_LOCALITY, local_ds.locality, remote_ds.locality))
+            value_fields.append((p + FIELD_DEFAULT_STATE, local_ds.state, remote_ds.state))
+            value_fields.append((p + FIELD_DEFAULT_COUNTRY, local_ds.country, remote_ds.country))
 
         # Validating Defaults.DefaultKeyPair
         empty_local_dkp = _is_empty_object(local_d.key_pair)
@@ -218,14 +218,14 @@ def check_policy_specification(local_ps, remote_ps):
             remote_dkp = remote_d.key_pair
             p = '%s.%s.' % (FIELD_DEFAULTS, FIELD_DEFAULT_KEY_PAIR)
 
-            value_fields.append((p+FIELD_DEFAULT_ELLIPTIC_CURVE, local_dkp.elliptic_curve, remote_dkp.elliptic_curve))
-            value_fields.append((p+FIELD_DEFAULT_RSA_KEY_SIZE, local_dkp.rsa_key_size, remote_dkp.rsa_key_size))
-            value_fields.append((p+FIELD_DEFAULT_SERVICE_GENERATED, local_dkp.service_generated,
+            value_fields.append((p + FIELD_DEFAULT_ELLIPTIC_CURVE, local_dkp.elliptic_curve, remote_dkp.elliptic_curve))
+            value_fields.append((p + FIELD_DEFAULT_RSA_KEY_SIZE, local_dkp.rsa_key_size, remote_dkp.rsa_key_size))
+            value_fields.append((p + FIELD_DEFAULT_SERVICE_GENERATED, local_dkp.service_generated,
                                  remote_dkp.service_generated))
 
             if local_dkp.key_type.upper() != remote_dkp.key_type.upper():
                 is_changed = True
-                msgs.append(_get_err_msg(p+FIELD_DEFAULT_KEY_TYPE, local_dkp.key_type, remote_dkp.key_type))
+                msgs.append(_get_err_msg(p + FIELD_DEFAULT_KEY_TYPE, local_dkp.key_type, remote_dkp.key_type))
 
     for name, local, remote in list_fields:
         if not _check_list(remote, local):

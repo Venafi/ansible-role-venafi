@@ -495,8 +495,7 @@ class VCertificate:
             self.changed_message.append(
                 "Certificate expiration date %s "
                 "is set to future from server time %s."
-                % (cert.not_valid_before -
-                   datetime.timedelta(hours=24),
+                % (cert.not_valid_before - datetime.timedelta(hours=24),
                    (datetime.datetime.now()))
             )
             return False
