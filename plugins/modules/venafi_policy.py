@@ -85,9 +85,9 @@ try:
     from ansible_collections.community.venafi.plugins.module_utils.policy_utils \
         import check_policy_specification
 except ImportError:
-    from module_utils.common_utils \
+    from plugins.module_utils.common_utils \
         import get_venafi_connection, module_common_argument_spec, venafi_common_argument_spec
-    from module_utils.policy_utils import check_policy_specification
+    from plugins.module_utils.policy_utils import check_policy_specification
 
 HAS_VCERT = True
 try:

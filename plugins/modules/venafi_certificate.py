@@ -243,7 +243,7 @@ try:
     from ansible_collections.community.venafi.plugins.module_utils.common_utils \
         import get_venafi_connection, module_common_argument_spec, venafi_common_argument_spec
 except ImportError:
-    from module_utils.common_utils \
+    from plugins.module_utils.common_utils \
         import get_venafi_connection, module_common_argument_spec, venafi_common_argument_spec
 
 HAS_VCERT = HAS_CRYPTOGRAPHY = True

@@ -2,7 +2,7 @@ import unittest
 import shutil
 import os
 from collections import namedtuple, defaultdict
-from modules.venafi_certificate import VCertificate
+from plugins.modules.venafi_certificate import VCertificate
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
