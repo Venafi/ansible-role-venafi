@@ -14,7 +14,7 @@ lint:
   name: yamllint
 platforms:
   - name: instance
-    image: python:3.7
+    image: python:3.7.10
 provisioner:
   name: ansible
   log: true
