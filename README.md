@@ -2,7 +2,7 @@
 [![Apache 2.0 License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 ![Community Supported](https://img.shields.io/badge/Support%20Level-Community-brightgreen)
 ![Compatible with TPP 17.3+ & VaaS](https://img.shields.io/badge/Compatibility-TPP%2017.3+%20%26%20VaaS-f9a90c)  
-_:warning: **This community-supported open source project has reached its END-OF-LIFE, and as of May 30th 2025, this project is deprecated and will no longer be maintained. Please use **[Ansible Collection for Venafi](https://github.com/Venafi/ansible-collection-venafi)** instead. Switching over is easy, simply install the `venafi.machine_identity` collection using Ansible Galaxy and replace `role: venafi.ansible_role_venafi` with `role: venafi.machine_identity.certificate` in your playbooks._
+_:warning: **This community-supported open source project has reached its END-OF-LIFE, and as of May 30th 2025, this project is deprecated and will no longer be maintained**. Please use **[Ansible Collection for Venafi](https://github.com/Venafi/ansible-collection-venafi)** instead. Switching over is easy, simply install the `venafi.machine_identity` collection using Ansible Galaxy and replace `role: venafi.ansible_role_venafi` with `role: venafi.machine_identity.certificate` in your playbooks._
 
 # Venafi Role for Ansible
 
